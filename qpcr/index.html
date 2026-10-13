@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>qPCR ΔΔCt calculator: fold change with statistics | Benchfit</title>
+<meta name="description" content="Calculate qPCR relative expression online: 2^-ΔΔCt and efficiency-corrected Pfaffl, multiple reference genes, technical replicate QC, confidence intervals, Welch t-tests with Holm correction and publication figures. Paste your instrument export.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/bf.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap">
+  <div class="tool-head">
+    <div class="t">
+      <h1>qPCR relative expression</h1>
+      <p>Paste the Ct table from your instrument. Benchfit averages technical replicates, normalises to one or more reference genes, corrects for primer efficiency and gives fold changes with confidence intervals and corrected p-values.</p>
+    </div>
+    <div class="acts">
+      <button class="btn small ghost" data-project="open">Open project</button>
+      <button class="btn small ghost" data-project="save">Save project <span class="lock">PRO</span></button>
+    </div>
+  </div>
+
+  <div class="app" id="tool">
+    <aside class="card side">
+      <h2>Ct values</h2>
+      <div class="examples" id="qp-examples"></div>
+      <div class="field">
+        <label for="qp-data">One row per well</label>
+        <textarea id="qp-data" data-state spellcheck="false" placeholder="Sample	Group	Gene	Ct&#10;Ctrl_1	Control	GAPDH	17.9"></textarea>
+        <div class="ta-tools"><span class="hint" style="margin:0;max-width:230px">Columns: Sample, Group (optional), Gene or Target, Ct or Cq.</span><button type="button" class="linkbtn" id="qp-file">Open CSV file</button></div>
+      </div>
+      <input type="hidden" id="qp-cfg" data-state>
+      <h2>Normalisation</h2>
+      <div class="field"><span class="lbl">Reference genes</span><div id="qp-refs"></div></div>
+      <div class="field"><label for="qp-ctrl">Control group (calibrator)</label><select id="qp-ctrl"></select></div>
+      <h2>Primer efficiency</h2>
+      <div id="qp-eff"></div>
+      <button type="button" class="linkbtn" id="qp-effcalc">Estimate efficiency from a dilution series</button>
+      <h2>Plot</h2>
+      <label class="check"><input type="checkbox" id="qp-stars" data-state checked> Significance stars</label>
+    </aside>
+
+    <section class="main">
+      <div class="card chart-card">
+        <div class="chart-bar"><h3>Fold change</h3>
+          <div class="exp">
+            <button class="btn small ghost" data-fig="png-free">PNG</button>
+            <button class="btn small ghost" data-fig="svg">SVG <span class="lock">PRO</span></button>
+            <button class="btn small ghost" data-fig="png">600 dpi <span class="lock">PRO</span></button>
+          </div></div>
+        <div class="chart-host" id="qp-chart"></div>
+        <div class="chart-foot"><span id="qp-chartnote"></span></div>
+      </div>
+      <div id="qp-results"></div>
+      <div class="card rep" id="qp-report"></div>
+    </section>
+  </div>
+
+  <section class="card method">
+    <h2>How the quantification works</h2>
+    <div class="grid">
+      <div>
+        <p>For each biological sample, technical replicate Ct values are averaged. Each gene's relative quantity is computed against the mean Ct of the control group, using that gene's amplification efficiency <i>E</i> (2 = 100%):</p>
+        <p class="eq">RQ = <i>E</i><sup>C<sub>t,control</sub> − C<sub>t,sample</sub></sup>, &nbsp; NRQ = RQ<sub>target</sub> / geomean(RQ<sub>reference</sub>)</p>
+        <p>With 100% efficiency and one reference gene this is exactly 2<sup>−ΔΔC<sub>t</sub></sup> (Livak); with measured efficiencies it is the Pfaffl method, generalised to several reference genes (Hellemans et al., 2007).</p>
+      </div>
+      <div>
+        <p><b>Statistics</b> are done on log<sub>2</sub>(NRQ), where qPCR data are approximately normal. Fold changes are geometric means, intervals are <i>t</i>-based and back-transformed, and each group is compared with the control by Welch's t-test with Holm correction within each gene.</p>
+        <p><b>Quality control</b> flags technical replicates more than 0.5 cycles apart, undetermined wells and samples missing a reference gene.</p>
+        <p><b>Validated</b> against SciPy and a hand calculation of 2<sup>−ΔΔCt</sup>. <a href="../validation/">Validation report.</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer data-bf></footer>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/stats.js"></script>
+<script src="../assets/js/engines.js"></script>
+<script src="../assets/js/plot.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/qpcr.js"></script>
+</body>
+</html>

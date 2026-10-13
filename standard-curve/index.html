@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ELISA standard curve calculator: 4PL, 5PL, linear | Benchfit</title>
+<meta name="description" content="Fit ELISA, BCA and Bradford standard curves (linear, quadratic, 4PL, 5PL with 1/Y² weighting) and interpolate sample concentrations with dilution factors, confidence intervals, back-calculated recovery and LOD/LOQ. Runs in your browser.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/bf.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap">
+  <div class="tool-head">
+    <div class="t">
+      <h1>Standard curves and interpolation</h1>
+      <p>ELISA, BCA, Bradford or any calibration. Fit the standards, read off your samples with dilution factors and confidence intervals, and check back-calculated recovery, LOD and LOQ.</p>
+    </div>
+    <div class="acts">
+      <button class="btn small ghost" data-project="open">Open project</button>
+      <button class="btn small ghost" data-project="save">Save project <span class="lock">PRO</span></button>
+    </div>
+  </div>
+
+  <div class="app" id="tool">
+    <aside class="card side">
+      <h2>Standards</h2>
+      <div class="examples" id="sc-examples"></div>
+      <div class="field">
+        <label for="sc-std">Concentration, then replicate signals</label>
+        <textarea id="sc-std" data-state spellcheck="false" style="min-height:160px" placeholder="Conc	OD	OD&#10;0	0.061	0.058&#10;15.6	0.112	0.118"></textarea>
+        <div class="ta-tools"><span class="hint" style="margin:0">Include the zero standard to get LOD and LOQ.</span><button type="button" class="linkbtn" id="sc-file">Open CSV file</button></div>
+      </div>
+      <input type="hidden" id="sc-excl" data-state>
+      <h2>Samples</h2>
+      <div class="field">
+        <label for="sc-unk">Name, dilution, replicate signals</label>
+        <textarea id="sc-unk" data-state spellcheck="false" style="min-height:130px" placeholder="Sample	Dilution	OD	OD&#10;Serum 1	2	0.412	0.398"></textarea>
+        <small>Keep the header row; a column named “Dilution” is applied to each sample.</small>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="sc-unit">Concentration unit</label><input type="text" id="sc-unit" data-state value="pg/mL"></div>
+        <div class="field"><label for="sc-ylabel">Signal label</label><input type="text" id="sc-ylabel" data-state value="OD 450 nm"></div>
+      </div>
+
+      <h2>Model</h2>
+      <div class="seg" role="radiogroup" aria-label="Model">
+        <label><input type="radio" name="sc-model" id="sc-mlin" value="linear" data-state>Linear</label>
+        <label><input type="radio" name="sc-model" id="sc-mquad" value="quadratic" data-state>Quadratic</label>
+        <label><input type="radio" name="sc-model" id="sc-m4" value="4pl" data-state checked>4PL</label>
+        <label><input type="radio" name="sc-model" id="sc-m5" value="5pl" data-state>5PL</label>
+      </div>
+      <div class="field" style="margin-top:12px"><label for="sc-weight">Weighting</label>
+        <select id="sc-weight" data-state><option value="none">None</option><option value="1/y">1/Y</option><option value="1/y2" selected>1/Y² (recommended for immunoassays)</option></select></div>
+      <h2>Plot</h2>
+      <label class="check"><input type="checkbox" id="sc-logx" data-state checked> Logarithmic concentration axis</label>
+      <label class="check"><input type="checkbox" id="sc-band" data-state checked> 95% confidence band</label>
+    </aside>
+
+    <section class="main">
+      <div class="card chart-card">
+        <div class="chart-bar"><h3>Standard curve</h3>
+          <div class="exp">
+            <button class="btn small ghost" data-fig="png-free">PNG</button>
+            <button class="btn small ghost" data-fig="svg">SVG <span class="lock">PRO</span></button>
+            <button class="btn small ghost" data-fig="png">600 dpi <span class="lock">PRO</span></button>
+          </div></div>
+        <div class="chart-host" id="sc-chart"></div>
+        <div class="chart-foot"><span id="sc-chartnote"></span></div>
+      </div>
+      <div id="sc-results"></div>
+      <div class="card rep" id="sc-report"></div>
+    </section>
+  </div>
+
+  <section class="card method">
+    <h2>How the calibration works</h2>
+    <div class="grid">
+      <div>
+        <p>Immunoassays are sigmoidal, so the four-parameter logistic is the standard model:</p>
+        <p class="eq"><i>Y</i> = <i>D</i> + (<i>A</i> − <i>D</i>) / (1 + (<i>X</i>/<i>C</i>)<sup><i>B</i></sup>)</p>
+        <p><i>A</i> is the signal at zero concentration, <i>D</i> the signal at saturation, <i>C</i> the inflection point and <i>B</i> the slope. The 5PL adds an asymmetry exponent <i>G</i>. Because the scatter grows with the signal, 1/<i>Y</i>² weighting keeps the low standards accurate.</p>
+      </div>
+      <div>
+        <p><b>Interpolation</b> inverts the fitted curve analytically. The 95% interval of each sample combines the curve's parameter covariance (delta method) with the standard error of the sample's replicates.</p>
+        <p><b>Quality checks:</b> back-calculated recovery of each standard (accepted within 80–120%), replicate CV, samples outside the calibrated range, and LOD/LOQ from the blank mean + 3 SD and + 10 SD.</p>
+        <p><b>Validated</b> against SciPy for weighted and unweighted fits. <a href="../validation/">Validation report.</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer data-bf></footer>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/stats.js"></script>
+<script src="../assets/js/engines.js"></script>
+<script src="../assets/js/plot.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/stdcurve.js"></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IC50 and EC50 calculator: dose–response curve fitting | Benchfit</title>
+<meta name="description" content="Fit dose–response curves online and get IC50 or EC50 values with 95% confidence intervals. Four- and five-parameter logistic models, replicates, 96-well plate import, outlier exclusion and publication figures. Runs in your browser.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/bf.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap">
+  <div class="tool-head">
+    <div class="t">
+      <h1>Dose–response and IC50</h1>
+      <p>Paste concentrations and responses from Excel or a plate reader. Benchfit fits each compound, reports the IC50 or EC50 with its confidence interval, tests whether potencies differ and writes the methods for you.</p>
+    </div>
+    <div class="acts">
+      <button class="btn small ghost" data-project="open">Open project</button>
+      <button class="btn small ghost" data-project="save">Save project <span class="lock">PRO</span></button>
+    </div>
+  </div>
+
+  <div class="app" id="tool">
+    <aside class="card side">
+      <h2>Data</h2>
+      <div class="examples" id="dr-examples"></div>
+      <div class="field">
+        <label for="dr-data">Concentration, then replicate columns</label>
+        <textarea id="dr-data" data-state spellcheck="false" placeholder="Conc	Drug A	Drug A	Drug B	Drug B&#10;0.001	98	101	99	97&#10;0.01	95	93	99	100"></textarea>
+        <div class="ta-tools"><button type="button" class="linkbtn" id="dr-plate">Import a 96-well plate</button><button type="button" class="linkbtn" id="dr-file">Open CSV file</button></div>
+        <small>Columns that share a header name are replicates of one dataset. Without a header, all columns are one dataset. Blank cells are fine.</small>
+      </div>
+      <input type="hidden" id="dr-excl" data-state>
+      <div class="row2">
+        <div class="field"><label for="dr-unit">Concentration unit</label>
+          <select id="dr-unit" data-state><option>pM</option><option>nM</option><option selected>µM</option><option>mM</option><option>M</option></select></div>
+        <div class="field"><label for="dr-ylabel">Response label</label><input type="text" id="dr-ylabel" data-state value="Response"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="dr-islog" data-state> Concentrations are already log<sub>10</sub></label>
+
+      <h2>Normalisation</h2>
+      <label class="check"><input type="checkbox" id="dr-norm" data-state> Normalise to controls (0–100%)</label>
+      <div id="dr-normbox" class="row2" hidden>
+        <div class="field"><label for="dr-n100">100% signal</label><input type="number" id="dr-n100" data-state step="any" placeholder="vehicle mean"></div>
+        <div class="field"><label for="dr-n0">0% signal</label><input type="number" id="dr-n0" data-state step="any" placeholder="background mean"></div>
+      </div>
+
+      <h2>Model</h2>
+      <div class="seg" role="radiogroup" aria-label="Model">
+        <label><input type="radio" name="dr-model" id="dr-m4" value="4pl" data-state checked>4PL</label>
+        <label><input type="radio" name="dr-model" id="dr-m5" value="5pl" data-state>5PL</label>
+        <label><input type="radio" name="dr-model" id="dr-m3" value="3pl" data-state>Hill = 1</label>
+      </div>
+      <small class="hint">4PL is the standard choice. 5PL allows an asymmetric curve; use it only with many points.</small>
+      <div class="row2" style="margin-top:8px">
+        <div><label class="check"><input type="checkbox" id="dr-fixb" data-state> Fix bottom</label><input type="number" id="dr-bval" data-state value="0" step="any" aria-label="Bottom value"></div>
+        <div><label class="check"><input type="checkbox" id="dr-fixt" data-state> Fix top</label><input type="number" id="dr-tval" data-state value="100" step="any" aria-label="Top value"></div>
+      </div>
+      <div class="field"><label for="dr-ecx">Also report EC/IC at (%)</label><input type="text" id="dr-ecx" data-state value="80, 90" placeholder="e.g. 20, 80, 90"></div>
+
+      <h2>Plot</h2>
+      <div class="row2">
+        <div class="field"><label for="dr-show">Points</label><select id="dr-show" data-state><option value="sd">Mean ± SD</option><option value="sem">Mean ± SEM</option><option value="all">Every replicate</option></select></div>
+        <div class="field"><label class="lbl">&nbsp;</label><label class="check" style="margin-top:9px"><input type="checkbox" id="dr-band" data-state checked> 95% band</label></div>
+      </div>
+    </aside>
+
+    <section class="main">
+      <div class="card chart-card">
+        <div class="chart-bar"><h3>Concentration–response</h3>
+          <div class="exp">
+            <button class="btn small ghost" data-fig="png-free">PNG</button>
+            <button class="btn small ghost" data-fig="svg">SVG <span class="lock">PRO</span></button>
+            <button class="btn small ghost" data-fig="png">600 dpi <span class="lock">PRO</span></button>
+          </div></div>
+        <div class="chart-host" id="dr-chart"></div>
+        <div class="chart-foot"><span id="dr-chartnote"></span></div>
+      </div>
+      <div id="dr-results"></div>
+      <div class="card rep" id="dr-report"></div>
+    </section>
+  </div>
+
+  <section class="card method">
+    <h2>How the fit works</h2>
+    <div class="grid">
+      <div>
+        <p>Each dataset is fitted by weighted nonlinear least squares (Levenberg–Marquardt, several starting points) to the four-parameter logistic</p>
+        <p class="eq"><i>Y</i> = Bottom + (Top − Bottom) / (1 + 10<sup>(log EC50 − <i>X</i>) · <i>n</i><sub>H</sub></sup>)</p>
+        <p>with <i>X</i> = log<sub>10</sub>[concentration]. A negative Hill slope <i>n</i><sub>H</sub> describes inhibition, so the midpoint is reported as the IC50. Fitting log EC50 rather than EC50 gives the asymmetric confidence intervals that potency values actually have.</p>
+      </div>
+      <div>
+        <p><b>Confidence intervals</b> come from the asymptotic covariance matrix, <i>t</i>-distributed with <i>n</i> − <i>k</i> degrees of freedom. EC80 and other levels use the delta method.</p>
+        <p><b>Comparing compounds</b> uses the extra-sum-of-squares F test: the separate fits are compared with a global fit in which all datasets share one EC50.</p>
+        <p><b>Validated</b> against SciPy's <code>curve_fit</code>: parameters agree to 6 significant figures and standard errors to 0.1%. <a href="../validation/">See the validation report.</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer data-bf></footer>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/stats.js"></script>
+<script src="../assets/js/engines.js"></script>
+<script src="../assets/js/plot.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/dose.js"></script>
+</body>
+</html>

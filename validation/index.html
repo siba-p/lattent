@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Validation | Benchfit</title>
+<meta name="description" content="How Benchfit results are checked against SciPy, the reference scientific Python library.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/bf.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap page">
+  <h1>Validation</h1>
+  <p>Benchfit's analysis engine is a small, readable JavaScript library. The same reference datasets are fitted by Benchfit and by <a href="https://scipy.org">SciPy</a>, the standard scientific Python library, and the results must agree before any release. The test suite (<code>tests/run-engines.js</code> and <code>tests/check_scipy.py</code>) simulates data with known parameters and noise, fits it in both, and compares estimates, standard errors, derived quantities and p-values.</p>
+  <div class="tbl-wrap"><table class="t"><thead><tr><th>Check</th><th class="l">Reference</th><th class="l">Largest relative difference</th></tr></thead><tbody><tr><td>Dose–response, 4PL inhibitor (30 points)</td><td class="l">scipy.optimize.curve_fit</td><td class="l"><span class="flag ok">pass</span> parameters 1×10⁻⁸, SE 3×10⁻⁸</td></tr><tr><td>Dose–response, 4PL agonist</td><td class="l">curve_fit</td><td class="l"><span class="flag ok">pass</span> parameters < 10⁻⁶, SE < 10⁻⁵</td></tr><tr><td>Dose–response, 5PL asymmetric</td><td class="l">curve_fit</td><td class="l"><span class="flag ok">pass</span> parameters < 10⁻⁶, SE < 10⁻³</td></tr><tr><td>EC80 / IC80 from the fitted curve</td><td class="l">closed-form inverse of the 4PL</td><td class="l"><span class="flag ok">pass</span> < 10⁻⁶</td></tr><tr><td>Standard curve, 4PL unweighted</td><td class="l">curve_fit</td><td class="l"><span class="flag ok">pass</span> parameters < 10⁻⁶, SE < 10⁻³</td></tr><tr><td>Standard curve, 4PL with 1/Y² weighting</td><td class="l">curve_fit with sigma = Y</td><td class="l"><span class="flag ok">pass</span> parameters < 10⁻⁶, SE < 10⁻³</td></tr><tr><td>Sample interpolation</td><td class="l">analytic 4PL inverse</td><td class="l"><span class="flag ok">pass</span> < 10⁻⁶</td></tr><tr><td>Linear standard curve</td><td class="l">scipy.stats.linregress</td><td class="l"><span class="flag ok">pass</span> parameters < 10⁻⁸, SE < 10⁻⁵</td></tr><tr><td>Michaelis–Menten</td><td class="l">curve_fit</td><td class="l"><span class="flag ok">pass</span> parameters < 10⁻⁴, SE < 10⁻³</td></tr><tr><td>Substrate inhibition, Hill</td><td class="l">curve_fit</td><td class="l"><span class="flag ok">pass</span> parameters < 10⁻⁴</td></tr><tr><td>Competitive, non-competitive, uncompetitive, mixed (global)</td><td class="l">curve_fit on stacked data</td><td class="l"><span class="flag ok">pass</span> parameters < 10⁻⁴, SE < 10⁻³</td></tr><tr><td>Mechanism selection by AICc</td><td class="l">known simulated mechanism</td><td class="l"><span class="flag ok">pass</span> competitive correctly preferred</td></tr><tr><td>Student t CDF and quantiles</td><td class="l">scipy.stats.t</td><td class="l"><span class="flag ok">pass</span> < 10⁻⁷</td></tr><tr><td>Welch's t-test</td><td class="l">scipy.stats.ttest_ind(equal_var=False)</td><td class="l"><span class="flag ok">pass</span> < 10⁻⁶</td></tr><tr><td>qPCR fold change (2^−ΔΔCt)</td><td class="l">hand calculation</td><td class="l"><span class="flag ok">pass</span> < 10⁻⁹</td></tr><tr><td>qPCR p-value</td><td class="l">ttest_ind on −ΔΔCt</td><td class="l"><span class="flag ok">pass</span> < 10⁻⁶</td></tr></tbody></table></div>
+  <h2>What is computed and how</h2>
+  <ul>
+    <li><b>Fitting:</b> Levenberg–Marquardt nonlinear least squares with central-difference Jacobians and several starting points. Standard errors come from s²(JᵀWJ)⁻¹, as in SciPy and GraphPad Prism.</li>
+    <li><b>Confidence intervals:</b> t-distributed with n − k degrees of freedom. IC50 and EC50 intervals are computed on log concentration; derived quantities (ECx, interpolated concentrations, k<sub>cat</sub>) use the delta method.</li>
+    <li><b>Model comparison:</b> extra-sum-of-squares F test for nested dose–response models; corrected Akaike criterion and Akaike weights for kinetic models.</li>
+    <li><b>qPCR:</b> efficiency-corrected relative quantities normalised to the geometric mean of the reference genes (Hellemans et al., <i>Genome Biology</i> 2007), statistics on log₂ scale, Holm correction.</li>
+  </ul>
+  <h2>Limits</h2>
+  <p>Benchfit is research software. It is not validated for GLP, 21 CFR Part 11 or clinical diagnostic use. Asymptotic confidence intervals assume roughly normal residuals and a well-determined fit; Benchfit warns when a parameter is poorly constrained, but judgement is still yours.</p>
+</main>
+<footer data-bf></footer>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/stats.js"></script>
+<script src="../assets/js/plot.js"></script>
+<script src="../assets/js/shell.js"></script>
+</body>
+</html>

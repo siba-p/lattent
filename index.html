@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Benchfit: IC50, ELISA, enzyme kinetics and qPCR analysis in your browser</title>
+<meta name="description" content="Analyse the assays you run every week (dose–response IC50, ELISA standard curves, enzyme kinetics, qPCR ΔΔCt) with correct statistics, publication figures and auto-written methods. Free to use; runs in your browser.">
+<meta property="og:title" content="Benchfit: from plate reader to paper figure in a minute">
+<meta property="og:description" content="IC50s, standard curves, enzyme kinetics and qPCR, fitted correctly, plotted beautifully, written up for your methods section.">
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/bf.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <span class="eyebrow"><b>Free</b> No sign-up · nothing uploaded</span>
+      <h1>From plate reader to <em>paper figure</em> in a minute.</h1>
+      <p class="lede">IC50s, ELISA standard curves, enzyme kinetics and qPCR, fitted with the right statistics, plotted to journal standard and written up for your methods section.</p>
+      <div class="cta">
+        <a class="btn primary big" href="dose-response/">Fit a dose–response curve</a>
+        <a class="btn big" href="#tools">See all tools</a>
+      </div>
+      <div class="assure"><span>Validated against SciPy</span><span>Data stays on your computer</span><span>Works offline once loaded</span></div>
+    </div>
+    <div class="card demo" aria-label="Example analysis">
+      <div class="demo-top"><i></i><i></i><i></i><span>dose-response · 3 compounds</span></div>
+      <div class="chart-host" id="demo-chart"></div>
+      <div class="demo-kpis" id="demo-kpis"></div>
+    </div>
+  </section>
+
+  <section class="section" id="tools">
+    <div class="sec-head"><h2>Four analyses every lab runs, done properly</h2><p>Each tool takes data straight from Excel or the instrument, explains what it did and flags what looks wrong.</p></div>
+    <div class="tools-grid">
+      <a class="card tool-card" href="dose-response/">
+        <span class="ic"><svg viewBox="0 0 26 26" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M3 6c6 0 6 14 10 14s4-14 10-14" transform="matrix(1 0 0 -1 0 26)"/></svg></span>
+        <h3>Dose–response and IC50</h3>
+        <p>IC50 and EC50 with confidence intervals for any number of compounds.</p>
+        <ul><li>4PL, 5PL, fixed plateaus, normalisation</li><li>96-well plate import, outlier exclusion</li><li>F test: do the potencies differ?</li></ul>
+        <span class="go">Open tool →</span>
+      </a>
+      <a class="card tool-card" href="standard-curve/">
+        <span class="ic"><svg viewBox="0 0 26 26" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M3 22C10 21 12 6 23 4"/><circle cx="8" cy="19" r="1.6" fill="var(--brand)"/><circle cx="13" cy="12" r="1.6" fill="var(--brand)"/><circle cx="18" cy="7" r="1.6" fill="var(--brand)"/></svg></span>
+        <h3>Standard curves</h3>
+        <p>ELISA, BCA, Bradford: sample concentrations you can defend.</p>
+        <ul><li>Linear, quadratic, 4PL, 5PL, 1/Y² weighting</li><li>Dilution factors and confidence intervals</li><li>Recovery, LOD/LOQ, out-of-range flags</li></ul>
+        <span class="go">Open tool →</span>
+      </a>
+      <a class="card tool-card" href="enzyme-kinetics/">
+        <span class="ic"><svg viewBox="0 0 26 26" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M3 23c3-12 8-16 20-17"/><path d="M3 23c4-8 9-11 20-11" opacity=".5"/></svg></span>
+        <h3>Enzyme kinetics</h3>
+        <p>K<sub>m</sub>, V<sub>max</sub>, k<sub>cat</sub> and K<sub>i</sub>, from the curve and not a Lineweaver–Burk line.</p>
+        <ul><li>Michaelis–Menten, substrate inhibition, Hill</li><li>Global fit of inhibition mechanism</li><li>Model choice by AICc</li></ul>
+        <span class="go">Open tool →</span>
+      </a>
+      <a class="card tool-card" href="qpcr/">
+        <span class="ic"><svg viewBox="0 0 26 26" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M5 20v-6M11 20V6M17 20v-9M23 20v-4"/></svg></span>
+        <h3>qPCR relative expression</h3>
+        <p>Fold change from Ct values, with statistics that hold up in review.</p>
+        <ul><li>ΔΔCt and efficiency-corrected Pfaffl</li><li>Several reference genes, replicate QC</li><li>CIs, Welch tests, Holm correction</li></ul>
+        <span class="go">Open tool →</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sec-head"><h2>Three steps, no installation</h2></div>
+    <div class="steps">
+      <div class="card step"><h3>Paste</h3><p>Copy the block from Excel or your instrument export, or import a 96-well plate. Replicates and blank cells are handled.</p></div>
+      <div class="card step"><h3>Check</h3><p>See the fit, the confidence intervals and plain-language warnings: an extrapolated IC50, a failed standard, noisy technical replicates.</p></div>
+      <div class="card step"><h3>Publish</h3><p>Export a 600-dpi or vector figure and paste methods, results and figure legend, written for you with your numbers.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sec-head"><h2>Built for the bench, checked like research code</h2></div>
+    <div class="why">
+      <div><h3>Your data never leaves the browser</h3><p>Every calculation runs on your computer. Nothing is uploaded, so unpublished results and patient-derived samples stay private.</p></div>
+      <div><h3>Statistics you can defend</h3><p>Nonlinear least squares with proper confidence intervals, model selection and multiple-comparison correction, validated against SciPy to six significant figures.</p></div>
+      <div><h3>Writing included</h3><p>Methods paragraphs name the model, weighting, tests and corrections, the details reviewers ask for and people forget.</p></div>
+      <div><h3>Journal-ready figures</h3><p>Colour-blind-safe palette, consistent typography and exports at 600 dpi or as editable SVG for Illustrator and Inkscape.</p></div>
+      <div><h3>Nothing to install or maintain</h3><p>Works on any lab computer, including locked-down institutional machines and Chromebooks. Open the page and paste.</p></div>
+      <div><h3>Made by a scientist</h3><p>Built by a computational scientist with a PhD who has spent years fitting models to noisy data and writing up the methods.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <div class="sec-head"><h2>Free for analysis. Pro when you publish.</h2><p>Every fit, table and warning is free with no limits. Pro adds the outputs that go into papers and reports.</p></div>
+    <div class="pricing">
+      <div class="card price">
+        <h3>Free</h3>
+        <div class="amt">$0</div>
+        <p class="sub">for everyone, forever</p>
+        <ul><li>All four tools, unlimited analyses</li><li>Parameters, intervals, tests, QC flags</li><li>On-screen charts and standard PNG</li><li>No account</li></ul>
+        <a class="btn" href="dose-response/">Start analysing</a>
+      </div>
+      <div class="card price best">
+        <h3>Pro <span>Best value</span></h3>
+        <div class="amt">$<span data-price="yearly">49</span><small> / year</small></div>
+        <p class="sub">or $<span data-price="monthly">7</span> per month</p>
+        <ul><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods, results and legend</li><li>CSV results and HTML reports</li><li>Project files to save and reopen</li></ul>
+        <a class="btn primary" data-buy="yearly" href="account/">Start 7-day free trial</a>
+      </div>
+      <div class="card price">
+        <h3>Lab</h3>
+        <div class="amt">$<span data-price="lab">249</span><small> / year</small></div>
+        <p class="sub">up to 10 people, one invoice</p>
+        <ul><li>Everything in Pro for the whole group</li><li>One licence key, ten activations</li><li>Invoice for grant or departmental funds</li><li>Priority support</li></ul>
+        <a class="btn" data-buy="lab" href="account/">Start 7-day free trial</a>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:14px">Prices in US dollars. Payments, invoices and sales tax are handled by Lemon Squeezy, our merchant of record. 14-day refund, no questions.</p>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="sec-head"><h2>Questions</h2></div>
+    <div class="faq">
+      <details><summary>Is my data uploaded anywhere?</summary><p>No. The analysis code runs in your browser and your data stays in that tab, plus an optional draft saved in your browser's local storage. The only network request Benchfit makes is to check a Pro licence key.</p></details>
+      <details><summary>How do I know the numbers are right?</summary><p>Every model is checked against SciPy, the reference scientific Python library, on test datasets. Parameters agree to six significant figures and standard errors to 0.1%. The <a href="validation/">validation page</a> lists every check.</p></details>
+      <details><summary>Can I use the free version for a paper?</summary><p>Yes. The analysis is identical in the free and Pro versions. Free PNG figures carry a small “Made with Benchfit” mark; Pro removes it, adds high-resolution and vector exports and writes the methods text.</p></details>
+      <details><summary>How should I cite Benchfit?</summary><p>The auto-written methods include a citation line. Otherwise: “Analyses were performed with Benchfit (siba-p.github.io/benchfit).”</p></details>
+      <details><summary>Can my lab pay with a purchase order or grant?</summary><p>Yes. Lemon Squeezy issues a proper invoice with your institution's details and tax ID. For purchase orders, write to us from the licence page.</p></details>
+      <details><summary>Is it suitable for GLP or clinical diagnostics?</summary><p>No. Benchfit is a research tool. It is not validated under 21 CFR Part 11 or GLP and must not be used for diagnostic decisions.</p></details>
+      <details><summary>Does it work offline?</summary><p>Once a tool page has loaded, the analysis needs no connection, so you can keep working on the bus or in a cold room.</p></details>
+    </div>
+  </section>
+
+  <section class="band">
+    <div><h2>Your next figure is one paste away.</h2><p>No account, no installation, nothing uploaded.</p></div>
+    <a class="btn big" href="dose-response/">Open Benchfit</a>
+  </section>
+</main>
+<footer data-bf></footer>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/stats.js"></script>
+<script src="assets/js/engines.js"></script>
+<script src="assets/js/plot.js"></script>
+<script src="assets/js/shell.js"></script>
+<script>
+(function () {
+  var C = window.BF_CONFIG, S = BF.stats, E = BF.engines, P = BF.plot;
+  document.querySelectorAll('[data-price]').forEach(function (el) { el.textContent = C.prices[el.dataset.price]; });
+  document.querySelectorAll('[data-buy]').forEach(function (a) {
+    var url = C.checkout[a.dataset.buy];
+    if (url) { a.href = url; a.textContent = a.dataset.buy === 'lab' ? 'Buy for your lab' : 'Get Pro'; a.target = '_blank'; a.rel = 'noopener'; }
+    else a.onclick = function (e) { e.preventDefault(); if (BF.pro.kind() === 'free') BF.pro.startTrial(); else BF.ui.upgrade(); };
+  });
+  var r = S.rng(11), sets = [['Compound A', [3, 99, Math.log10(0.042), -1.05]], ['Compound B', [6, 101, Math.log10(0.55), -0.9]], ['Reference', [1, 100, Math.log10(0.006), -1.3]]];
+  var concs = [0.0005, 0.0015, 0.0046, 0.014, 0.041, 0.12, 0.37, 1.1, 3.3, 10];
+  var res = sets.map(function (s) {
+    var pts = [];
+    concs.forEach(function (c) { for (var k = 0; k < 3; k++) pts.push({ conc: c, y: E.dose.models['4pl'].f(Math.log10(c), s[1]) + 4 * r.normal() }); });
+    return { name: s[0], pts: pts, fit: E.dose.fit(pts, { model: '4pl' }) };
+  });
+  function draw() {
+    var host = document.getElementById('demo-chart');
+    var W = Math.max(300, host.clientWidth), H = Math.round(W * 0.66);
+    var series = res.map(function (d, i) {
+      var m = E.groupMeans(d.pts.map(function (p) { return { x: Math.log10(p.conc), y: p.y }; }));
+      var f = d.fit.fit, xs = [];
+      for (var k = 0; k < 120; k++) xs.push(-3.55 + 5.1 * k / 119);
+      return { name: d.name, ci: i, points: m.map(function (q) { return { x: q.x, y: q.y, err: q.sd }; }), curve: xs.map(function (x) { return [x, f.f(x, f.p)]; }), band: S.band(f, xs.filter(function (_, k) { return k % 5 === 0; })) };
+    });
+    host.innerHTML = P.xy({ x: { label: 'Concentration (µM)', log: true, min: -3.55, max: 1.55 }, y: { label: 'Activity (%)' }, series: series,
+      vguides: res.map(function (d, i) { return { x: d.fit.logEC50, y: d.fit.fit.f(d.fit.logEC50, d.fit.fit.p), ci: i }; }) }, P.screen(), W, H).svg;
+  }
+  document.getElementById('demo-kpis').innerHTML = res.map(function (d, i) {
+    return '<div><span class="sw" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--s' + (i + 1) + ');margin-right:5px"></span>' + d.name + '<b>IC50 ' + P.num(d.fit.ec50, 2) + ' µM</b></div>';
+  }).join('');
+  draw();
+  var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(draw, 150); });
+})();
+</script>
+</body>
+</html>

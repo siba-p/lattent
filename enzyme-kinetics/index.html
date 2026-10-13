@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Michaelis–Menten and Ki calculator: enzyme kinetics fitting | Benchfit</title>
+<meta name="description" content="Fit Michaelis–Menten, substrate-inhibition and Hill kinetics online. Get Km, Vmax, kcat and kcat/Km with confidence intervals, and determine Ki and the inhibition mechanism by global fitting with AICc model selection.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/bf.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap">
+  <div class="tool-head">
+    <div class="t">
+      <h1>Enzyme kinetics</h1>
+      <p>K<sub>m</sub>, V<sub>max</sub>, k<sub>cat</sub> and catalytic efficiency from initial rates, plus K<sub>i</sub> and the inhibition mechanism from a global fit, with the model choice justified by AICc.</p>
+    </div>
+    <div class="acts">
+      <button class="btn small ghost" data-project="open">Open project</button>
+      <button class="btn small ghost" data-project="save">Save project <span class="lock">PRO</span></button>
+    </div>
+  </div>
+
+  <div class="app" id="tool">
+    <aside class="card side">
+      <h2>Experiment</h2>
+      <div class="seg" role="radiogroup" aria-label="Analysis">
+        <label><input type="radio" name="ek-mode" id="ek-single" value="single" data-state checked>Saturation curve</label>
+        <label><input type="radio" name="ek-mode" id="ek-global" value="global" data-state>Inhibition (K<sub>i</sub>)</label>
+      </div>
+      <h2>Data</h2>
+      <div class="examples" id="ek-examples"></div>
+      <div class="field">
+        <label for="ek-data">Initial rates</label>
+        <textarea id="ek-data" data-state spellcheck="false" placeholder="[S]	v	v	v&#10;1	2.1	2.3	2.0"></textarea>
+        <div class="ta-tools"><span class="hint" id="ek-hint" style="margin:0;max-width:240px"></span><button type="button" class="linkbtn" id="ek-file">Open CSV file</button></div>
+      </div>
+      <input type="hidden" id="ek-excl" data-state>
+      <div class="row2">
+        <div class="field"><label for="ek-sunit">[S] and [I] unit</label><select id="ek-sunit" data-state><option>nM</option><option selected>µM</option><option>mM</option><option>M</option></select></div>
+        <div class="field"><label for="ek-vunit">Rate unit</label><div class="inline"><select id="ek-vunit" data-state style="flex:1"><option>nM</option><option selected>µM</option><option>mM</option></select><span>/</span><select id="ek-tunit" data-state style="flex:1"><option>s</option><option selected>min</option><option>h</option></select></div></div>
+      </div>
+      <div class="field"><label for="ek-e">Enzyme concentration [E]<sub>T</sub> (for k<sub>cat</sub>)</label>
+        <div class="inline"><input type="number" id="ek-e" data-state step="any" placeholder="optional" style="flex:1;width:auto"><select id="ek-eunit" data-state style="width:90px"><option>pM</option><option selected>nM</option><option>µM</option></select></div></div>
+      <h2>Model</h2>
+      <div class="field"><label for="ek-model">Report</label><select id="ek-model"><option value="">Best by AICc</option></select></div>
+      <h2>Plot</h2>
+      <div class="row2">
+        <div class="field"><label for="ek-view">View</label><select id="ek-view" data-state><option value="mm">Rate vs [S]</option><option value="lb">Lineweaver–Burk</option></select></div>
+        <div class="field"><label for="ek-show">Points</label><select id="ek-show" data-state><option value="sd">Mean ± SD</option><option value="all">Every replicate</option></select></div>
+      </div>
+    </aside>
+
+    <section class="main">
+      <div class="card chart-card">
+        <div class="chart-bar"><h3>Kinetics</h3>
+          <div class="exp">
+            <button class="btn small ghost" data-fig="png-free">PNG</button>
+            <button class="btn small ghost" data-fig="svg">SVG <span class="lock">PRO</span></button>
+            <button class="btn small ghost" data-fig="png">600 dpi <span class="lock">PRO</span></button>
+          </div></div>
+        <div class="chart-host" id="ek-chart"></div>
+        <div class="chart-foot"><span id="ek-chartnote"></span></div>
+      </div>
+      <div id="ek-results"></div>
+      <div class="card rep" id="ek-report"></div>
+    </section>
+  </div>
+
+  <section class="card method">
+    <h2>How the analysis works</h2>
+    <div class="grid">
+      <div>
+        <p>Rates are fitted directly by nonlinear least squares, never through a linearised plot, which distorts the errors. Three single-substrate models are compared:</p>
+        <p class="eq"><i>v</i> = <i>V</i><sub>max</sub>[S] / (<i>K</i><sub>m</sub> + [S])</p>
+        <p>plus substrate inhibition (<i>K</i><sub>si</sub>) and the Hill equation (<i>h</i>). The corrected Akaike criterion balances fit against complexity; Akaike weights give the relative support for each model.</p>
+      </div>
+      <div>
+        <p><b>Inhibition</b> data are fitted globally. All inhibitor concentrations share one set of parameters, under four mechanisms:</p>
+        <p class="eq"><i>v</i> = <i>V</i><sub>max</sub>[S] / (<i>K</i><sub>m</sub>(1 + [I]/<i>K</i><sub>i</sub>) + [S](1 + [I]/α<i>K</i><sub>i</sub>))</p>
+        <p>Competitive (α → ∞), non-competitive (α = 1) and uncompetitive inhibition are special cases of this mixed model. k<sub>cat</sub> = V<sub>max</sub>/[E]<sub>T</sub>, and its interval is propagated by the delta method. <a href="../validation/">Validation report.</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer data-bf></footer>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/stats.js"></script>
+<script src="../assets/js/engines.js"></script>
+<script src="../assets/js/plot.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/kinetics.js"></script>
+</body>
+</html>
