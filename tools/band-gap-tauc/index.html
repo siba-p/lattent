@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Band gap calculator from UV–Vis: Tauc plot | Benchfit</title>
+<meta name="description" content="Calculate the optical band gap from a UV–Vis absorbance spectrum. Automatic Tauc plot for direct or indirect transitions with the linear region found for you, plus a confidence interval.">
+<link rel="icon" href="../../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/bf.css">
+<link rel="stylesheet" href="../../assets/css/tools.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap qt" data-tool="{&quot;kind&quot;: &quot;tauc&quot;, &quot;opts&quot;: {&quot;transition&quot;: &quot;direct&quot;}, &quot;xlabel&quot;: &quot;Wavelength (nm)&quot;, &quot;ylabel&quot;: &quot;Absorbance&quot;, &quot;name&quot;: &quot;Band gap (Tauc plot)&quot;, &quot;example&quot;: &quot;tauc&quot;}">
+  <nav class="crumbs"><a href="../../tools/">Quick tools</a> ›</nav>
+  <h1>Optical band gap (Tauc plot)</h1>
+  <p class="lede">Paste a UV–Vis spectrum as wavelength (nm) or photon energy (eV) against absorbance. Benchfit builds the Tauc plot, finds the straight part of the absorption edge and extrapolates the band gap with its confidence interval.</p>
+  <div class="qt-grid">
+    <section class="card qt-in">
+      <label class="lbl" for="qt-data">Paste your data: Wavelength (nm), then Absorbance (replicate columns allowed)</label>
+      <textarea id="qt-data" spellcheck="false" placeholder="Copy two or more columns from Excel or your instrument export"></textarea>
+      <div class="qt-actions"><button class="btn primary big" id="qt-go">Analyse in Benchfit Studio</button><button class="btn" id="qt-example">See a worked example</button><button class="linkbtn" id="qt-file">Open a CSV or TXT file</button></div>
+      <p class="hint" id="qt-msg">Free, no sign-up. The analysis runs in your browser; your data is not uploaded.</p>
+    </section>
+    <aside class="card qt-get"><h2>What you get</h2><ul><li>Band gap with a 95% confidence interval</li><li>Direct and indirect, allowed and forbidden transitions</li><li>The fitted linear region, adjustable by hand</li><li>The absorption-edge wavelength</li></ul><p class="eq">(αhν)^{1/r} = A (hν − E<sub>g</sub>)</p></aside>
+  </div>
+  <section class="qt-faq"><h2>Questions</h2><div class="faq"><details><summary>Direct or indirect?</summary><p>Use direct allowed (r = 1/2) for ZnO, GaN, perovskites and most quantum dots; indirect (r = 2) for Si, TiO₂ (anatase) and many oxides. If unsure, try both and compare the straightness of the fit.</p></details><details><summary>Can I use absorbance instead of α?</summary><p>Yes. α is proportional to absorbance for a film of fixed thickness, which scales the plot but does not move the intercept.</p></details></div></section>
+  <section class="qt-more"><h2>More quick tools</h2><div class="qt-links"><a href="../../tools/xrd-crystallite-size/">XRD crystallite size</a><a href="../../tools/activation-energy-arrhenius/">Activation energy (Arrhenius)</a><a href="../../tools/adsorption-isotherms/">Adsorption isotherms</a><a href="../../tools/tensile-test/">Tensile test analysis</a><a href="../../tools/peak-fitting/">Peak fitting (Raman, FTIR, XPS)</a><a href="../../tools/curve-fitting/">Curve fitting with model selection</a><a href="../../standard-curve/">Calibration curves</a></div></section>
+</main>
+<footer data-bf></footer>
+<script src="../../assets/js/config.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/plot.js"></script>
+<script src="../../assets/js/shell.js"></script>
+<script src="../../assets/js/tool.js"></script>
+</body>
+</html>

@@ -14,7 +14,7 @@
       const rows = T.map(t => [String(t)].concat([0, 1, 2].map(() => f(Math.exp(9.2 - 38500 / (8.314 * t)) * (1 + 0.05 * r.normal()), 7))));
       return {
         tables: [{ name: 'LLZO conductivity', type: 'xy', cols: ['Temperature (K)', 'σ (S/cm)', 'σ (S/cm)', 'σ (S/cm)'], rows, ylabel: 'Conductivity σ (S/cm)' }],
-        items: [{ kind: 'nlfit', opts: { model: 'arrhenius', logy: true, weight: '1/y2' } }, { kind: 'autofit', opts: { field: 'Materials & chemistry' } }]
+        items: [{ kind: 'nlfit', opts: { model: 'arrhenius', logy: true, weight: '1/y2' } }, { kind: 'autofit', opts: { field: 'shape' } }]
       };
     }
   });
@@ -84,7 +84,7 @@
       const rows = C.map(c => [String(c)].concat([0, 1].map(() => f(310 * Math.pow(0.035 * c, 0.75) / (1 + Math.pow(0.035 * c, 0.75)) * (1 + 0.035 * r.normal()), 1))));
       return {
         tables: [{ name: 'Methylene blue on UiO-66', type: 'xy', cols: ['Cₑ (mg/L)', 'qₑ (mg/g)', 'qₑ (mg/g)'], rows, ylabel: 'qₑ (mg/g)' }],
-        items: [{ kind: 'autofit', opts: { field: 'Materials & chemistry' } }, { kind: 'nlfit', opts: { model: 'sips' } }]
+        items: [{ kind: 'autofit', opts: { field: 'shape' } }, { kind: 'nlfit', opts: { model: 'sips' } }]
       };
     }
   });
@@ -153,7 +153,7 @@
   });
 
   SAMPLES.push({
-    id: 'dose', field: 'Biology', title: 'Dose–response of three inhibitors',
+    id: 'dose', field: 'Biochemistry', title: 'Dose–response of three inhibitors',
     blurb: 'IC50 values with confidence intervals from a four-parameter logistic fit on a log axis.',
     make() {
       const r = S.rng(11);

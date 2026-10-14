@@ -135,6 +135,15 @@
       const gof = [['R²', f => f.r.fit.r2.toFixed(5)], ['Sy.x', f => fmt(Math.sqrt(f.r.fit.ssrUnweighted / f.r.fit.dof), 4)], ['Points / df', f => f.r.fit.n + ' / ' + f.r.fit.dof], ['AICc', f => f.r.fit.aicc.toFixed(2)], ['Runs test p', f => isFinite(f.r.runsP) ? f.r.runsP.toFixed(3) : '–']];
       rows += gof.map(([nm, g], i) => `<tr class="gof${i ? '' : ' first'}"><td>${nm}</td>${res.fits.map(f => `<td>${f.r.error ? esc(f.r.error) : g(f)}</td>`).join('')}</tr>`).join('');
       const warns = [].concat(...res.fits.map(f => (f.r.error ? [f.s.name + ': ' + f.r.error] : f.r.warn.map(w => f.s.name + ': ' + w))));
+      if (BF.ml && BF.ml.ready() && m.id !== 'custom' && res.fits[0]) {
+        const sh = BF.ml.classify(res.fits[0].s.xs, res.fits[0].s.ys);
+        if (sh && sh[0].p > 0.9 && sh[0].models && !BF.ml.candidates(sh, 0.97).includes(m.id)) {
+          const alt = sh[0].models.map(id => M.byId(id)).filter(Boolean).slice(0, 3).map(x => x.name).join(', ');
+          warns.push(`The data look like “${sh[0].label}” (${(100 * sh[0].p).toFixed(0)}% confidence), which ${m.name} does not usually describe. Consider ${alt}, or run Find the best model.`);
+        }
+        const nz = BF.ml.noise(res.fits[0].s.xs, res.fits[0].s.ys);
+        if (nz && nz.recommend === '1/y2' && o.weight === 'none') warns.push(`Scatter appears to grow with the signal (${(100 * nz.proportional).toFixed(0)}% likely) over a ${Math.pow(10, nz.dynamicRange).toFixed(0)}-fold range; weighting by 1/Y² usually gives more reliable parameters.`);
+      }
       return {
         html: `<p class="eqline"><b>${esc(m.name)}</b> · <span class="eqn">${esc(m.eq)}</span></p>
           ${chartBox(0, 'Fit')}
@@ -154,6 +163,10 @@
       return [{ title: 'Methods', html: `<p>${methods}</p>` }, { title: 'Results', html: `<p>${results}</p>` }];
     }
   };
+  function shapeLine(ranked) {
+    const top = ranked.filter((r, i) => i < 3 && r.p >= 0.03);
+    return `<div class="shape"><span class="shape-k">Shape model</span>${top.map(r => `<span class="shape-c"><b>${esc(r.label)}</b> ${(100 * r.p).toFixed(0)}%<i style="width:${Math.max(2, 100 * r.p).toFixed(0)}%"></i></span>`).join('')}<span class="shape-why">${esc(top[0].why)}</span></div>`;
+  }
   function logOK(d, axis) { return d.series.every(s => s.pts.every(p => p[axis] > 0)); }
   function fitSpec(res, o, band) {
     const d = res.d;
@@ -188,10 +201,10 @@
   K.autofit = {
     label: 'Find the best model (auto-fit)', types: ['xy'], group: 'Fit a model',
     desc: 'Fits every applicable equation in a field, ranks them by AICc and tells you how strongly the data favour each.',
-    defaults: () => ({ field: 'all', series: 0 }),
+    defaults: () => ({ field: BF.ml && BF.ml.ready() ? 'shape' : 'all', series: 0 }),
     form(o, t) {
       const d = xyData(t);
-      return `<div class="fg two"><div><label>Search equations from</label>${sel('field', [['all', 'All fields']].concat(M.fields.map(f => [f, f])), o.field)}</div>
+      return `<div class="fg two"><div><label>Search equations from</label>${sel('field', (BF.ml && BF.ml.ready() ? [['shape', 'Models matching the data shape (AI)']] : []).concat([['all', 'All fields']], M.fields.map(f => [f, f])), o.field)}</div>
         <div><label>Data set</label>${sel('series', d.series.map((s, i) => [i, s.name]), o.series)}</div></div>
         <div class="fg"><label class="check"><input type="checkbox" data-o="logx"${o.logx ? ' checked' : ''}> log X axis</label></div>`;
     },
@@ -199,8 +212,12 @@
       const d = xyData(t);
       const s = d.series[+o.series || 0] || d.series[0];
       if (!s) return { error: 'No numeric data.' };
-      const fields = o.field === 'all' ? null : [o.field, 'General'];
-      return { d, s, list: M.autofit(s.xs, s.ys, { fields }) };
+      let shape = null, only = null, fields = null;
+      if (o.field === 'shape' && BF.ml && BF.ml.ready()) { shape = BF.ml.classify(s.xs, s.ys); if (shape) only = BF.ml.candidates(shape, 0.97); }
+      else if (o.field !== 'all' && o.field !== 'shape') fields = [o.field, 'General'];
+      let list = M.autofit(s.xs, s.ys, { fields, only });
+      if (only && !list.length) list = M.autofit(s.xs, s.ys, {});
+      return { d, s, list, shape };
     },
     render(res, o) {
       if (!res.list.length) return { html: notes(['No model could be fitted. Check the data.']) };
@@ -209,7 +226,7 @@
       const b = res.list[0];
       const verdict = b.weight > 0.9 ? `The data clearly favour the <b>${esc(b.model.name)}</b> model.` : b.weight > 0.6 ? `The <b>${esc(b.model.name)}</b> model is preferred, but alternatives are not ruled out.` : `Several models describe the data almost equally well. Choose on physical grounds, or collect data where the models differ.`;
       return {
-        html: `<div class="verdict">${verdict}</div>${chartBox(0, 'Top three models')}
+        html: `${res.shape ? shapeLine(res.shape) : ''}<div class="verdict">${verdict}</div>${chartBox(0, 'Top three models')}
           <div class="tbl-wrap"><table class="t rt"><tr><th>#</th><th class="l">Model</th><th class="l">Field</th><th>R²</th><th>ΔAICc</th><th>Akaike weight</th><th></th></tr>${rows}</table></div>
           <p class="hint">ΔAICc &lt; 2: comparable support. ΔAICc &gt; 10: essentially no support. Akaike weights are the probability that each model is the best of those tested, given the data.</p>`,
         charts: [(T, W, H) => {
@@ -959,6 +976,31 @@
       if (!s) return [{ title: 'Add data first', why: 'The table has no numeric X–Y pairs yet.' }];
       const x = s.means.map(q => q.x), y = s.means.map(q => q.y), n = x.length;
       const xl = (d.xlabel || '').toLowerCase();
+      const shape = BF.ml && BF.ml.ready() ? BF.ml.classify(s.xs, s.ys) : null;
+      if (shape) {
+        const top = shape[0];
+        const nz = BF.ml.noise(s.xs, s.ys);
+        const w = nz && nz.recommend === '1/y2' ? '1/y2' : 'none';
+        const head = { shape, title: '', why: '' };
+        out.push(head);
+        if (top.analysis === 'peaks') {
+          const xrdLike = /2θ|2theta|two.?theta|2 theta|°/.test(xl) && x[0] >= 3 && x[n - 1] <= 160;
+          out.push({ title: xrdLike ? 'Fit the diffraction peaks' : 'Resolve and fit the peaks', why: top.why + (xrdLike ? ' The axis looks like 2θ, so d-spacings and Scherrer sizes are included.' : ''), kind: 'peaks', opts: xrdLike ? { xrd: true, baseline: '2', shape: 'pv' } : { baseline: '1', shape: 'pv' } });
+        } else if (top.analysis === 'tauc') out.push({ title: 'Determine the optical band gap', why: top.why, kind: 'tauc', opts: {} });
+        else if (top.analysis === 'tensile') out.push({ title: 'Analyse the tensile test', why: top.why, kind: 'tensile', opts: {} });
+        else if (top.models) {
+          const labels = (d.xlabel + ' ' + t.cols.join(' ') + ' ' + (t.ylabel || '')).toLowerCase();
+          const hints = [[/overpot|current dens|η/, 'tafel'], [/\bmn\b|mₙ|molecular weight|molar mass/, 'floryfox'], [/grain|d\^-1\/2/, 'hallpetch'], [/susceptib|χ/, 'curieweiss'],
+            [/diameter|radius|size \(nm\)|nanocrystal|dot size/, 'confine'], [/cₑ|\bce\b|equilib|isotherm|pressure|p\/p0/, 'langmuir'], [/\[s\]|substrate/, 'mm'], [/uptake|q_?t|time \(min|contact time/, 'pso'],
+            [/vft|polymer electrolyte|peo/, 'vft'], [/crystallin|transformed|fraction/, 'avrami'], [/dose|conc.*(µm|nm)|inhibitor/, 'dr4'], [/mark|intrinsic visc|\[η\]/, 'markhouwink'], [/lifetime|decay|pl intensity|τ/, 'expdecay']];
+          const hinted = hints.filter(([re, id]) => re.test(labels) && top.models.includes(id)).map(h => h[1]);
+          const fit = hinted.concat(top.models).map(id => M.byId(id)).find(mm => mm && M.applicable(mm, s.xs, s.ys));
+          if (fit) out.push({ title: 'Fit ' + fit.name, why: top.why + (w === '1/y2' ? ' Scatter grows with the signal, so 1/Y² weighting is applied.' : ''), kind: 'nlfit', opts: { model: fit.id, weight: w, logx: x.every(v => v > 0) && Math.log10(x[n - 1] / x[0]) > 2, logy: top.key === 'thermally_activated' } });
+          out.push({ title: 'Compare every model for this shape', why: 'Fits all ' + BF.ml.candidates(shape, 0.97).length + ' candidate equations for the likely shapes and ranks them by AICc.', kind: 'autofit', opts: { field: 'shape', logx: x.every(v => v > 0) && Math.log10(x[n - 1] / x[0]) > 2 } });
+        }
+        if (d.series.length > 1 && n >= 3 && top.key === 'linear') out.push({ title: 'Compare the slopes of the data sets', why: 'Tests whether one common slope fits every data set.', kind: 'linreg', opts: {} });
+        return out;
+      }
       const peaks = n > 40 ? A.findPeaks(x, y.map((v, i) => v - Math.min(...y)), { prominence: 0.08, smooth: 3 }) : [];
       if (/2θ|2theta|two.?theta|2 theta/.test(xl) || (peaks.length >= 3 && x[0] > 5 && x[n - 1] < 160 && n > 200)) out.push({ title: 'Fit the diffraction peaks', why: `${peaks.length} sharp peaks over a 2θ-like range. Peak fitting gives d-spacings and the Scherrer crystallite size.`, kind: 'peaks', opts: { xrd: true, baseline: '2', shape: 'pv', inst: 0.08 } });
       else if (peaks.length >= 2 && n > 60) out.push({ title: 'Resolve the peaks', why: `${peaks.length} peaks detected; fit them to get positions, widths and areas.`, kind: 'peaks', opts: {} });
@@ -1002,7 +1044,7 @@
     const box = $('#co-advisor');
     if (!t) { box.innerHTML = '<p class="hint">Open a table to get suggestions.</p>'; return; }
     const list = advise(t);
-    box.innerHTML = `<p class="hint">Suggestions for <b>${esc(t.name)}</b>, based on the shape of the data and the column titles.</p>` + list.map((s, i) => `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind ? `<button class="btn small primary" data-run="${i}">Run</button>` : ''}</div>`).join('');
+    box.innerHTML = `<p class="hint">Suggestions for <b>${esc(t.name)}</b>.</p>` + list.map((s, i) => (s.shape ? `<div class="sug ai">${shapeLine(s.shape)}<p class="hint" style="margin:6px 0 0">Benchfit's shape model was trained on ${(BF.ml.metrics().train_samples / 1000).toFixed(0)},000 simulated lab datasets and runs in your browser.</p></div>` : `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind ? `<button class="btn small primary" data-run="${i}">Run</button>` : ''}</div>`)).join('');
     $$('[data-run]', box).forEach(b => b.onclick = () => { const s = list[+b.dataset.run]; addItem(t.id, s.kind, s.opts); });
   }
 
@@ -1258,7 +1300,20 @@ ${projectSummary()}`;
   wireToolbar(); wireCoscientist();
   proj = load();
   const q = new URLSearchParams(location.search);
-  if (q.get('example') && window.BF_SAMPLES.some(s => s.id === q.get('example'))) { proj = null; loadSample(q.get('example')); }
+  let imported = null;
+  if (q.get('import')) { try { imported = JSON.parse(localStorage.getItem('bf.studio.import') || 'null'); localStorage.removeItem('bf.studio.import'); } catch (e) { imported = null; } }
+  if (imported && imported.table && Date.now() - (imported.at || 0) < 10 * 60e3) {
+    const clean = sanitize({ name: imported.name, tables: [Object.assign({ id: 'timport', type: 'xy' }, imported.table)], items: (imported.items || []).map((it, i) => ({ id: 'aimport' + i, tableId: 'timport', kind: it.kind, opts: it.opts })) });
+    if (clean && clean.tables.length) {
+      if (!proj || proj.sample || !proj.tables.length) proj = { name: clean.name, tables: [], items: [] };
+      const t = Object.assign(clean.tables[0], { id: uid('t') });
+      proj.tables.push(t);
+      let first = null;
+      clean.items.forEach(it => { const ni = { id: uid('a'), tableId: t.id, kind: it.kind, opts: Object.assign(K[it.kind].defaults(t), it.opts) }; proj.items.push(ni); if (!first) first = ni; });
+      history.replaceState(null, '', location.pathname);
+      select(first ? 'item' : 'table', first ? first.id : t.id);
+    } else if (proj) render();
+  } else if (q.get('example') && window.BF_SAMPLES.some(s => s.id === q.get('example'))) { proj = null; loadSample(q.get('example')); }
   else if (proj) render();
   else { proj = { name: 'Untitled project', tables: [], items: [] }; render(); startScreen(false); }
   window.BF_STUDIO = { get project() { return proj; }, compute, K, advise };

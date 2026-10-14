@@ -325,6 +325,7 @@
     opts = opts || {};
     const out = [];
     for (const m of L) {
+      if (opts.only && !opts.only.includes(m.id)) continue;
       if (opts.fields && !opts.fields.includes(m.field)) continue;
       if (!okFor(m, xs, ys) || xs.length < m.params.length + 2) continue;
       let r;

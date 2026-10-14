@@ -7,6 +7,24 @@
   const state = {};
 
   const EXAMPLES = {
+    hplc: {
+      label: 'HPLC calibration (linear)', model: 'linear', weight: '1/y', unit: 'µg/mL', ylabel: 'Peak area (mAU·s)',
+      std: () => {
+        const r = S.rng(41); const lines = ['Conc (µg/mL)\tArea\tArea\tArea'];
+        [0.5, 1, 2.5, 5, 10, 25, 50, 100].forEach(c => lines.push([c, ...[0, 1, 2].map(() => (3.2 + 41.7 * c * (1 + 0.012 * r.normal()) + 0.8 * r.normal()).toFixed(1))].join('\t')));
+        return lines.join('\n');
+      },
+      unk: 'Sample\tDilution\tArea\tArea\nTablet extract A\t10\t1702.4\t1688.1\nTablet extract B\t10\t1655.0\t1671.9\nSpiked water\t1\t215.8\t219.3\nEffluent\t1\t4890.2\t4911.6'
+    },
+    uvvis: {
+      label: 'UV–Vis Beer–Lambert', model: 'linear', weight: 'none', unit: 'mg/L', ylabel: 'Absorbance at 664 nm',
+      std: () => {
+        const r = S.rng(19); const lines = ['Methylene blue (mg/L)\tA664\tA664'];
+        [0, 1, 2, 4, 6, 8, 10].forEach(c => lines.push([c, ...[0, 1].map(() => (0.004 + 0.198 * c + 0.006 * r.normal()).toFixed(4))].join('\t')));
+        return lines.join('\n');
+      },
+      unk: 'Sample\tDilution\tA664\tA664\nAfter 10 min\t5\t1.402\t1.391\nAfter 30 min\t5\t0.884\t0.879\nAfter 60 min\t2\t1.137\t1.150\nAfter 120 min\t1\t0.973\t0.981'
+    },
     elisa: {
       label: 'Sandwich ELISA (4PL)', model: '4pl', weight: '1/y2', unit: 'pg/mL', ylabel: 'OD 450 nm',
       std: () => {
@@ -247,5 +265,5 @@
   let rw; window.addEventListener('resize', () => { clearTimeout(rw); rw = setTimeout(() => state.res && drawChart(), 150); });
   document.addEventListener('bf:pro', () => state.res && !state.res.error && report());
   const had = U.autosave('standard-curve', root);
-  if (!had || !$('#sc-std').value.trim()) loadExample('elisa'); else run();
+  if (!had || !$('#sc-std').value.trim()) loadExample('hplc'); else run();
 })();

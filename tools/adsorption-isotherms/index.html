@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adsorption isotherm fitting: Langmuir, Freundlich, Sips | Benchfit</title>
+<meta name="description" content="Fit Langmuir, Freundlich, Sips and other adsorption isotherms to qe vs Ce data and let AICc decide which model the data support. Maximum capacity with confidence intervals.">
+<link rel="icon" href="../../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/bf.css">
+<link rel="stylesheet" href="../../assets/css/tools.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap qt" data-tool="{&quot;kind&quot;: &quot;autofit&quot;, &quot;opts&quot;: {&quot;field&quot;: &quot;Materials &amp; chemistry&quot;}, &quot;xlabel&quot;: &quot;Cₑ (mg/L)&quot;, &quot;ylabel&quot;: &quot;qₑ (mg/g)&quot;, &quot;name&quot;: &quot;Adsorption isotherms&quot;, &quot;example&quot;: &quot;isotherm&quot;}">
+  <nav class="crumbs"><a href="../../tools/">Quick tools</a> ›</nav>
+  <h1>Adsorption isotherms</h1>
+  <p class="lede">Paste equilibrium concentration Cₑ and uptake qₑ. Benchfit fits Langmuir, Freundlich, Sips and related models by nonlinear regression, ranks them by AICc and reports q_max and affinity constants with confidence intervals.</p>
+  <div class="qt-grid">
+    <section class="card qt-in">
+      <label class="lbl" for="qt-data">Paste your data: Cₑ (mg/L), then qₑ (mg/g) (replicate columns allowed)</label>
+      <textarea id="qt-data" spellcheck="false" placeholder="Copy two or more columns from Excel or your instrument export"></textarea>
+      <div class="qt-actions"><button class="btn primary big" id="qt-go">Analyse in Benchfit Studio</button><button class="btn" id="qt-example">See a worked example</button><button class="linkbtn" id="qt-file">Open a CSV or TXT file</button></div>
+      <p class="hint" id="qt-msg">Free, no sign-up. The analysis runs in your browser; your data is not uploaded.</p>
+    </section>
+    <aside class="card qt-get"><h2>What you get</h2><ul><li>Langmuir, Freundlich, Sips and kinetic models compared by AICc</li><li>q_max, K_L, K_F and n with confidence intervals</li><li>A plain statement of which model the data support</li><li>Replicates averaged and shown with error bars</li></ul><p class="eq">q = q<sub>max</sub> K C / (1 + K C),&nbsp;&nbsp; q = K<sub>F</sub> C<sup>1/n</sup></p></aside>
+  </div>
+  <section class="qt-faq"><h2>Questions</h2><div class="faq"><details><summary>Should I use the linearised Langmuir plot?</summary><p>No. Linearised plots distort errors and can favour the wrong model. Nonlinear fitting with model comparison is the current recommendation in the adsorption literature.</p></details><details><summary>Can I fit kinetics too?</summary><p>Yes: paste qₜ against time, and the pseudo-first-order and pseudo-second-order models are included.</p></details></div></section>
+  <section class="qt-more"><h2>More quick tools</h2><div class="qt-links"><a href="../../tools/xrd-crystallite-size/">XRD crystallite size</a><a href="../../tools/band-gap-tauc/">Band gap (Tauc plot)</a><a href="../../tools/activation-energy-arrhenius/">Activation energy (Arrhenius)</a><a href="../../tools/tensile-test/">Tensile test analysis</a><a href="../../tools/peak-fitting/">Peak fitting (Raman, FTIR, XPS)</a><a href="../../tools/curve-fitting/">Curve fitting with model selection</a><a href="../../standard-curve/">Calibration curves</a></div></section>
+</main>
+<footer data-bf></footer>
+<script src="../../assets/js/config.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/plot.js"></script>
+<script src="../../assets/js/shell.js"></script>
+<script src="../../assets/js/tool.js"></script>
+</body>
+</html>

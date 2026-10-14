@@ -5,9 +5,9 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Benchfit: analyse, graph and explain your data, for every lab</title>
-<meta name="description" content="Benchfit Studio is a browser workspace for scientific data: curve fitting with 35 equations from materials science to biology, statistics, XRD and spectra, band gaps, tensile tests, PCA, clustering and Bayesian optimisation, with an AI co-scientist. Validated against SciPy.">
-<meta property="og:title" content="Benchfit Studio: analyse, graph and explain your data">
+<title>Benchfit: data analysis for materials and chemistry labs</title>
+<meta name="description" content="Benchfit Studio is a browser workspace for materials and chemistry data: XRD crystallite size, band gaps, adsorption isotherms, activation energies, tensile tests, peak fitting, curve fitting with 35 equations, statistics and Bayesian optimisation, with an AI co-scientist. Validated against SciPy.">
+<meta property="og:title" content="Benchfit: data analysis for materials and chemistry labs">
 <meta property="og:description" content="Curve fitting, statistics, spectra, materials characterisation and machine learning in one workspace, with an AI co-scientist that plans while a validated engine computes.">
 <meta property="og:image" content="assets/img/hero-xrd.webp">
 <link rel="icon" href="favicon.svg">
@@ -22,8 +22,8 @@
 <section class="l-hero">
   <div class="wrap l-hero-in">
     <p class="l-kicker">Benchfit Studio</p>
-    <h1>Analyse, graph and explain your data, in any lab.</h1>
-    <p class="l-lede">Curve fitting, statistics, spectra, materials characterisation and machine learning in one workspace. An AI co-scientist helps you plan the analysis, and every number comes from a validated engine.</p>
+    <h1>Data analysis built for materials and chemistry labs.</h1>
+    <p class="l-lede">XRD, spectra, band gaps, isotherms, kinetics, mechanical tests, statistics and formulation optimisation in one browser workspace. Our own shape model recognises your data and suggests the analysis; a validated engine does the maths.</p>
     <div class="l-cta">
       <a class="btn big primary" href="studio/">Open Benchfit Studio, free</a>
       <a class="btn big ghost-light" href="#examples">Try a worked example</a>
@@ -38,7 +38,7 @@
 <section class="l-fields">
   <div class="wrap">
     <p>Built for</p>
-    <ul><li>Materials science</li><li>Nanomaterials</li><li>Polymers</li><li>Chemistry and catalysis</li><li>Semiconductors and optics</li><li>Electrochemistry and batteries</li><li>Biology and pharmacology</li><li>Physics</li></ul>
+    <ul><li>Nanomaterials</li><li>Catalysis</li><li>Energy materials and batteries</li><li>Polymers and soft matter</li><li>Semiconductors and optics</li><li>Electrochemistry</li><li>Ceramics and metallurgy</li><li>Physical and analytical chemistry</li></ul>
   </div>
 </section>
 
@@ -71,26 +71,6 @@
 <section class="wrap" id="features">
   <div class="feat">
     <div class="feat-t">
-      <p class="l-kicker dark">Organise</p>
-      <h2>Data tables shaped for the analysis you need</h2>
-      <p>Choose an XY table for curves and spectra, a Column table for comparing groups, or a Multiple-variables table for compositions, process settings and properties. Paste straight from Excel or an instrument export; replicate columns are recognised automatically.</p>
-      <ul class="ticks"><li>Spreadsheet editing with paste, transpose and CSV import</li><li>Each table remembers its analyses and graphs</li><li>Projects are saved in your browser and can be exported as a file</li></ul>
-    </div>
-    <div class="feat-i"><img src="assets/img/table.webp" loading="lazy" width="1600" height="1000" alt="An XY data table of ionic conductivity against temperature"></div>
-  </div>
-
-  <div class="feat rev">
-    <div class="feat-t">
-      <p class="l-kicker dark">Fit</p>
-      <h2>Fit any model, then let the data choose</h2>
-      <p>Thirty-five equations across materials science, polymers, nanomaterials, chemistry and biology, from Arrhenius and Langmuir to Avrami, Carreau, Hall–Petch and the four-parameter logistic, or type your own. <b>Auto-fit</b> tries every applicable model and ranks them by AICc, so you see what the data actually support.</p>
-      <ul class="ticks"><li>Confidence intervals and confidence bands, derived quantities such as Eₐ in kJ/mol and eV</li><li>Constraints, weighting, residual plots and runs test</li><li>Plain-language warnings when a parameter is poorly determined</li></ul>
-    </div>
-    <div class="feat-i"><img src="assets/img/autofit.webp" loading="lazy" width="1600" height="1000" alt="Auto-fit ranking adsorption isotherm models by AICc"></div>
-  </div>
-
-  <div class="feat">
-    <div class="feat-t">
       <p class="l-kicker dark">Characterise</p>
       <h2>Spectra, diffraction and mechanical tests</h2>
       <p>Benchfit understands the measurements materials labs run every day. Fit overlapping XRD, Raman or XPS peaks on a fitted baseline; get d-spacings, Scherrer crystallite size and Williamson–Hall strain; extract optical band gaps from UV–Vis; and read modulus, yield, strength and toughness from stress–strain curves.</p>
@@ -98,17 +78,15 @@
     </div>
     <div class="feat-i"><img src="assets/img/tauc.webp" loading="lazy" width="1600" height="1000" alt="Tauc plot giving the optical band gap of ZnO nanocrystals"></div>
   </div>
-
   <div class="feat rev">
     <div class="feat-t">
-      <p class="l-kicker dark">Compare</p>
-      <h2>Statistics with the checks built in</h2>
-      <p>t tests, Mann–Whitney, one-way ANOVA, Welch's ANOVA and Kruskal–Wallis, with Tukey and Holm–Šidák post tests. Benchfit checks equal variance and normality for you, suggests the right test when an assumption fails, and draws significance stars on the graph.</p>
-      <ul class="ticks"><li>Descriptive statistics, normality tests, Grubbs outliers</li><li>Effect sizes and confidence intervals, not only p-values</li><li>Correlation matrices and multiple linear regression</li></ul>
+      <p class="l-kicker dark">Fit</p>
+      <h2>Fit any model, then let the data choose</h2>
+      <p>Thirty-five equations from materials science, polymers, nanomaterials and chemistry (Arrhenius, Langmuir and Sips, Avrami, Carreau, WLF, Hall–Petch, Tafel and more), or type your own. Benchfit's <b>shape model</b> recognises what kind of behaviour your data show and narrows the equations to the plausible ones. <b>Auto-fit</b> then ranks them by AICc, so you see what the data support.</p>
+      <ul class="ticks"><li>Confidence intervals and confidence bands, derived quantities such as Eₐ in kJ/mol and eV</li><li>Constraints, weighting, residual plots and runs test</li><li>Plain-language warnings when a parameter is poorly determined</li></ul>
     </div>
-    <div class="feat-i"><img src="assets/img/anova.webp" loading="lazy" width="1600" height="1000" alt="One-way ANOVA comparing catalyst batches with Tukey significance brackets"></div>
+    <div class="feat-i"><img src="assets/img/autofit.webp" loading="lazy" width="1600" height="1000" alt="Shape-guided auto-fit ranking adsorption isotherm models by AICc"></div>
   </div>
-
   <div class="feat">
     <div class="feat-t">
       <p class="l-kicker dark">Discover</p>
@@ -118,17 +96,33 @@
     </div>
     <div class="feat-i"><img src="assets/img/discovery.webp" loading="lazy" width="1600" height="1000" alt="Bayesian optimisation suggesting the next polymer blend experiments"></div>
   </div>
-
   <div class="feat rev">
+    <div class="feat-t">
+      <p class="l-kicker dark">Compare</p>
+      <h2>Statistics with the checks built in</h2>
+      <p>t tests, Mann–Whitney, one-way ANOVA, Welch's ANOVA and Kruskal–Wallis, with Tukey and Holm–Šidák post tests. Benchfit checks equal variance and normality for you, suggests the right test when an assumption fails, and draws significance stars on the graph.</p>
+      <ul class="ticks"><li>Descriptive statistics, normality tests, Grubbs outliers</li><li>Effect sizes and confidence intervals, not only p-values</li><li>Correlation matrices and multiple linear regression</li></ul>
+    </div>
+    <div class="feat-i"><img src="assets/img/anova.webp" loading="lazy" width="1600" height="1000" alt="One-way ANOVA comparing catalyst batches with Tukey significance brackets"></div>
+  </div>
+  <div class="feat">
     <div class="feat-t">
       <p class="l-kicker dark">Co-scientist</p>
       <h2>An AI co-scientist that never makes up a number</h2>
-      <p>Open the co-scientist on any table. It reads the shape of your data and your column titles and recommends analyses, with a one-click Run. Connect your own Claude or GPT key to ask in plain language: “Which isotherm fits best and what is the capacity?” or “Plan five experiments to maximise toughness.” The model plans and interprets; Benchfit's validated engine does the maths.</p>
-      <ul class="ticks"><li>Built-in suggestions work offline, with no key</li><li>Chat proposes analyses you approve before they run</li><li>Your key stays in your browser and calls the provider directly</li></ul>
+      <p>Open the co-scientist on any table. Its built-in suggestions come from <b>Benchfit's own shape model</b>, a neural network trained on 67,600 simulated lab datasets across 13 families of behaviour. It recognises a spectrum, an absorption edge, a thermally activated trend or a saturating isotherm, and proposes the right analysis with one-click Run. It runs offline in your browser. Connect your own Claude or GPT key to ask in plain language; the language model plans and interprets, and Benchfit's validated engine does the maths.</p>
+      <ul class="ticks"><li>Shape model: 98% accurate on held-out data, and checked on real-style lab examples</li><li>Built-in suggestions work offline, with no key</li><li>Chat proposes analyses you approve before they run</li><li>Your key stays in your browser and calls the provider directly</li></ul>
     </div>
-    <div class="feat-i"><img src="assets/img/cosci.webp" loading="lazy" width="1600" height="1000" alt="The co-scientist panel suggesting analyses for a formulation dataset"></div>
+    <div class="feat-i"><img src="assets/img/cosci.webp" loading="lazy" width="1600" height="1000" alt="The co-scientist panel showing Benchfit's shape model recognising an adsorption isotherm"></div>
   </div>
-
+  <div class="feat rev">
+    <div class="feat-t">
+      <p class="l-kicker dark">Organise</p>
+      <h2>Data tables shaped for the analysis you need</h2>
+      <p>Choose an XY table for curves and spectra, a Column table for comparing groups, or a Multiple-variables table for compositions, process settings and properties. Paste straight from Excel or an instrument export; replicate columns are recognised automatically.</p>
+      <ul class="ticks"><li>Spreadsheet editing with paste, transpose and CSV import</li><li>Each table remembers its analyses and graphs</li><li>Projects are saved in your browser and can be exported as a file</li></ul>
+    </div>
+    <div class="feat-i"><img src="assets/img/table.webp" loading="lazy" width="1600" height="1000" alt="An XY data table of ionic conductivity against temperature"></div>
+  </div>
   <div class="feat">
     <div class="feat-t">
       <p class="l-kicker dark">Publish</p>
@@ -158,13 +152,18 @@
 </section>
 
 <section class="wrap section" id="calculators">
-  <div class="sec-head"><h2>Quick calculators</h2><p>Single-purpose tools for routine bench assays, if you just need one number.</p></div>
+  <div class="sec-head"><h2>Quick tools</h2><p>One-step analyses for the measurements you make every week. Paste your data; the result opens in Studio with its figure and methods text.</p></div>
   <div class="tools-grid">
-    <a class="card tool-card" href="dose-response/"><h3>Dose–response and IC50</h3><p>IC50 and EC50 with confidence intervals, plate import and potency comparison.</p><span class="go">Open →</span></a>
-    <a class="card tool-card" href="standard-curve/"><h3>Standard curves</h3><p>ELISA, BCA and Bradford with interpolation, recovery and LOD/LOQ.</p><span class="go">Open →</span></a>
-    <a class="card tool-card" href="enzyme-kinetics/"><h3>Enzyme kinetics</h3><p>K<sub>m</sub>, V<sub>max</sub>, k<sub>cat</sub> and inhibition mechanism with K<sub>i</sub>.</p><span class="go">Open →</span></a>
-    <a class="card tool-card" href="qpcr/"><h3>qPCR</h3><p>ΔΔCt and Pfaffl fold changes with statistics and QC.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="tools/xrd-crystallite-size/"><h3>XRD crystallite size</h3><p>Peak fitting, d-spacing, Scherrer and Williamson–Hall.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="tools/band-gap-tauc/"><h3>Band gap (Tauc plot)</h3><p>UV–Vis to optical band gap, direct or indirect, with a confidence interval.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="tools/activation-energy-arrhenius/"><h3>Activation energy</h3><p>Arrhenius or VFT fits giving Eₐ in kJ/mol and eV.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="tools/adsorption-isotherms/"><h3>Adsorption isotherms</h3><p>Langmuir, Freundlich and Sips compared by AICc.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="tools/tensile-test/"><h3>Tensile test</h3><p>Modulus, 0.2% yield, strength, elongation, toughness.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="tools/peak-fitting/"><h3>Peak fitting</h3><p>Raman, FTIR, XPS and chromatography peaks on a fitted baseline.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="standard-curve/"><h3>Calibration curves</h3><p>HPLC, ICP, UV–Vis or ELISA calibration with unknowns and LOD/LOQ.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="tools/curve-fitting/"><h3>Curve fitting</h3><p>Any XY data: shape recognition, 35 equations, AICc ranking.</p><span class="go">Open →</span></a>
   </div>
+  <p class="hint" style="margin-top:14px">Also available: <a href="life-science/">life-science tools</a> for IC50, enzyme kinetics and qPCR.</p>
 </section>
 
 <section class="wrap section" id="pricing">
@@ -198,7 +197,7 @@
 <section class="wrap section" id="faq">
   <div class="sec-head"><h2>Questions</h2></div>
   <div class="faq">
-    <details><summary>How is this different from GraphPad Prism or Origin?</summary><p>Benchfit covers the core of what scientists use those programs for (curve fitting, statistics and publication graphs), adds materials-specific analyses such as XRD, Tauc and tensile tests, plus Bayesian optimisation and an AI co-scientist. It runs in any browser with nothing to install, and costs a fraction of a desktop licence. It does not yet cover everything they do, such as survival analysis or two-way ANOVA; those are on the roadmap.</p></details>
+    <details><summary>How is this different from Origin or GraphPad Prism?</summary><p>Benchfit is built around the measurements materials and chemistry labs actually make (XRD, spectra, band gaps, isotherms, Arrhenius data, tensile tests), with curve fitting, statistics and publication graphs underneath, plus a shape model, Bayesian optimisation and an AI co-scientist. It runs in any browser with nothing to install and costs a fraction of a desktop licence. It does not yet do everything those programs do, such as 3D plots or two-way ANOVA; those are on the roadmap.</p></details>
     <details><summary>Is my data uploaded anywhere?</summary><p>Not unless you choose to. Calculations run in your browser and projects are kept in your browser. If you save a project to the cloud, it is stored in a database where row-level security lets only you, and your lab if you share it, read it. The optional AI chat sends data directly from your browser to the provider you chose, with your own key. Details on the <a href="legal/security.html">security page</a>.</p></details>
     <details><summary>Is payment secure?</summary><p>Yes. Checkout is run by Lemon Squeezy, a PCI-compliant merchant of record that also handles tax. Benchfit never sees your card. Your plan is activated by a signed message from Lemon Squeezy to our server, never by your browser.</p></details>
     <details><summary>How do I know the numbers are right?</summary><p>Every analysis is checked against SciPy and NumPy, the reference scientific Python libraries, on test datasets before each release: parameters, standard errors, p-values, Tukey intervals and Gaussian-process predictions. See the <a href="validation/">validation page</a>.</p></details>

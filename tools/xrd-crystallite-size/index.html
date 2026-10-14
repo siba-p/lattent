@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XRD crystallite size calculator: Scherrer and Williamson–Hall | Benchfit</title>
+<meta name="description" content="Paste an X-ray diffraction pattern to fit the Bragg peaks and get d-spacings, Scherrer crystallite size and Williamson–Hall microstrain. Pseudo-Voigt fitting with baseline removal and instrument correction.">
+<link rel="icon" href="../../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/bf.css">
+<link rel="stylesheet" href="../../assets/css/tools.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap qt" data-tool="{&quot;kind&quot;: &quot;peaks&quot;, &quot;opts&quot;: {&quot;xrd&quot;: true, &quot;baseline&quot;: &quot;2&quot;, &quot;shape&quot;: &quot;pv&quot;, &quot;prominence&quot;: 4, &quot;lambda&quot;: &quot;1.5406&quot;, &quot;K&quot;: 0.9, &quot;inst&quot;: 0.08}, &quot;xlabel&quot;: &quot;2θ (°)&quot;, &quot;ylabel&quot;: &quot;Intensity (counts)&quot;, &quot;name&quot;: &quot;XRD crystallite size&quot;, &quot;example&quot;: &quot;xrd&quot;}">
+  <nav class="crumbs"><a href="../../tools/">Quick tools</a> ›</nav>
+  <h1>XRD crystallite size</h1>
+  <p class="lede">Paste a diffractogram (2θ and intensity). Benchfit removes the baseline, fits every peak with pseudo-Voigt profiles and reports d-spacings, Scherrer crystallite size and Williamson–Hall size and microstrain.</p>
+  <div class="qt-grid">
+    <section class="card qt-in">
+      <label class="lbl" for="qt-data">Paste your data: 2θ (°), then Intensity (counts) (replicate columns allowed)</label>
+      <textarea id="qt-data" spellcheck="false" placeholder="Copy two or more columns from Excel or your instrument export"></textarea>
+      <div class="qt-actions"><button class="btn primary big" id="qt-go">Analyse in Benchfit Studio</button><button class="btn" id="qt-example">See a worked example</button><button class="linkbtn" id="qt-file">Open a CSV or TXT file</button></div>
+      <p class="hint" id="qt-msg">Free, no sign-up. The analysis runs in your browser; your data is not uploaded.</p>
+    </section>
+    <aside class="card qt-get"><h2>What you get</h2><ul><li>Peak positions, heights, FWHM and areas with uncertainties</li><li>d-spacing from Bragg's law for any common anode</li><li>Scherrer size with instrumental broadening removed</li><li>Williamson–Hall size and microstrain from all peaks</li></ul><p class="eq">D = Kλ / (β cos θ),&nbsp;&nbsp; β cos θ = Kλ/D + 4ε sin θ</p></aside>
+  </div>
+  <section class="qt-faq"><h2>Questions</h2><div class="faq"><details><summary>Which wavelength is used?</summary><p>Cu Kα (1.5406 Å) by default; Co, Mo and Fe Kα can be chosen in Studio.</p></details><details><summary>Why correct for instrument broadening?</summary><p>Every diffractometer broadens peaks. Subtract a standard&#x27;s FWHM (for example LaB₆ or Si) in quadrature, or the size will be underestimated.</p></details><details><summary>Scherrer or Williamson–Hall?</summary><p>Scherrer assumes all broadening comes from size, so it gives a lower bound. Williamson–Hall separates size from strain when you have at least three peaks.</p></details></div></section>
+  <section class="qt-more"><h2>More quick tools</h2><div class="qt-links"><a href="../../tools/band-gap-tauc/">Band gap (Tauc plot)</a><a href="../../tools/activation-energy-arrhenius/">Activation energy (Arrhenius)</a><a href="../../tools/adsorption-isotherms/">Adsorption isotherms</a><a href="../../tools/tensile-test/">Tensile test analysis</a><a href="../../tools/peak-fitting/">Peak fitting (Raman, FTIR, XPS)</a><a href="../../tools/curve-fitting/">Curve fitting with model selection</a><a href="../../standard-curve/">Calibration curves</a></div></section>
+</main>
+<footer data-bf></footer>
+<script src="../../assets/js/config.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/plot.js"></script>
+<script src="../../assets/js/shell.js"></script>
+<script src="../../assets/js/tool.js"></script>
+</body>
+</html>

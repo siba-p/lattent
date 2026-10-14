@@ -5,8 +5,8 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ELISA standard curve calculator: 4PL, 5PL, linear | Benchfit</title>
-<meta name="description" content="Fit ELISA, BCA and Bradford standard curves (linear, quadratic, 4PL, 5PL with 1/Y² weighting) and interpolate sample concentrations with dilution factors, confidence intervals, back-calculated recovery and LOD/LOQ. Runs in your browser.">
+<title>Calibration curve calculator: HPLC, UV–Vis, ICP, ELISA | Benchfit</title>
+<meta name="description" content="Fit calibration curves for HPLC, UV–Vis, ICP or ELISA (linear, quadratic, 4PL, 5PL with weighting) and calculate unknown concentrations with dilution factors, confidence intervals, back-calculated recovery and LOD/LOQ.">
 <link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -17,8 +17,8 @@
 <main class="wrap">
   <div class="tool-head">
     <div class="t">
-      <h1>Standard curves and interpolation</h1>
-      <p>ELISA, BCA, Bradford or any calibration. Fit the standards, read off your samples with dilution factors and confidence intervals, and check back-calculated recovery, LOD and LOQ.</p>
+      <h1>Calibration curves</h1>
+      <p>HPLC, GC, ICP, UV–Vis, ELISA or any calibration. Fit the standards, read off your samples with dilution factors and confidence intervals, and check back-calculated recovery, LOD and LOQ.</p>
     </div>
     <div class="acts">
       <button class="btn small ghost" data-project="open">Open project</button>
@@ -81,7 +81,7 @@
     <h2>How the calibration works</h2>
     <div class="grid">
       <div>
-        <p>Immunoassays are sigmoidal, so the four-parameter logistic is the standard model:</p>
+        <p>Chromatographic and spectroscopic calibrations are usually linear, often with 1/X or 1/Y weighting because the scatter grows with concentration. Immunoassays are sigmoidal, so the four-parameter logistic is used:</p>
         <p class="eq"><i>Y</i> = <i>D</i> + (<i>A</i> − <i>D</i>) / (1 + (<i>X</i>/<i>C</i>)<sup><i>B</i></sup>)</p>
         <p><i>A</i> is the signal at zero concentration, <i>D</i> the signal at saturation, <i>C</i> the inflection point and <i>B</i> the slope. The 5PL adds an asymmetry exponent <i>G</i>. Because the scatter grows with the signal, 1/<i>Y</i>² weighting keeps the low standards accurate.</p>
       </div>

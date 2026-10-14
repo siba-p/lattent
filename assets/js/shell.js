@@ -333,10 +333,11 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
   const here = document.currentScript && document.currentScript.src;
   U.root = here ? here.replace(/assets\/js\/shell\.js.*$/, '') : '/';
   const tools = [
-    ['dose-response/', 'Dose–response'], ['standard-curve/', 'Standard curves'],
-    ['enzyme-kinetics/', 'Enzyme kinetics'], ['qpcr/', 'qPCR']
+    ['tools/xrd-crystallite-size/', 'XRD crystallite size'], ['tools/band-gap-tauc/', 'Band gap (Tauc)'],
+    ['tools/activation-energy-arrhenius/', 'Activation energy'], ['tools/adsorption-isotherms/', 'Adsorption isotherms'],
+    ['tools/tensile-test/', 'Tensile test'], ['tools/peak-fitting/', 'Peak fitting'], ['standard-curve/', 'Calibration curves']
   ];
-  const nav = [['studio/', 'Studio'], ['#features', 'Features'], ['#examples', 'Examples'], ['#calculators', 'Calculators'], ['#pricing', 'Pricing']];
+  const nav = [['studio/', 'Studio'], ['#features', 'Features'], ['tools/', 'Quick tools'], ['#examples', 'Examples'], ['#pricing', 'Pricing']];
   function chrome() {
     const h = $('header[data-bf]');
     const path = location.pathname;
@@ -344,7 +345,7 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
       h.className = 'top';
       h.innerHTML = `<div class="top-in">
         <a class="logo" href="${U.root}"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--brand)"/><path d="M6 23c5 0 6-14 10-14s5 14 10 14" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="9" r="2.4" fill="#fff"/></svg><span>Benchfit</span></a>
-        <nav class="nav" aria-label="Site">${nav.map(([p, n]) => `<a href="${U.root}${p}"${p !== '#' && path.includes('/' + p) && p.endsWith('/') ? ' aria-current="page"' : ''}>${n}</a>`).join('')}</nav>
+        <nav class="nav" aria-label="Site">${nav.map(([p, n]) => `<a href="${U.root}${p}"${p.endsWith('/') && path.includes('/' + p) ? ' aria-current="page"' : ''}>${n}</a>`).join('')}</nav>
         <div class="top-r"><a class="pro-chip" href="${U.root}account/" id="pro-chip"></a><a class="btn primary small open-studio" href="${U.root}studio/">Open Studio</a>
         <button class="menu-btn" aria-label="Menu" aria-expanded="false"><span></span><span></span></button></div></div>`;
       const mb = $('.menu-btn', h);
@@ -354,9 +355,9 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
     if (f) {
       f.className = 'foot';
       f.innerHTML = `<div class="foot-in">
-        <div><a class="logo" href="${U.root}"><span>Benchfit</span></a><p>Analyse, graph and explain scientific data, in your browser. Your data never leaves your computer.</p></div>
+        <div><a class="logo" href="${U.root}"><span>Benchfit</span></a><p>Data analysis for materials and chemistry labs, in your browser. Your data never leaves your computer unless you choose cloud storage.</p></div>
         <div><h5>Product</h5><a href="${U.root}studio/">Benchfit Studio</a><a href="${U.root}#features">Features</a><a href="${U.root}#examples">Examples</a><a href="${U.root}validation/">Validation</a></div>
-        <div><h5>Calculators</h5>${tools.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}</div>
+        <div><h5>Quick tools</h5>${tools.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}<a href="${U.root}life-science/">Life-science tools</a></div>
         <div><h5>Company</h5><a href="${U.root}#pricing">Pricing</a><a href="${U.root}account/">Account</a><a href="${U.root}#faq">FAQ</a></div>
         <div><h5>Legal</h5><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
       </div><p class="foot-note">Built by <a href="${CFG.author.url}">${CFG.author.name}</a>. © ${new Date().getFullYear()} Benchfit.</p>`;
