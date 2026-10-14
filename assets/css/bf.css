@@ -60,7 +60,7 @@ h1, h2, h3, h4 { font-family: 'Inter Tight', Inter, system-ui, sans-serif; lette
 
 /* footer */
 .foot { border-top: 1px solid var(--line); margin-top: 80px; padding: 48px 0 calc(32px + env(safe-area-inset-bottom, 0px)); background: var(--card); }
-.foot-in { max-width: 1240px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+.foot-in { max-width: 1240px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 28px; }
 .foot-in p { color: var(--ink-3); font-size: 14px; max-width: 300px; }
 .foot h5 { margin: 4px 0 10px; font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
 .foot-in a:not(.logo) { display: block; color: var(--ink-2); font-size: 14px; padding: 3px 0; }
@@ -270,3 +270,5 @@ table.t tr.dim td { color: var(--ink-3); }
   .band { padding: 28px; }
   .row2 { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 860px) { .open-studio { display: none !important; } }

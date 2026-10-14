@@ -3,176 +3,230 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Benchfit: IC50, ELISA, enzyme kinetics and qPCR analysis in your browser</title>
-<meta name="description" content="Analyse the assays you run every week (dose–response IC50, ELISA standard curves, enzyme kinetics, qPCR ΔΔCt) with correct statistics, publication figures and auto-written methods. Free to use; runs in your browser.">
-<meta property="og:title" content="Benchfit: from plate reader to paper figure in a minute">
-<meta property="og:description" content="IC50s, standard curves, enzyme kinetics and qPCR, fitted correctly, plotted beautifully, written up for your methods section.">
+<title>Benchfit: analyse, graph and explain your data, for every lab</title>
+<meta name="description" content="Benchfit Studio is a browser workspace for scientific data: curve fitting with 35 equations from materials science to biology, statistics, XRD and spectra, band gaps, tensile tests, PCA, clustering and Bayesian optimisation, with an AI co-scientist. Validated against SciPy.">
+<meta property="og:title" content="Benchfit Studio: analyse, graph and explain your data">
+<meta property="og:description" content="Curve fitting, statistics, spectra, materials characterisation and machine learning in one workspace, with an AI co-scientist that plans while a validated engine computes.">
+<meta property="og:image" content="assets/img/hero-xrd.webp">
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/bf.css">
+<link rel="stylesheet" href="assets/css/landing.css">
 </head>
-<body>
+<body class="landing">
 <header data-bf></header>
-<main class="wrap">
-  <section class="hero">
-    <div>
-      <span class="eyebrow"><b>Free</b> No sign-up · nothing uploaded</span>
-      <h1>From plate reader to <em>paper figure</em> in a minute.</h1>
-      <p class="lede">IC50s, ELISA standard curves, enzyme kinetics and qPCR, fitted with the right statistics, plotted to journal standard and written up for your methods section.</p>
-      <div class="cta">
-        <a class="btn primary big" href="dose-response/">Fit a dose–response curve</a>
-        <a class="btn big" href="#tools">See all tools</a>
-      </div>
-      <div class="assure"><span>Validated against SciPy</span><span>Data stays on your computer</span><span>Works offline once loaded</span></div>
-    </div>
-    <div class="card demo" aria-label="Example analysis">
-      <div class="demo-top"><i></i><i></i><i></i><span>dose-response · 3 compounds</span></div>
-      <div class="chart-host" id="demo-chart"></div>
-      <div class="demo-kpis" id="demo-kpis"></div>
-    </div>
-  </section>
 
-  <section class="section" id="tools">
-    <div class="sec-head"><h2>Four analyses every lab runs, done properly</h2><p>Each tool takes data straight from Excel or the instrument, explains what it did and flags what looks wrong.</p></div>
-    <div class="tools-grid">
-      <a class="card tool-card" href="dose-response/">
-        <span class="ic"><svg viewBox="0 0 26 26" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M3 6c6 0 6 14 10 14s4-14 10-14" transform="matrix(1 0 0 -1 0 26)"/></svg></span>
-        <h3>Dose–response and IC50</h3>
-        <p>IC50 and EC50 with confidence intervals for any number of compounds.</p>
-        <ul><li>4PL, 5PL, fixed plateaus, normalisation</li><li>96-well plate import, outlier exclusion</li><li>F test: do the potencies differ?</li></ul>
-        <span class="go">Open tool →</span>
-      </a>
-      <a class="card tool-card" href="standard-curve/">
-        <span class="ic"><svg viewBox="0 0 26 26" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M3 22C10 21 12 6 23 4"/><circle cx="8" cy="19" r="1.6" fill="var(--brand)"/><circle cx="13" cy="12" r="1.6" fill="var(--brand)"/><circle cx="18" cy="7" r="1.6" fill="var(--brand)"/></svg></span>
-        <h3>Standard curves</h3>
-        <p>ELISA, BCA, Bradford: sample concentrations you can defend.</p>
-        <ul><li>Linear, quadratic, 4PL, 5PL, 1/Y² weighting</li><li>Dilution factors and confidence intervals</li><li>Recovery, LOD/LOQ, out-of-range flags</li></ul>
-        <span class="go">Open tool →</span>
-      </a>
-      <a class="card tool-card" href="enzyme-kinetics/">
-        <span class="ic"><svg viewBox="0 0 26 26" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M3 23c3-12 8-16 20-17"/><path d="M3 23c4-8 9-11 20-11" opacity=".5"/></svg></span>
-        <h3>Enzyme kinetics</h3>
-        <p>K<sub>m</sub>, V<sub>max</sub>, k<sub>cat</sub> and K<sub>i</sub>, from the curve and not a Lineweaver–Burk line.</p>
-        <ul><li>Michaelis–Menten, substrate inhibition, Hill</li><li>Global fit of inhibition mechanism</li><li>Model choice by AICc</li></ul>
-        <span class="go">Open tool →</span>
-      </a>
-      <a class="card tool-card" href="qpcr/">
-        <span class="ic"><svg viewBox="0 0 26 26" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M5 20v-6M11 20V6M17 20v-9M23 20v-4"/></svg></span>
-        <h3>qPCR relative expression</h3>
-        <p>Fold change from Ct values, with statistics that hold up in review.</p>
-        <ul><li>ΔΔCt and efficiency-corrected Pfaffl</li><li>Several reference genes, replicate QC</li><li>CIs, Welch tests, Holm correction</li></ul>
-        <span class="go">Open tool →</span>
-      </a>
+<section class="l-hero">
+  <div class="wrap l-hero-in">
+    <p class="l-kicker">Benchfit Studio</p>
+    <h1>Analyse, graph and explain your data, in any lab.</h1>
+    <p class="l-lede">Curve fitting, statistics, spectra, materials characterisation and machine learning in one workspace. An AI co-scientist helps you plan the analysis, and every number comes from a validated engine.</p>
+    <div class="l-cta">
+      <a class="btn big primary" href="studio/">Open Benchfit Studio, free</a>
+      <a class="btn big ghost-light" href="#examples">Try a worked example</a>
     </div>
-  </section>
-
-  <section class="section">
-    <div class="sec-head"><h2>Three steps, no installation</h2></div>
-    <div class="steps">
-      <div class="card step"><h3>Paste</h3><p>Copy the block from Excel or your instrument export, or import a 96-well plate. Replicates and blank cells are handled.</p></div>
-      <div class="card step"><h3>Check</h3><p>See the fit, the confidence intervals and plain-language warnings: an extrapolated IC50, a failed standard, noisy technical replicates.</p></div>
-      <div class="card step"><h3>Publish</h3><p>Export a 600-dpi or vector figure and paste methods, results and figure legend, written for you with your numbers.</p></div>
+    <p class="l-note">Runs in your browser · nothing to install · your data never leaves your computer</p>
+    <div class="l-shot">
+      <img src="assets/img/hero-xrd.webp" width="1600" height="1000" alt="Benchfit Studio fitting the X-ray diffraction pattern of gold nanoparticles, with Scherrer crystallite size and microstrain">
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="section">
-    <div class="sec-head"><h2>Built for the bench, checked like research code</h2></div>
-    <div class="why">
-      <div><h3>Your data never leaves the browser</h3><p>Every calculation runs on your computer. Nothing is uploaded, so unpublished results and patient-derived samples stay private.</p></div>
-      <div><h3>Statistics you can defend</h3><p>Nonlinear least squares with proper confidence intervals, model selection and multiple-comparison correction, validated against SciPy to six significant figures.</p></div>
-      <div><h3>Writing included</h3><p>Methods paragraphs name the model, weighting, tests and corrections, the details reviewers ask for and people forget.</p></div>
-      <div><h3>Journal-ready figures</h3><p>Colour-blind-safe palette, consistent typography and exports at 600 dpi or as editable SVG for Illustrator and Inkscape.</p></div>
-      <div><h3>Nothing to install or maintain</h3><p>Works on any lab computer, including locked-down institutional machines and Chromebooks. Open the page and paste.</p></div>
-      <div><h3>Made by a scientist</h3><p>Built by a computational scientist with a PhD who has spent years fitting models to noisy data and writing up the methods.</p></div>
+<section class="l-fields">
+  <div class="wrap">
+    <p>Built for</p>
+    <ul><li>Materials science</li><li>Nanomaterials</li><li>Polymers</li><li>Chemistry and catalysis</li><li>Semiconductors and optics</li><li>Electrochemistry and batteries</li><li>Biology and pharmacology</li><li>Physics</li></ul>
+  </div>
+</section>
+
+<section class="wrap l-why">
+  <div class="sec-head center"><h2>Why not just ask ChatGPT or Claude?</h2><p>Language models are excellent at explaining and planning. They are not a reliable way to compute the numbers in your paper.</p></div>
+  <div class="cmp">
+    <div class="cmp-col">
+      <h3>A chatbot on its own</h3>
+      <ul class="x">
+        <li>Writes new code every time, so the same data can give different answers</li>
+        <li>Can state a fitted value it never actually computed</li>
+        <li>Leaves no record linking each number to your data and settings</li>
+        <li>Figures change style with every prompt</li>
+        <li>Your unpublished data is sent to a third party</li>
+      </ul>
     </div>
-  </section>
-
-  <section class="section" id="pricing">
-    <div class="sec-head"><h2>Free for analysis. Pro when you publish.</h2><p>Every fit, table and warning is free with no limits. Pro adds the outputs that go into papers and reports.</p></div>
-    <div class="pricing">
-      <div class="card price">
-        <h3>Free</h3>
-        <div class="amt">$0</div>
-        <p class="sub">for everyone, forever</p>
-        <ul><li>All four tools, unlimited analyses</li><li>Parameters, intervals, tests, QC flags</li><li>On-screen charts and standard PNG</li><li>No account</li></ul>
-        <a class="btn" href="dose-response/">Start analysing</a>
-      </div>
-      <div class="card price best">
-        <h3>Pro <span>Best value</span></h3>
-        <div class="amt">$<span data-price="yearly">49</span><small> / year</small></div>
-        <p class="sub">or $<span data-price="monthly">7</span> per month</p>
-        <ul><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods, results and legend</li><li>CSV results and HTML reports</li><li>Project files to save and reopen</li></ul>
-        <a class="btn primary" data-buy="yearly" href="account/">Start 7-day free trial</a>
-      </div>
-      <div class="card price">
-        <h3>Lab</h3>
-        <div class="amt">$<span data-price="lab">249</span><small> / year</small></div>
-        <p class="sub">up to 10 people, one invoice</p>
-        <ul><li>Everything in Pro for the whole group</li><li>One licence key, ten activations</li><li>Invoice for grant or departmental funds</li><li>Priority support</li></ul>
-        <a class="btn" data-buy="lab" href="account/">Start 7-day free trial</a>
-      </div>
+    <div class="cmp-col good">
+      <h3>Benchfit Studio</h3>
+      <ul class="ok">
+        <li>One engine, checked against SciPy on every release, gives the same answer every time</li>
+        <li>The co-scientist proposes analyses; Benchfit computes them and shows its working</li>
+        <li>Data, analysis options, results and graphs stay linked: edit a value and everything updates</li>
+        <li>Consistent, colour-blind-safe, journal-ready figures and methods text</li>
+        <li>Calculations run locally; the AI is optional and uses your own key</li>
+      </ul>
     </div>
-    <p class="hint" style="margin-top:14px">Prices in US dollars. Payments, invoices and sales tax are handled by Lemon Squeezy, our merchant of record. 14-day refund, no questions.</p>
-  </section>
+  </div>
+</section>
 
-  <section class="section" id="faq">
-    <div class="sec-head"><h2>Questions</h2></div>
-    <div class="faq">
-      <details><summary>Is my data uploaded anywhere?</summary><p>No. The analysis code runs in your browser and your data stays in that tab, plus an optional draft saved in your browser's local storage. The only network request Benchfit makes is to check a Pro licence key.</p></details>
-      <details><summary>How do I know the numbers are right?</summary><p>Every model is checked against SciPy, the reference scientific Python library, on test datasets. Parameters agree to six significant figures and standard errors to 0.1%. The <a href="validation/">validation page</a> lists every check.</p></details>
-      <details><summary>Can I use the free version for a paper?</summary><p>Yes. The analysis is identical in the free and Pro versions. Free PNG figures carry a small “Made with Benchfit” mark; Pro removes it, adds high-resolution and vector exports and writes the methods text.</p></details>
-      <details><summary>How should I cite Benchfit?</summary><p>The auto-written methods include a citation line. Otherwise: “Analyses were performed with Benchfit (siba-p.github.io/benchfit).”</p></details>
-      <details><summary>Can my lab pay with a purchase order or grant?</summary><p>Yes. Lemon Squeezy issues a proper invoice with your institution's details and tax ID. For purchase orders, write to us from the licence page.</p></details>
-      <details><summary>Is it suitable for GLP or clinical diagnostics?</summary><p>No. Benchfit is a research tool. It is not validated under 21 CFR Part 11 or GLP and must not be used for diagnostic decisions.</p></details>
-      <details><summary>Does it work offline?</summary><p>Once a tool page has loaded, the analysis needs no connection, so you can keep working on the bus or in a cold room.</p></details>
+<section class="wrap" id="features">
+  <div class="feat">
+    <div class="feat-t">
+      <p class="l-kicker dark">Organise</p>
+      <h2>Data tables shaped for the analysis you need</h2>
+      <p>Choose an XY table for curves and spectra, a Column table for comparing groups, or a Multiple-variables table for compositions, process settings and properties. Paste straight from Excel or an instrument export; replicate columns are recognised automatically.</p>
+      <ul class="ticks"><li>Spreadsheet editing with paste, transpose and CSV import</li><li>Each table remembers its analyses and graphs</li><li>Projects are saved in your browser and can be exported as a file</li></ul>
     </div>
-  </section>
+    <div class="feat-i"><img src="assets/img/table.webp" loading="lazy" width="1600" height="1000" alt="An XY data table of ionic conductivity against temperature"></div>
+  </div>
 
-  <section class="band">
-    <div><h2>Your next figure is one paste away.</h2><p>No account, no installation, nothing uploaded.</p></div>
-    <a class="btn big" href="dose-response/">Open Benchfit</a>
-  </section>
-</main>
+  <div class="feat rev">
+    <div class="feat-t">
+      <p class="l-kicker dark">Fit</p>
+      <h2>Fit any model, then let the data choose</h2>
+      <p>Thirty-five equations across materials science, polymers, nanomaterials, chemistry and biology, from Arrhenius and Langmuir to Avrami, Carreau, Hall–Petch and the four-parameter logistic, or type your own. <b>Auto-fit</b> tries every applicable model and ranks them by AICc, so you see what the data actually support.</p>
+      <ul class="ticks"><li>Confidence intervals and confidence bands, derived quantities such as Eₐ in kJ/mol and eV</li><li>Constraints, weighting, residual plots and runs test</li><li>Plain-language warnings when a parameter is poorly determined</li></ul>
+    </div>
+    <div class="feat-i"><img src="assets/img/autofit.webp" loading="lazy" width="1600" height="1000" alt="Auto-fit ranking adsorption isotherm models by AICc"></div>
+  </div>
+
+  <div class="feat">
+    <div class="feat-t">
+      <p class="l-kicker dark">Characterise</p>
+      <h2>Spectra, diffraction and mechanical tests</h2>
+      <p>Benchfit understands the measurements materials labs run every day. Fit overlapping XRD, Raman or XPS peaks on a fitted baseline; get d-spacings, Scherrer crystallite size and Williamson–Hall strain; extract optical band gaps from UV–Vis; and read modulus, yield, strength and toughness from stress–strain curves.</p>
+      <ul class="ticks"><li>Gaussian, Lorentzian and pseudo-Voigt multi-peak fitting</li><li>Tauc analysis for direct and indirect transitions</li><li>Area under the curve, Savitzky–Golay smoothing and derivatives</li></ul>
+    </div>
+    <div class="feat-i"><img src="assets/img/tauc.webp" loading="lazy" width="1600" height="1000" alt="Tauc plot giving the optical band gap of ZnO nanocrystals"></div>
+  </div>
+
+  <div class="feat rev">
+    <div class="feat-t">
+      <p class="l-kicker dark">Compare</p>
+      <h2>Statistics with the checks built in</h2>
+      <p>t tests, Mann–Whitney, one-way ANOVA, Welch's ANOVA and Kruskal–Wallis, with Tukey and Holm–Šidák post tests. Benchfit checks equal variance and normality for you, suggests the right test when an assumption fails, and draws significance stars on the graph.</p>
+      <ul class="ticks"><li>Descriptive statistics, normality tests, Grubbs outliers</li><li>Effect sizes and confidence intervals, not only p-values</li><li>Correlation matrices and multiple linear regression</li></ul>
+    </div>
+    <div class="feat-i"><img src="assets/img/anova.webp" loading="lazy" width="1600" height="1000" alt="One-way ANOVA comparing catalyst batches with Tukey significance brackets"></div>
+  </div>
+
+  <div class="feat">
+    <div class="feat-t">
+      <p class="l-kicker dark">Discover</p>
+      <h2>From your data to the next experiment</h2>
+      <p>Benchfit learns a Gaussian-process model of a property from the experiments you have run, such as the toughness of a polymer blend, the yield of a synthesis or the conductivity of an electrolyte. It shows which inputs matter and proposes the next experiments most likely to improve the result, respecting mixture constraints. Add them to your table, run them, and repeat.</p>
+      <ul class="ticks"><li>Bayesian optimisation with expected improvement, in batches</li><li>Cross-validated model accuracy, so you know when to trust it</li><li>PCA, k-means clustering and correlation for exploring datasets</li></ul>
+    </div>
+    <div class="feat-i"><img src="assets/img/discovery.webp" loading="lazy" width="1600" height="1000" alt="Bayesian optimisation suggesting the next polymer blend experiments"></div>
+  </div>
+
+  <div class="feat rev">
+    <div class="feat-t">
+      <p class="l-kicker dark">Co-scientist</p>
+      <h2>An AI co-scientist that never makes up a number</h2>
+      <p>Open the co-scientist on any table. It reads the shape of your data and your column titles and recommends analyses, with a one-click Run. Connect your own Claude or GPT key to ask in plain language: “Which isotherm fits best and what is the capacity?” or “Plan five experiments to maximise toughness.” The model plans and interprets; Benchfit's validated engine does the maths.</p>
+      <ul class="ticks"><li>Built-in suggestions work offline, with no key</li><li>Chat proposes analyses you approve before they run</li><li>Your key stays in your browser and calls the provider directly</li></ul>
+    </div>
+    <div class="feat-i"><img src="assets/img/cosci.webp" loading="lazy" width="1600" height="1000" alt="The co-scientist panel suggesting analyses for a formulation dataset"></div>
+  </div>
+
+  <div class="feat">
+    <div class="feat-t">
+      <p class="l-kicker dark">Publish</p>
+      <h2>Figures and methods, ready for the paper</h2>
+      <p>Every analysis produces a figure in a consistent, colour-blind-safe style, exportable as 600-dpi PNG or editable SVG, together with a methods paragraph, a results sentence and a figure legend written from your numbers. Copy them into Word, or download a one-page report for your notebook or supervisor.</p>
+      <ul class="ticks"><li>Methods text names the model, weighting, tests and corrections</li><li>Results tables as CSV</li><li>Reports that record exactly what was done</li></ul>
+    </div>
+    <div class="feat-i"><img src="assets/img/report.webp" loading="lazy" width="1600" height="1000" alt="Auto-written methods, results and figure legend under an ANOVA graph"></div>
+  </div>
+</section>
+
+<section class="wrap section" id="examples">
+  <div class="sec-head"><h2>Start from a worked example</h2><p>Each example opens in Studio with real-looking data and the analysis already run. Change the numbers and watch everything update, or replace them with your own.</p></div>
+  <div class="ex-cards" id="ex-cards"></div>
+</section>
+
+<section class="wrap section" id="catalogue">
+  <div class="sec-head"><h2>Everything in Benchfit Studio</h2></div>
+  <div class="cat">
+    <div><h3>Curve fitting</h3><ul><li>Nonlinear regression, 35 built-in equations</li><li>User-defined equations</li><li>Automatic model selection by AICc</li><li>Parameter constraints and weighting (1/Y, 1/Y²)</li><li>Confidence intervals and bands</li><li>Derived parameters by the delta method</li><li>Residual plots and runs test</li><li>Linear regression with slope comparison</li></ul></div>
+    <div><h3>Equations by field</h3><ul><li><b>Materials and chemistry:</b> Arrhenius, Vogel–Fulcher–Tammann, Langmuir, Freundlich, Sips, pseudo-first and second-order kinetics, Avrami (JMAK), stretched exponential, Tafel, Curie–Weiss</li><li><b>Polymers:</b> Flory–Fox, Mark–Houwink, WLF, Carreau, Cross</li><li><b>Nanomaterials and physics:</b> Hall–Petch, quantum confinement</li><li><b>Biology:</b> dose–response, Michaelis–Menten, Hill, binding</li><li><b>General:</b> exponentials, power law, sigmoids, peaks, growth curves, polynomials</li></ul></div>
+    <div><h3>Spectra and materials</h3><ul><li>Multi-peak fitting (Gaussian, Lorentzian, pseudo-Voigt)</li><li>Polynomial baseline removal</li><li>XRD: d-spacing, Scherrer size, Williamson–Hall strain</li><li>Tauc band gap (direct and indirect)</li><li>Tensile test: modulus, 0.2% yield, UTS, elongation, toughness</li><li>Area under the curve</li><li>Savitzky–Golay smoothing and derivatives</li></ul></div>
+    <div><h3>Statistics</h3><ul><li>Descriptive statistics, geometric mean, CV</li><li>D'Agostino–Pearson normality test</li><li>Grubbs outlier test</li><li>Welch's, Student's and paired t tests</li><li>Mann–Whitney (exact and asymptotic)</li><li>One-way ANOVA, Welch's ANOVA, Kruskal–Wallis</li><li>Tukey and Holm–Šidák post tests</li><li>Brown–Forsythe equal-variance test</li><li>Pearson and Spearman correlation</li></ul></div>
+    <div><h3>Machine learning and discovery</h3><ul><li>Multiple linear regression with standardised effects</li><li>Principal component analysis</li><li>k-means clustering with silhouette selection</li><li>Gaussian-process regression with feature relevance</li><li>Bayesian optimisation with mixture constraints</li><li>Leave-one-out model validation</li></ul></div>
+    <div><h3>Graphs, reports and AI</h3><ul><li>Live graphs that update with the data</li><li>Log axes, error bars, significance brackets, heatmaps</li><li>PNG, 600-dpi PNG and SVG export</li><li>Auto-written methods, results and legends</li><li>CSV results and HTML reports</li><li>Co-scientist suggestions and Claude or GPT chat</li></ul></div>
+  </div>
+</section>
+
+<section class="wrap section" id="calculators">
+  <div class="sec-head"><h2>Quick calculators</h2><p>Single-purpose tools for routine bench assays, if you just need one number.</p></div>
+  <div class="tools-grid">
+    <a class="card tool-card" href="dose-response/"><h3>Dose–response and IC50</h3><p>IC50 and EC50 with confidence intervals, plate import and potency comparison.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="standard-curve/"><h3>Standard curves</h3><p>ELISA, BCA and Bradford with interpolation, recovery and LOD/LOQ.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="enzyme-kinetics/"><h3>Enzyme kinetics</h3><p>K<sub>m</sub>, V<sub>max</sub>, k<sub>cat</sub> and inhibition mechanism with K<sub>i</sub>.</p><span class="go">Open →</span></a>
+    <a class="card tool-card" href="qpcr/"><h3>qPCR</h3><p>ΔΔCt and Pfaffl fold changes with statistics and QC.</p><span class="go">Open →</span></a>
+  </div>
+</section>
+
+<section class="wrap section" id="pricing">
+  <div class="sec-head"><h2>Free for analysis. Pro when you publish.</h2><p>Every analysis, table and warning is free with no limits. Pro adds the outputs that go into papers and reports, and the AI chat.</p></div>
+  <div class="pricing">
+    <div class="card price">
+      <h3>Free</h3>
+      <div class="amt">$0</div>
+      <p class="sub">for everyone, forever</p>
+      <ul><li>All analyses in Studio and the calculators</li><li>Live graphs, tables and warnings</li><li>Co-scientist suggestions</li><li>Standard PNG export</li></ul>
+      <a class="btn" href="studio/">Open Studio</a>
+    </div>
+    <div class="card price best">
+      <h3>Pro <span>Most popular</span></h3>
+      <div class="amt">$<span data-price="yearly">79</span><small> / year</small></div>
+      <p class="sub">or $<span data-price="monthly">9</span> per month</p>
+      <ul><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods, results and legends</li><li>AI co-scientist chat with your Claude or GPT key</li><li>CSV results, reports and project files</li></ul>
+      <a class="btn primary" data-buy="yearly" href="account/">Start 7-day free trial</a>
+    </div>
+    <div class="card price">
+      <h3>Lab</h3>
+      <div class="amt">$<span data-price="lab">399</span><small> / year</small></div>
+      <p class="sub">up to 10 people, one invoice</p>
+      <ul><li>Everything in Pro for the whole group</li><li>One licence key, ten activations</li><li>Invoice for grant or department funds</li><li>Priority support and feature requests</li></ul>
+      <a class="btn" data-buy="lab" href="account/">Start 7-day free trial</a>
+    </div>
+  </div>
+  <p class="hint" style="margin-top:14px">Prices in US dollars. Payments, invoices and sales tax are handled by Lemon Squeezy, our merchant of record. 14-day refund, no questions.</p>
+</section>
+
+<section class="wrap section" id="faq">
+  <div class="sec-head"><h2>Questions</h2></div>
+  <div class="faq">
+    <details><summary>How is this different from GraphPad Prism or Origin?</summary><p>Benchfit covers the core of what scientists use those programs for (curve fitting, statistics and publication graphs), adds materials-specific analyses such as XRD, Tauc and tensile tests, plus Bayesian optimisation and an AI co-scientist. It runs in any browser with nothing to install, and costs a fraction of a desktop licence. It does not yet cover everything they do, such as survival analysis or two-way ANOVA; those are on the roadmap.</p></details>
+    <details><summary>Is my data uploaded anywhere?</summary><p>No. Calculations run in your browser and projects are stored in your browser. Data is sent only if you use the optional AI chat, and then it goes directly from your browser to the provider you chose, using your own key.</p></details>
+    <details><summary>How do I know the numbers are right?</summary><p>Every analysis is checked against SciPy and NumPy, the reference scientific Python libraries, on test datasets before each release: parameters, standard errors, p-values, Tukey intervals and Gaussian-process predictions. See the <a href="validation/">validation page</a>.</p></details>
+    <details><summary>I have never used curve-fitting software. Where do I start?</summary><p>Open a <a href="#examples">worked example</a> close to your field, look at what Benchfit reports, then replace the numbers with yours. Or create a table, paste your data and press <b>Suggest an analysis</b>.</p></details>
+    <details><summary>Do I need an AI subscription?</summary><p>No. The built-in suggestions need no key. The chat is optional and uses your own Anthropic or OpenAI key, billed by them at their API rates, usually cents per conversation.</p></details>
+    <details><summary>Can my lab pay with a purchase order or grant?</summary><p>Yes. Lemon Squeezy issues a proper invoice with your institution's details; for purchase orders, write to us from the licence page.</p></details>
+    <details><summary>Is it suitable for regulated or clinical work?</summary><p>No. Benchfit is research software and is not validated for GLP, 21 CFR Part 11 or diagnostic use.</p></details>
+  </div>
+</section>
+
+<section class="wrap"><div class="band"><div><h2>Your next figure is one paste away.</h2><p>No account, no installation, nothing uploaded.</p></div><a class="btn big" href="studio/">Open Benchfit Studio</a></div></section>
+
 <footer data-bf></footer>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/stats.js"></script>
-<script src="assets/js/engines.js"></script>
 <script src="assets/js/plot.js"></script>
 <script src="assets/js/shell.js"></script>
+<script src="assets/js/samples.js"></script>
 <script>
 (function () {
-  var C = window.BF_CONFIG, S = BF.stats, E = BF.engines, P = BF.plot;
+  var C = window.BF_CONFIG;
   document.querySelectorAll('[data-price]').forEach(function (el) { el.textContent = C.prices[el.dataset.price]; });
   document.querySelectorAll('[data-buy]').forEach(function (a) {
     var url = C.checkout[a.dataset.buy];
     if (url) { a.href = url; a.textContent = a.dataset.buy === 'lab' ? 'Buy for your lab' : 'Get Pro'; a.target = '_blank'; a.rel = 'noopener'; }
     else a.onclick = function (e) { e.preventDefault(); if (BF.pro.kind() === 'free') BF.pro.startTrial(); else BF.ui.upgrade(); };
   });
-  var r = S.rng(11), sets = [['Compound A', [3, 99, Math.log10(0.042), -1.05]], ['Compound B', [6, 101, Math.log10(0.55), -0.9]], ['Reference', [1, 100, Math.log10(0.006), -1.3]]];
-  var concs = [0.0005, 0.0015, 0.0046, 0.014, 0.041, 0.12, 0.37, 1.1, 3.3, 10];
-  var res = sets.map(function (s) {
-    var pts = [];
-    concs.forEach(function (c) { for (var k = 0; k < 3; k++) pts.push({ conc: c, y: E.dose.models['4pl'].f(Math.log10(c), s[1]) + 4 * r.normal() }); });
-    return { name: s[0], pts: pts, fit: E.dose.fit(pts, { model: '4pl' }) };
-  });
-  function draw() {
-    var host = document.getElementById('demo-chart');
-    var W = Math.max(300, host.clientWidth), H = Math.round(W * 0.66);
-    var series = res.map(function (d, i) {
-      var m = E.groupMeans(d.pts.map(function (p) { return { x: Math.log10(p.conc), y: p.y }; }));
-      var f = d.fit.fit, xs = [];
-      for (var k = 0; k < 120; k++) xs.push(-3.55 + 5.1 * k / 119);
-      return { name: d.name, ci: i, points: m.map(function (q) { return { x: q.x, y: q.y, err: q.sd }; }), curve: xs.map(function (x) { return [x, f.f(x, f.p)]; }), band: S.band(f, xs.filter(function (_, k) { return k % 5 === 0; })) };
-    });
-    host.innerHTML = P.xy({ x: { label: 'Concentration (µM)', log: true, min: -3.55, max: 1.55 }, y: { label: 'Activity (%)' }, series: series,
-      vguides: res.map(function (d, i) { return { x: d.fit.logEC50, y: d.fit.fit.f(d.fit.logEC50, d.fit.fit.p), ci: i }; }) }, P.screen(), W, H).svg;
-  }
-  document.getElementById('demo-kpis').innerHTML = res.map(function (d, i) {
-    return '<div><span class="sw" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--s' + (i + 1) + ');margin-right:5px"></span>' + d.name + '<b>IC50 ' + P.num(d.fit.ec50, 2) + ' µM</b></div>';
+  var esc = BF.ui.esc;
+  document.getElementById('ex-cards').innerHTML = window.BF_SAMPLES.map(function (s) {
+    return '<a class="ex-card" href="studio/?example=' + s.id + '"><span class="fld">' + esc(s.field) + '</span><b>' + esc(s.title) + '</b><span>' + esc(s.blurb) + '</span><i>Open in Studio →</i></a>';
   }).join('');
-  draw();
-  var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(draw, 150); });
 })();
 </script>
 </body>

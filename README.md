@@ -1,6 +1,16 @@
 # Benchfit
 
-Assay analysis that runs in the browser: dose–response (IC50/EC50), standard curves (ELISA, BCA, Bradford), enzyme kinetics (Km, Vmax, kcat, Ki) and qPCR relative expression (ΔΔCt and Pfaffl). The analysis is free; Pro adds publication exports, auto-written methods and results, CSV and report export, and project files.
+**Benchfit Studio** is a browser workspace for scientific data, in the spirit of GraphPad Prism but for every lab:
+- data tables (XY, Column, Multiple variables);
+- nonlinear regression with 35 equations from materials science, polymers, nanomaterials, chemistry and biology, plus user-defined equations and AICc auto-fit;
+- statistics: t tests, ANOVA with Tukey, Kruskal–Wallis, correlation and regression;
+- spectra and materials analyses: multi-peak fitting, XRD Scherrer and Williamson–Hall, Tauc band gap, tensile tests;
+- PCA, clustering, and Gaussian-process Bayesian optimisation for materials discovery;
+- an AI co-scientist (built-in suggestions, plus Claude or GPT chat with the user's own key) that plans analyses while the validated engine computes them.
+
+Quick calculators cover routine bench assays: dose–response, standard curves, enzyme kinetics and qPCR.
+
+The analysis is free. Pro adds publication exports, auto-written methods and results, CSV and report export, project files and the AI chat.
 
 Live site: https://siba-p.github.io/benchfit/
 
@@ -8,7 +18,11 @@ Live site: https://siba-p.github.io/benchfit/
 
 | Path | What it holds |
 |---|---|
-| `assets/js/stats.js` | Levenberg–Marquardt fitting, covariance, t distribution, Welch test, delta method |
+| `studio/`, `assets/js/studio.js` | The Studio workspace: tables, analysis catalogue, results, co-scientist |
+| `assets/js/models.js` | Equation library, safe expression parser, nonlinear regression and auto-fit |
+| `assets/js/analysis.js` | Statistics, PCA, k-means, Gaussian processes and Bayesian optimisation, peaks, XRD, Tauc, tensile |
+| `assets/js/samples.js` | Example projects, one per field |
+| `assets/js/stats.js` | Levenberg–Marquardt fitting, covariance, t, F, χ² and studentized-range distributions, delta method |
 | `assets/js/engines.js` | Analysis engines for the four tools (no DOM access; shared with the tests) |
 | `assets/js/plot.js` | SVG charts used both on screen and for exported figures |
 | `assets/js/shell.js` | Header and footer, table parsing, exports, write-up panel, Pro licence and trial gate |
@@ -21,8 +35,8 @@ It is a static site with no build step. To serve it locally, run `python3 -m htt
 ## Validation
 
 ```bash
-node tests/run-engines.js /tmp/bf.json
-python tests/check_scipy.py /tmp/bf.json   # needs numpy and scipy
+node tests/run-engines.js /tmp/bf.json && python tests/check_scipy.py /tmp/bf.json      # calculators
+node tests/run-studio.js /tmp/st.json && python tests/check_studio.py /tmp/st.json      # Studio engine
 ```
 
 Run this before every release. All checks must print `ok`.
@@ -31,9 +45,9 @@ Run this before every release. All checks must print `ok`.
 
 1. Create a store at lemonsqueezy.com and complete identity and payout verification. Lemon Squeezy is the merchant of record, so it collects and remits VAT, GST and US sales tax.
 2. Create one product, **Benchfit Pro**, with three variants:
-   - Monthly subscription, $7.
-   - Yearly subscription, $49.
-   - **Lab** yearly subscription, $249.
+   - Monthly subscription, $9.
+   - Yearly subscription, $79.
+   - **Lab** yearly subscription, $399.
 3. On each variant, enable **License keys**. Set the activation limit to 3 for Pro and 10 for Lab, and set the key length to match the subscription.
 4. Copy each variant's checkout link (Share → Checkout link) and the numeric store id (Settings → Stores) into `assets/js/config.js`:
    ```js

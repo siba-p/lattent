@@ -7,7 +7,7 @@ window.BF_CONFIG = {
   /* Numeric store id from Lemon Squeezy → Settings → Stores. Licence keys issued by
      any other store are refused. */
   storeId: null,
-  prices: { monthly: 7, yearly: 49, lab: 249 },
+  prices: { monthly: 9, yearly: 79, lab: 399 },
   trialDays: 7,
   support: '',
   site: 'siba-p.github.io/benchfit',

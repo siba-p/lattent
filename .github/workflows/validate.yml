@@ -12,3 +12,5 @@ jobs:
       - run: pip install numpy scipy
       - run: node tests/run-engines.js out.json
       - run: python -W ignore tests/check_scipy.py out.json
+      - run: node tests/run-studio.js studio.json
+      - run: python -W ignore tests/check_studio.py studio.json

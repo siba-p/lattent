@@ -283,6 +283,94 @@
     return 0.5 * (a + b);
   };
 
+  /* Normal distribution. */
+  S.ncdf = z => 0.5 * (1 + erf(z / Math.SQRT2));
+  S.npdf = z => Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+  S.ninv = function (p) {
+    if (p <= 0) return -Infinity; if (p >= 1) return Infinity;
+    const a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.383577518672690e2, -3.066479806614716e1, 2.506628277459239];
+    const b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1, -1.328068155288572e1];
+    const c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+    const d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996, 3.754408661907416];
+    const pl = 0.02425;
+    let q, r, x;
+    if (p < pl) { q = Math.sqrt(-2 * Math.log(p)); x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+    else if (p <= 1 - pl) { q = p - 0.5; r = q * q; x = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1); }
+    else { q = Math.sqrt(-2 * Math.log(1 - p)); x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+    for (let i = 0; i < 2; i++) { const e = S.ncdf(x) - p; x -= e / S.npdf(x); }
+    return x;
+  };
+
+  /* Regularised lower incomplete gamma P(a, x). */
+  S.gammainc = function (a, x) {
+    if (x <= 0) return 0;
+    const gln = S.gammaln(a);
+    if (x < a + 1) {
+      let ap = a, sum = 1 / a, del = sum;
+      for (let n = 0; n < 500; n++) { ap++; del *= x / ap; sum += del; if (Math.abs(del) < Math.abs(sum) * 1e-15) break; }
+      return sum * Math.exp(-x + a * Math.log(x) - gln);
+    }
+    let b = x + 1 - a, c = 1 / 1e-300, d = 1 / b, h = d;
+    for (let i = 1; i < 500; i++) {
+      const an = -i * (i - a); b += 2;
+      d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300;
+      c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300;
+      d = 1 / d; const del = d * c; h *= del;
+      if (Math.abs(del - 1) < 1e-15) break;
+    }
+    return 1 - Math.exp(-x + a * Math.log(x) - gln) * h;
+  };
+  S.chi2sf = (x, df) => 1 - S.gammainc(df / 2, x / 2);
+  S.fsf = (F, d1, d2) => (F <= 0 ? 1 : S.ibeta(d2 / (d2 + d1 * F), d2 / 2, d1 / 2));
+
+  /* Studentized range distribution: P(Q > q) for k groups and df degrees of freedom,
+     by numerical integration over the scaled chi distribution. */
+  S.ptukeySF = function (q, k, df) {
+    if (q <= 0) return 1;
+    const inner = s => {
+      const qs = q * s, N = 160, lo = -8, hi = 8, h = (hi - lo) / N;
+      let sum = 0;
+      for (let i = 0; i <= N; i++) {
+        const z = lo + i * h;
+        const w = i === 0 || i === N ? 1 : i % 2 ? 4 : 2;
+        sum += w * S.npdf(z) * Math.pow(Math.max(S.ncdf(z) - S.ncdf(z - qs), 0), k - 1);
+      }
+      return k * sum * h / 3;
+    };
+    if (!isFinite(df) || df > 2000) return 1 - inner(1);
+    const lc = Math.log(2) + (df / 2) * Math.log(df / 2) - S.gammaln(df / 2);
+    const dens = s => Math.exp(lc + (df - 1) * Math.log(s) - df * s * s / 2);
+    const sd = 1 / Math.sqrt(2 * df);
+    const lo = Math.max(1e-6, 1 - 9 * sd), hi = 1 + 9 * sd + (df < 10 ? 3 : 0);
+    const N = 200, h = (hi - lo) / N;
+    let sum = 0;
+    for (let i = 0; i <= N; i++) {
+      const s = lo + i * h;
+      const w = i === 0 || i === N ? 1 : i % 2 ? 4 : 2;
+      sum += w * dens(s) * inner(s);
+    }
+    return Math.min(1, Math.max(0, 1 - sum * h / 3));
+  };
+
+  /* Ranks with ties averaged. */
+  S.rank = function (a) {
+    const idx = a.map((v, i) => [v, i]).sort((x, y) => x[0] - y[0]);
+    const r = new Array(a.length);
+    for (let i = 0; i < idx.length;) {
+      let j = i;
+      while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
+      const avg = (i + j) / 2 + 1;
+      for (let t = i; t <= j; t++) r[idx[t][1]] = avg;
+      i = j + 1;
+    }
+    return r;
+  };
+  S.quantile = function (a, p) {
+    const s = a.slice().sort((x, y) => x - y);
+    const h = (s.length - 1) * p, lo = Math.floor(h);
+    return s[lo] + (h - lo) * ((s[Math.min(lo + 1, s.length - 1)]) - s[lo]);
+  };
+
   /* Seeded generator for reproducible example data. */
   S.rng = function (seed) {
     let s = seed >>> 0;

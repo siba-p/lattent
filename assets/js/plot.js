@@ -81,8 +81,9 @@
      x values are in data units; with x.log the values are log10 already. */
   P.xy = function (spec, T, W, H) {
     const pad = { l: 66, r: 18, t: 14, b: 50 };
-    const items = spec.series.map(s => ({ name: s.name, color: T.series[s.ci % T.series.length], line: !!s.curve }));
-    const leg = spec.series.length > 1 || spec.legend ? legendRow(items, T, pad.l, pad.t + 12, W - pad.l - pad.r) : { svg: '', height: 0 };
+    const vis = spec.series.filter(s => !s.hideLegend);
+    const items = vis.map(s => ({ name: s.name, color: s.color || T.series[s.ci % T.series.length], line: !!s.curve || !!s.asLine }));
+    const leg = vis.length > 1 || (spec.legend && vis.length) ? legendRow(items, T, pad.l, pad.t + 12, W - pad.l - pad.r) : { svg: '', height: 0 };
     pad.t += leg.height + (leg.height ? 6 : 0);
     const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
 
@@ -92,19 +93,27 @@
       (s.curve || []).forEach(c => { xs.push(c[0]); });
     });
     let x0 = spec.x.min != null ? spec.x.min : Math.min(...xs), x1 = spec.x.max != null ? spec.x.max : Math.max(...xs);
-    if (!spec.x.log && spec.x.zero !== false) x0 = Math.min(x0, 0);
+    if (!spec.x.log && (spec.x.zero === true || (spec.x.zero !== false && x0 >= 0 && x0 < 0.2 * (x1 - x0)))) x0 = Math.min(x0, 0);
     if (spec.x.log) { const m = 0.06 * (x1 - x0 || 1); x0 -= m; x1 += m; }
     else { x1 += 0.04 * (x1 - x0 || 1); }
     let y0 = spec.y.min != null ? spec.y.min : Math.min(...ys), y1 = spec.y.max != null ? spec.y.max : Math.max(...ys);
     spec.series.forEach(s => (s.curve || []).forEach(c => { if (c[1] > y1 && c[1] < y1 + 0.5 * (y1 - y0)) y1 = c[1]; if (c[1] < y0 && c[1] > y0 - 0.5 * (y1 - y0)) y0 = c[1]; }));
-    if (spec.y.zero && y0 > 0) y0 = 0;
+    if (spec.y.zero && y0 > 0 && !spec.y.log) y0 = 0;
     const yt = niceTicks(y0 - 0.04 * (y1 - y0), y1 + 0.06 * (y1 - y0), 6);
-    y0 = Math.min(y0, yt.ticks[0]); y1 = Math.max(y1, yt.ticks[yt.ticks.length - 1]);
+    if (spec.y.log) { const m = 0.06 * (y1 - y0 || 1); y0 -= m; y1 += m; }
+    else { y0 = Math.min(y0, yt.ticks[0]); y1 = Math.max(y1, yt.ticks[yt.ticks.length - 1]); }
     const X = v => pad.l + (v - x0) / (x1 - x0) * iw;
     const Y = v => pad.t + ih - (v - y0) / (y1 - y0) * ih;
     let g = '';
     /* grid and axes */
-    yt.ticks.forEach(v => {
+    if (spec.y.log) {
+      const lt = logTicks(y0, y1);
+      lt.major.forEach(t => {
+        g += `<line x1="${pad.l}" x2="${pad.l + iw}" y1="${Y(t.v)}" y2="${Y(t.v)}" stroke="${T.grid}" stroke-width="1"/>`;
+        g += `<text x="${pad.l - 9}" y="${Y(t.v) + 4}" text-anchor="end" fill="${T.muted}" font-size="${T.size - 1}">${t.label}</text>`;
+      });
+      lt.minor.forEach(v => { g += `<line x1="${pad.l - 4}" x2="${pad.l}" y1="${Y(v)}" y2="${Y(v)}" stroke="${T.axis}" stroke-width="1"/>`; });
+    } else yt.ticks.forEach(v => {
       g += `<line x1="${pad.l}" x2="${pad.l + iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="${T.grid}" stroke-width="1"/>`;
       g += `<text x="${pad.l - 9}" y="${Y(v) + 4}" text-anchor="end" fill="${T.muted}" font-size="${T.size - 1}">${P.num(v, 4)}</text>`;
     });
@@ -133,7 +142,7 @@
       d += `<line x1="${pad.l}" x2="${pad.l + iw}" y1="${Y(h.y)}" y2="${Y(h.y)}" stroke="${T.muted}" stroke-width="1" stroke-dasharray="4 4"/>`;
     });
     spec.series.forEach(s => {
-      const c = T.series[s.ci % T.series.length];
+      const c = s.color || T.series[s.ci % T.series.length];
       if (s.band && s.band.length) {
         const top = s.band.map(b => `${X(b[0]).toFixed(1)},${Y(b[2]).toFixed(1)}`);
         const bot = s.band.slice().reverse().map(b => `${X(b[0]).toFixed(1)},${Y(b[1]).toFixed(1)}`);
@@ -145,21 +154,25 @@
       d += `<line x1="${X(v.x)}" x2="${X(v.x)}" y1="${v.y != null ? Y(v.y) : pad.t}" y2="${pad.t + ih}" stroke="${c}" stroke-width="1.1" stroke-dasharray="3 4"/>`;
     });
     spec.series.forEach(s => {
-      const c = T.series[s.ci % T.series.length];
+      const c = s.color || T.series[s.ci % T.series.length];
       if (s.curve && s.curve.length) {
         d += `<path d="M${s.curve.map(q => `${X(q[0]).toFixed(1)} ${Y(q[1]).toFixed(1)}`).join('L')}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round"${s.dash ? ' stroke-dasharray="6 5"' : ''}/>`;
       }
     });
     d += '</g>';
     spec.series.forEach((s, si) => {
-      const c = T.series[s.ci % T.series.length];
+      const c = s.color || T.series[s.ci % T.series.length];
+      if (s.asLine) {
+        if (s.points.length) d += `<path d="M${s.points.map(q => `${X(q.x).toFixed(1)} ${Y(q.y).toFixed(1)}`).join('L')}" fill="none" stroke="${c}" stroke-width="${s.width || 1.4}" stroke-linejoin="round"${s.dash ? ' stroke-dasharray="5 4"' : ''} clip-path="url(#${clipId})"/>`;
+        return;
+      }
       s.points.forEach((p, pi) => {
         const cx = X(p.x), cy = Y(p.y);
         if (p.err) d += `<line x1="${cx}" x2="${cx}" y1="${Y(p.y - p.err)}" y2="${Y(p.y + p.err)}" stroke="${c}" stroke-width="1.4"/><line x1="${cx - 4}" x2="${cx + 4}" y1="${Y(p.y - p.err)}" y2="${Y(p.y - p.err)}" stroke="${c}" stroke-width="1.4"/><line x1="${cx - 4}" x2="${cx + 4}" y1="${Y(p.y + p.err)}" y2="${Y(p.y + p.err)}" stroke="${c}" stroke-width="1.4"/>`;
         const shape = s.shape || si % 3;
         const r = 4.6;
         const fill = p.excl ? T.bg : c, stroke = p.excl ? T.muted : T.bg;
-        const attrs = `fill="${fill}" stroke="${stroke}" stroke-width="${p.excl ? 1.4 : 1.5}" data-s="${si}" data-p="${pi}" class="pt"`;
+        const attrs = `fill="${fill}" stroke="${stroke}" stroke-width="${p.excl ? 1.4 : 1.5}" data-s="${si}" data-p="${pi}" data-xy="${p.x},${p.y}"${p.label ? ` data-l="${esc(p.label)}"` : ''} class="pt"`;
         if (shape === 1) d += `<rect x="${cx - r * 0.9}" y="${cy - r * 0.9}" width="${r * 1.8}" height="${r * 1.8}" ${attrs}/>`;
         else if (shape === 2) d += `<path d="M${cx} ${cy - r * 1.15}L${cx + r * 1.05} ${cy + r * 0.75}L${cx - r * 1.05} ${cy + r * 0.75}Z" ${attrs}/>`;
         else d += `<circle cx="${cx}" cy="${cy}" r="${r}" ${attrs}/>`;
@@ -171,7 +184,7 @@
       d += `<text x="${X(v.x) + 5}" y="${pad.t + ih - 7}" fill="${c}" font-size="${T.size - 1.5}">${esc(v.label)}</text>`;
     });
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="${T.font}"><rect width="${W}" height="${H}" fill="${T.bg}"/>${leg.svg}${g}${d}</svg>`;
-    return { svg, X, Y, inv: { x: px => x0 + (px - pad.l) / iw * (x1 - x0), y: py => y0 + (pad.t + ih - py) / ih * (y1 - y0) } };
+    return { svg, X, Y, logx: !!spec.x.log, logy: !!spec.y.log, inv: { x: px => x0 + (px - pad.l) / iw * (x1 - x0), y: py => y0 + (pad.t + ih - py) / ih * (y1 - y0) } };
   };
 
   /* Categorical dot plot on a log2 axis (qPCR fold change).
@@ -225,6 +238,122 @@
     });
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="${T.font}"><rect width="${W}" height="${H}" fill="${T.bg}"/>${leg.svg}${g}${d}</svg>`;
     return { svg, X, Y };
+  };
+
+  /* Column scatter (dot) plot with mean and error bar per group and significance brackets.
+     spec: {groups:[{name, v:[...]}], y:{label}, err:'sd'|'sem'|'ci', brackets:[{i, j, text}]} */
+  P.col = function (spec, T, W, H) {
+    const pad = { l: 66, r: 16, t: 18, b: 46 };
+    const G = spec.groups;
+    const longest = Math.max(...G.map(g => g.name.length));
+    const rotate = longest * 7.2 * G.length > W - pad.l - pad.r;
+    if (rotate) pad.b += Math.min(longest * 5.2, 80);
+    const nb = (spec.brackets || []).length;
+    pad.t += Math.min(nb, 6) * 18;
+    const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    const all = [].concat(...G.map(g => g.v));
+    let y0 = Math.min(...all), y1 = Math.max(...all);
+    if (spec.y.zero !== false && y0 > 0 && y0 < 0.6 * y1) y0 = 0;
+    const nt = niceTicks(y0 - 0.04 * (y1 - y0), y1 + 0.05 * (y1 - y0), 6);
+    y0 = Math.min(y0, nt.ticks[0]); y1 = Math.max(y1, nt.ticks[nt.ticks.length - 1]);
+    const Y = v => pad.t + ih - (v - y0) / (y1 - y0) * ih;
+    const bw = iw / G.length;
+    const X = i => pad.l + (i + 0.5) * bw;
+    let g = '';
+    nt.ticks.forEach(v => {
+      g += `<line x1="${pad.l}" x2="${pad.l + iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="${T.grid}"/>`;
+      g += `<text x="${pad.l - 9}" y="${Y(v) + 4}" text-anchor="end" fill="${T.muted}" font-size="${T.size - 1}">${P.num(v, 4)}</text>`;
+    });
+    g += `<line x1="${pad.l}" x2="${pad.l + iw}" y1="${pad.t + ih}" y2="${pad.t + ih}" stroke="${T.axis}" stroke-width="1.2"/>`;
+    g += `<line x1="${pad.l}" x2="${pad.l}" y1="${pad.t}" y2="${pad.t + ih}" stroke="${T.axis}" stroke-width="1.2"/>`;
+    g += `<text transform="translate(16 ${pad.t + ih / 2}) rotate(-90)" text-anchor="middle" fill="${T.ink}" font-size="${T.size}">${esc(spec.y.label)}</text>`;
+    G.forEach((grp, i) => {
+      const c = T.series[i % T.series.length];
+      const x = X(i);
+      if (rotate) g += `<text transform="translate(${x + 4} ${pad.t + ih + 14}) rotate(-35)" text-anchor="end" fill="${T.ink}" font-size="${T.size - 0.5}">${esc(grp.name)}</text>`;
+      else g += `<text x="${x}" y="${pad.t + ih + 20}" text-anchor="middle" fill="${T.ink}" font-size="${T.size - 0.5}">${esc(grp.name)}</text>`;
+      const n = grp.v.length;
+      if (!n) return;
+      const m = grp.v.reduce((s, v) => s + v, 0) / n;
+      const sd = n > 1 ? Math.sqrt(grp.v.reduce((s, v) => s + (v - m) ** 2, 0) / (n - 1)) : 0;
+      const e = spec.err === 'sem' ? sd / Math.sqrt(n) : spec.err === 'ci' ? (n > 1 ? 1.96 * sd / Math.sqrt(n) : 0) : sd;
+      if (spec.style === 'bar') g += `<rect x="${x - bw * 0.28}" y="${Math.min(Y(m), Y(Math.max(y0, 0)))}" width="${bw * 0.56}" height="${Math.abs(Y(Math.max(y0, 0)) - Y(m))}" fill="${c}" fill-opacity="0.22" stroke="${c}" stroke-width="1.4" rx="3"/>`;
+      /* beeswarm-ish jitter */
+      const sortedV = grp.v.map((v, k) => [v, k]).sort((a, b) => a[0] - b[0]);
+      const placed = [];
+      sortedV.forEach(([v]) => {
+        const cy = Y(v);
+        let off = 0, step = 0;
+        while (placed.some(p => Math.abs(p.y - cy) < 7.5 && Math.abs(p.x - off) < 7.5)) { step++; off = (step % 2 ? 1 : -1) * Math.ceil(step / 2) * 6.5; }
+        placed.push({ x: off, y: cy });
+        g += `<circle cx="${x + Math.max(-bw * 0.35, Math.min(bw * 0.35, off))}" cy="${cy}" r="4.2" fill="${c}" fill-opacity="0.75" stroke="${T.bg}" stroke-width="1.2" class="pt" data-g="${i}" data-v="${v}"/>`;
+      });
+      g += `<line x1="${x - bw * 0.22}" x2="${x + bw * 0.22}" y1="${Y(m)}" y2="${Y(m)}" stroke="${T.ink}" stroke-width="2.2" stroke-linecap="round"/>`;
+      if (e > 0) g += `<line x1="${x}" x2="${x}" y1="${Y(m - e)}" y2="${Y(m + e)}" stroke="${T.ink}" stroke-width="1.4"/><line x1="${x - 7}" x2="${x + 7}" y1="${Y(m - e)}" y2="${Y(m - e)}" stroke="${T.ink}" stroke-width="1.4"/><line x1="${x - 7}" x2="${x + 7}" y1="${Y(m + e)}" y2="${Y(m + e)}" stroke="${T.ink}" stroke-width="1.4"/>`;
+    });
+    (spec.brackets || []).slice(0, 6).forEach((b, k) => {
+      const yb = pad.t - 12 - k * 18;
+      const x1 = X(b.i), x2 = X(b.j);
+      g += `<path d="M${x1} ${yb + 6}V${yb}H${x2}V${yb + 6}" fill="none" stroke="${T.ink}" stroke-width="1.1"/>`;
+      g += `<text x="${(x1 + x2) / 2}" y="${yb - 3}" text-anchor="middle" fill="${T.ink}" font-size="${T.size - 0.5}">${esc(b.text)}</text>`;
+    });
+    return { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="${T.font}"><rect width="${W}" height="${H}" fill="${T.bg}"/>${g}</svg>` };
+  };
+
+  /* Horizontal bars. spec: {items:[{name, v, lo, hi}], x:{label}, ci: color index} */
+  P.bars = function (spec, T, W, H) {
+    const items = spec.items;
+    const lw = Math.min(200, 12 + Math.max(...items.map(i => String(i.name).length)) * 7);
+    const pad = { l: lw, r: 22, t: 12, b: 44 };
+    H = Math.max(H || 0, pad.t + pad.b + items.length * 26);
+    const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    const vals = [].concat(...items.map(i => [i.v, i.lo, i.hi].filter(isFinite)));
+    let x0 = Math.min(0, ...vals), x1 = Math.max(0, ...vals);
+    const nt = niceTicks(x0, x1 + 0.04 * (x1 - x0 || 1), 5);
+    x0 = Math.min(x0, nt.ticks[0]); x1 = Math.max(x1, nt.ticks[nt.ticks.length - 1]);
+    const X = v => pad.l + (v - x0) / (x1 - x0) * iw;
+    const bh = ih / items.length;
+    let g = '';
+    nt.ticks.forEach(v => {
+      g += `<line x1="${X(v)}" x2="${X(v)}" y1="${pad.t}" y2="${pad.t + ih}" stroke="${v === 0 ? T.axis : T.grid}"/>`;
+      g += `<text x="${X(v)}" y="${pad.t + ih + 18}" text-anchor="middle" fill="${T.muted}" font-size="${T.size - 1}">${P.num(v, 3)}</text>`;
+    });
+    items.forEach((it, i) => {
+      const c = T.series[(it.ci != null ? it.ci : spec.ci || 0) % T.series.length];
+      const y = pad.t + i * bh;
+      g += `<text x="${pad.l - 8}" y="${y + bh / 2 + 4}" text-anchor="end" fill="${T.ink}" font-size="${T.size - 0.5}">${esc(it.name)}</text>`;
+      g += `<rect x="${Math.min(X(0), X(it.v))}" y="${y + bh * 0.2}" width="${Math.max(Math.abs(X(it.v) - X(0)), 1)}" height="${bh * 0.6}" fill="${c}" rx="3"/>`;
+      if (isFinite(it.lo) && isFinite(it.hi)) g += `<line x1="${X(it.lo)}" x2="${X(it.hi)}" y1="${y + bh / 2}" y2="${y + bh / 2}" stroke="${T.ink}" stroke-width="1.3"/>`;
+    });
+    g += `<text x="${pad.l + iw / 2}" y="${H - 8}" text-anchor="middle" fill="${T.ink}" font-size="${T.size}">${esc(spec.x.label)}</text>`;
+    return { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="${T.font}"><rect width="${W}" height="${H}" fill="${T.bg}"/>${g}</svg>`, H };
+  };
+
+  /* Heatmap of a square matrix in [-1, 1] (correlations). */
+  P.heat = function (spec, T, W) {
+    const n = spec.names.length;
+    const lw = Math.min(150, 12 + Math.max(...spec.names.map(s => s.length)) * 6.8);
+    const cell = Math.max(22, Math.min(64, (W - lw - 70) / n));
+    const H = lw * 0.15 + cell * n + 80;
+    const mix = (a, b, t) => { const h = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)); const A = h(a), B = h(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+    const neutral = T.bg === '#ffffff' || /^#f/i.test(T.bg) ? '#f1f2f4' : '#2a3040';
+    const col = v => (v >= 0 ? mix(neutral, T.series[0], Math.min(1, v)) : mix(neutral, T.series[1], Math.min(1, -v)));
+    let g = '';
+    const top = 12;
+    spec.names.forEach((nm, i) => {
+      g += `<text x="${lw - 8}" y="${top + i * cell + cell / 2 + 4}" text-anchor="end" fill="${T.ink}" font-size="${T.size - 1}">${esc(nm)}</text>`;
+      g += `<text transform="translate(${lw + i * cell + cell / 2 + 4} ${top + n * cell + 8}) rotate(-40)" text-anchor="end" fill="${T.ink}" font-size="${T.size - 1}">${esc(nm)}</text>`;
+      spec.m[i].forEach((v, j) => {
+        g += `<rect x="${lw + j * cell}" y="${top + i * cell}" width="${cell - 2}" height="${cell - 2}" rx="3" fill="${col(v)}" class="pt" data-i="${i}" data-j="${j}"/>`;
+        if (cell >= 30) g += `<text x="${lw + j * cell + cell / 2 - 1}" y="${top + i * cell + cell / 2 + 4}" text-anchor="middle" fill="${Math.abs(v) > 0.6 ? '#fff' : T.ink}" font-size="${Math.min(T.size - 1, cell / 3)}">${v.toFixed(2)}</text>`;
+      });
+    });
+    /* colour bar */
+    const bx = lw + n * cell + 18, bh = cell * n;
+    for (let k = 0; k < 40; k++) { const v = 1 - 2 * k / 39; g += `<rect x="${bx}" y="${top + k * bh / 40}" width="12" height="${bh / 40 + 0.5}" fill="${col(v)}"/>`; }
+    g += `<text x="${bx + 16}" y="${top + 9}" fill="${T.muted}" font-size="${T.size - 2}">+1</text><text x="${bx + 16}" y="${top + bh / 2 + 4}" fill="${T.muted}" font-size="${T.size - 2}">0</text><text x="${bx + 16}" y="${top + bh}" fill="${T.muted}" font-size="${T.size - 2}">−1</text>`;
+    const Wt = Math.max(W, bx + 40);
+    return { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${Wt} ${H}" width="${Wt}" height="${H}" font-family="${T.font}"><rect width="${Wt}" height="${H}" fill="${T.bg}"/>${g}</svg>`, H };
   };
 
   root.BF.plot = P;
