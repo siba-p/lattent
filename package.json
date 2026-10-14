@@ -1,7 +1,6 @@
 {
   "name": "benchfit",
   "private": true,
-  "type": "module",
   "description": "Benchfit: browser workspace for scientific data analysis",
   "scripts": {
     "test:db": "node tests/db/rls.test.mjs && node tests/db/billing.test.mjs",
