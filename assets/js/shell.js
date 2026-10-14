@@ -95,13 +95,22 @@
     if (!t) return null;
     return Math.max(0, CFG.trialDays - (Date.now() - t.start) / 864e5);
   };
+  /* Plan from the signed-in account, cached so Pro keeps working offline for a while. */
+  Pro.account = function () {
+    const e = store.get('bf.ent', null);
+    if (!e || !e.pro || Date.now() - (e.at || 0) > 14 * 864e5) return null;
+    return e;
+  };
   Pro.active = function () {
+    if (Pro.account()) return true;
     const s = Pro.state();
     if (s && s.status === 'active' && (!s.expires || Date.parse(s.expires) > Date.now())) return true;
     const left = Pro.trialLeft();
     return left != null && left > 0;
   };
   Pro.kind = function () {
+    const a = Pro.account();
+    if (a) return a.plan === 'lab' ? 'lab' : a.plan === 'lab-member' ? 'lab-member' : 'account';
     const s = Pro.state();
     if (s && s.status === 'active') return 'licence';
     const left = Pro.trialLeft();
@@ -162,27 +171,22 @@
 
   U.upgrade = function (what) {
     const k = Pro.kind();
-    const c = CFG.checkout, p = CFG.prices;
-    const buy = (href, label, price, per, best) => href
-      ? `<a class="plan-btn${best ? ' best' : ''}" href="${U.esc(href)}" target="_blank" rel="noopener"><b>${label}</b><span>$${price}<small>/${per}</small></span></a>`
-      : '';
-    const anyCheckout = c.monthly || c.yearly || c.lab;
+    const p = CFG.prices;
+    const plan = (id, label, price, per, best) => `<a class="plan-btn${best ? ' best' : ''}" href="${U.root}account/?buy=${id}"><b>${label}</b><span>$${price}<small>/${per}</small></span></a>`;
+    const live = CFG.checkout && (CFG.checkout.monthly || CFG.checkout.yearly || CFG.checkout.lab);
     U.modal(`
-      <p class="m-kicker">Benchfit Pro</p>
+      <p class="m-kicker">Benchfit Pro${CFG.earlyAccess ? ' · early-access price' : ''}</p>
       <h2>${what ? U.esc(what) + ' is a Pro feature' : 'Publication-ready output, in one click'}</h2>
       <ul class="m-list">
         <li>Figures as vector SVG and 600-dpi PNG, without the watermark</li>
         <li>Auto-written methods, results and figure legend, ready to paste into a paper</li>
-        <li>Results tables as CSV and one-page analysis reports</li>
-        <li>Save and reopen analyses as project files</li>
+        <li>Cloud storage for your projects, results as CSV and reports</li>
+        <li>AI co-scientist chat with your own Claude or GPT key</li>
       </ul>
-      <div class="m-plans">
-        ${buy(c.yearly, 'Yearly', p.yearly, 'year', true)}${buy(c.monthly, 'Monthly', p.monthly, 'month')}${buy(c.lab, 'Lab, 10 people', p.lab, 'year')}
-      </div>
-      ${anyCheckout ? '' : '<p class="m-note">Paid plans open shortly. Meanwhile, try every Pro feature free.</p>'}
+      ${live ? `<div class="m-plans">${plan('yearly', 'Yearly', p.yearly, 'year', true)}${plan('monthly', 'Monthly', p.monthly, 'month')}${plan('lab', 'Lab, 10 people', p.lab, 'year')}</div>` : '<p class="m-note">Paid plans open shortly. Meanwhile, try every Pro feature free.</p>'}
       <div class="m-actions">
         ${k === 'free' ? '<button class="btn primary" data-trial>Start free 7-day trial</button>' : k === 'trial-ended' ? '<span class="m-note">Your trial has ended.</span>' : ''}
-        <a class="btn ghost" href="${U.root}account/">I have a licence key</a>
+        <a class="btn ghost" href="${U.root}account/">Sign in or manage plan</a>
       </div>`);
     const t = $('[data-trial]');
     if (t) t.onclick = () => { if (Pro.startTrial()) U.closeModal(); };
@@ -353,8 +357,8 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         <div><a class="logo" href="${U.root}"><span>Benchfit</span></a><p>Analyse, graph and explain scientific data, in your browser. Your data never leaves your computer.</p></div>
         <div><h5>Product</h5><a href="${U.root}studio/">Benchfit Studio</a><a href="${U.root}#features">Features</a><a href="${U.root}#examples">Examples</a><a href="${U.root}validation/">Validation</a></div>
         <div><h5>Calculators</h5>${tools.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}</div>
-        <div><h5>Company</h5><a href="${U.root}#pricing">Pricing</a><a href="${U.root}account/">Licence</a><a href="${U.root}#faq">FAQ</a></div>
-        <div><h5>Legal</h5><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a></div>
+        <div><h5>Company</h5><a href="${U.root}#pricing">Pricing</a><a href="${U.root}account/">Account</a><a href="${U.root}#faq">FAQ</a></div>
+        <div><h5>Legal</h5><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
       </div><p class="foot-note">Built by <a href="${CFG.author.url}">${CFG.author.name}</a>. © ${new Date().getFullYear()} Benchfit.</p>`;
     }
     proChip();
@@ -363,7 +367,8 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
     const c = $('#pro-chip');
     if (!c) return;
     const k = Pro.kind();
-    if (k === 'licence') { c.textContent = 'Pro'; c.className = 'pro-chip on'; }
+    if (k === 'licence' || k === 'account') { c.textContent = 'Pro'; c.className = 'pro-chip on'; }
+    else if (k === 'lab' || k === 'lab-member') { c.textContent = 'Lab'; c.className = 'pro-chip on'; }
     else if (k === 'trial') { c.textContent = 'Pro trial · ' + Math.ceil(Pro.trialLeft()) + 'd'; c.className = 'pro-chip on'; }
     else { c.textContent = 'Get Pro'; c.className = 'pro-chip'; c.onclick = e => { if (!location.pathname.includes('/account')) { e.preventDefault(); U.upgrade(); } }; }
   }

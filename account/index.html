@@ -3,82 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Licence | Benchfit</title>
-<meta name="description" content="Activate or manage your Benchfit Pro licence.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Account | Benchfit</title>
+<meta name="description" content="Sign in to Benchfit, manage your plan, cloud projects and lab team.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/bf.css">
+<link rel="stylesheet" href="../assets/css/account.css">
 </head>
 <body>
 <header data-bf></header>
-<main class="wrap page">
-  <h1>Your licence</h1>
-  <p>Benchfit has no accounts. Pro is unlocked by a licence key, which arrives by email after purchase and is stored only in this browser.</p>
-  <div class="card acct">
-    <div class="status" id="ac-status"></div>
-    <div id="ac-activate">
-      <label class="lbl" for="ac-key">Licence key</label>
-      <div class="row"><input type="text" id="ac-key" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" autocomplete="off" spellcheck="false"><button class="btn primary" id="ac-go">Activate</button></div>
-      <p class="hint" id="ac-msg"></p>
-    </div>
-    <div id="ac-manage" hidden>
-      <p class="hint">To move Pro to another computer, deactivate it here first; this frees one activation on your key.</p>
-      <button class="btn" id="ac-off">Deactivate on this browser</button>
-    </div>
-  </div>
-  <div class="card acct" id="ac-buy">
-    <h2 style="margin-top:0">Get Pro</h2>
-    <p>Free analysis stays free. Pro adds 600-dpi and vector figures, auto-written methods and results, CSV export, reports and project files.</p>
-    <div class="m-plans" id="ac-plans"></div>
-    <div class="m-actions"><button class="btn primary" id="ac-trial">Start 7-day free trial</button><span class="m-note" id="ac-trialnote"></span></div>
-  </div>
-  <h2>Help</h2>
-  <p>Lost your key? It's in the purchase email from Lemon Squeezy, and you can also find it at <a href="https://app.lemonsqueezy.com/my-orders">app.lemonsqueezy.com/my-orders</a>. Invoices, cancellations and refunds are handled there too.</p>
-  <p id="ac-support"></p>
+<main class="wrap page acct-page">
+  <h1>Your account</h1>
+  <div id="acct-root"><p class="hint">Loading…</p></div>
 </main>
 <footer data-bf></footer>
 <script src="../assets/js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script src="../assets/js/stats.js"></script>
 <script src="../assets/js/plot.js"></script>
 <script src="../assets/js/shell.js"></script>
-<script>
-(function () {
-  var Pro = BF.pro, U = BF.ui, C = window.BF_CONFIG;
-  var $ = function (s) { return document.querySelector(s); };
-  function paint() {
-    var k = Pro.kind(), s = Pro.state();
-    var st = $('#ac-status');
-    if (k === 'licence') { st.className = 'status on'; st.innerHTML = '<b>Pro is active</b>' + (s.plan ? ' · ' + U.esc(s.plan) : '') + (s.expires ? ' · renews or expires ' + U.esc(s.expires.slice(0, 10)) : ''); }
-    else if (k === 'trial') { st.className = 'status on'; st.innerHTML = '<b>Pro trial</b> · ' + Math.ceil(Pro.trialLeft()) + ' days left'; }
-    else if (s && s.status && s.status !== 'active') { st.className = 'status'; st.innerHTML = 'Your licence is <b>' + U.esc(s.status) + '</b>. Renew it to continue with Pro.'; }
-    else { st.className = 'status'; st.innerHTML = k === 'trial-ended' ? 'Your free trial has ended. You are on the free plan.' : 'You are on the <b>free plan</b>.'; }
-    $('#ac-manage').hidden = k !== 'licence';
-    $('#ac-activate').hidden = k === 'licence';
-    $('#ac-buy').hidden = k === 'licence';
-    $('#ac-trial').hidden = k !== 'free';
-    $('#ac-trialnote').textContent = k === 'trial' ? 'Trial running.' : k === 'trial-ended' ? 'The trial on this browser has been used.' : 'No card needed.';
-  }
-  var c = C.checkout, p = C.prices;
-  var plans = [['yearly', 'Pro · yearly', p.yearly, 'year', true], ['monthly', 'Pro · monthly', p.monthly, 'month'], ['lab', 'Lab · 10 people', p.lab, 'year']];
-  $('#ac-plans').innerHTML = plans.filter(function (x) { return c[x[0]]; }).map(function (x) {
-    return '<a class="plan-btn' + (x[4] ? ' best' : '') + '" href="' + U.esc(c[x[0]]) + '" target="_blank" rel="noopener"><b>' + x[1] + '</b><span>$' + x[2] + '<small>/' + x[3] + '</small></span></a>';
-  }).join('') || '';
-  if (!c.yearly && !c.monthly && !c.lab) $('#ac-plans').outerHTML = '<p class="m-note">Paid plans open shortly. Meanwhile, the trial unlocks everything.</p>';
-  if (C.support) $('#ac-support').innerHTML = 'Anything else, including purchase orders: <b>' + U.esc(C.support) + '</b>';
-  $('#ac-go').onclick = function () {
-    var b = this; b.disabled = true; $('#ac-msg').textContent = 'Checking…';
-    Pro.activate($('#ac-key').value).then(function () { $('#ac-msg').textContent = ''; U.toast('Pro activated. Thank you!', 'ok'); paint(); })
-      .catch(function (e) { $('#ac-msg').textContent = e.message || 'Activation failed. Check the key and your connection.'; })
-      .then(function () { b.disabled = false; });
-  };
-  $('#ac-key').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#ac-go').click(); });
-  $('#ac-off').onclick = function () { Pro.deactivate().then(function () { U.toast('Deactivated on this browser.'); paint(); }); };
-  $('#ac-trial').onclick = function () { Pro.startTrial(); paint(); };
-  document.addEventListener('bf:pro', paint);
-  paint();
-})();
-</script>
+<script src="../assets/js/cloud.js"></script>
+<script src="../assets/js/account.js"></script>
 </body>
 </html>

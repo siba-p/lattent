@@ -1,3 +1,4 @@
 .DS_Store
 out.json
 studio.json
+node_modules

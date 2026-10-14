@@ -16,8 +16,37 @@
   /* ================= project state ================= */
   let proj = null, cur = null, cache = {};
   const blankTable = (type, name) => ({ id: uid('t'), name: name || 'Data ' + ((proj ? proj.tables.length : 0) + 1), type, cols: type === 'xy' ? ['X', 'Y'] : type === 'col' ? ['Group A', 'Group B', 'Group C'] : ['Sample', 'Var 1', 'Var 2', 'Var 3'], rows: [], ylabel: '', v: 1 });
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(proj)); } catch (e) { /* quota or disabled */ } }
-  function load() { try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); return j && j.tables ? j : null; } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(proj)); } catch (e) { /* quota or disabled */ } scheduleCloud(); }
+  function load() { try { return sanitize(JSON.parse(localStorage.getItem(KEY) || 'null')); } catch (e) { return null; } }
+  /* Projects can come from files or shared cloud storage: keep only well-formed data. */
+  function sanitize(p) {
+    if (!p || typeof p !== 'object' || !Array.isArray(p.tables)) return null;
+    const str = (v, n) => String(v == null ? '' : v).slice(0, n || 500);
+    const prim = v => (v === null || ['string', 'number', 'boolean'].includes(typeof v) ? (typeof v === 'string' ? v.slice(0, 2000) : v) : null);
+    const cleanOpts = o => {
+      const out = {};
+      Object.entries(o && typeof o === 'object' ? o : {}).slice(0, 40).forEach(([k, v]) => {
+        if (!/^[A-Za-z]\w{0,30}$/.test(k)) return;
+        if (Array.isArray(v)) out[k] = v.slice(0, 200).map(prim).filter(x => x !== null);
+        else if (v && typeof v === 'object') { const f = {}; Object.entries(v).slice(0, 20).forEach(([a, b]) => { if (/^\d{1,2}$/.test(a) && isFinite(b)) f[a] = +b; }); out[k] = f; }
+        else out[k] = prim(v);
+      });
+      return out;
+    };
+    const tables = p.tables.slice(0, 50).filter(t => t && TYPES[t.type]).map(t => ({
+      id: /^t\w{1,20}$/.test(t.id) ? t.id : uid('t'), name: str(t.name, 200) || 'Data', type: t.type,
+      cols: (Array.isArray(t.cols) ? t.cols : []).slice(0, 200).map(c => str(c, 200)),
+      rows: (Array.isArray(t.rows) ? t.rows : []).slice(0, 100000).map(r => (Array.isArray(r) ? r.slice(0, 200).map(c => str(c, 100)) : [])),
+      ylabel: str(t.ylabel, 200), v: 1
+    }));
+    const ids = new Set(tables.map(t => t.id));
+    const items = (Array.isArray(p.items) ? p.items : []).slice(0, 500).filter(i => i && K[i.kind] && ids.has(i.tableId)).map(i => ({
+      id: /^a\w{1,20}$/.test(i.id) ? i.id : uid('a'), tableId: i.tableId, kind: i.kind, opts: cleanOpts(i.opts), name: i.name ? str(i.name, 200) : undefined
+    }));
+    const out = { name: str(p.name, 200) || 'Untitled project', tables, items };
+    if (p.cloud && typeof p.cloud === 'object' && /^[0-9a-f-]{36}$/i.test(p.cloud.id || '')) out.cloud = { id: p.cloud.id, version: +p.cloud.version || 1, teamId: /^[0-9a-f-]{36}$/i.test(p.cloud.teamId || '') ? p.cloud.teamId : null, savedAt: +p.cloud.savedAt || 0 };
+    return out;
+  }
   const table = id => proj.tables.find(t => t.id === id);
   const item = id => proj.items.find(i => i.id === id);
 
@@ -82,7 +111,7 @@
       const m = o.model === 'custom' ? null : M.byId(o.model);
       let params = [];
       try { params = o.model === 'custom' ? M.compile(o.expr || 'A*exp(-k*x)+c').params : m.params; } catch (e) { params = []; }
-      return `<div class="fg"><label>Equation</label><select data-o="model">${fieldOpts().replace(`value="${o.model}"`, `value="${o.model}" selected`)}</select>
+      return `<div class="fg"><label>Equation</label><select data-o="model">${fieldOpts().replace(`value="${esc(o.model)}"`, `value="${esc(o.model)}" selected`)}</select>
         ${m ? `<small class="eqn">${esc(m.eq)}</small>${m.note ? `<small>${esc(m.note)}</small>` : ''}` : ''}</div>
         <div class="fg" ${o.model === 'custom' ? '' : 'hidden'}><label>Y =</label><input type="text" data-o="expr" value="${esc(o.expr || 'A*exp(-k*x) + c')}" spellcheck="false"><small>Use x, parameters of any name, + − * / ^, exp, ln, log10, sqrt, sin, cos, pi, R, kB.</small></div>
         <div class="fg"><label>Constrain parameters</label><div class="fixgrid">${params.map((p, j) => `<label class="check"><input type="checkbox" data-fix="${j}"${o.fixed && o.fixed[j] != null ? ' checked' : ''}> ${esc(p)} =</label><input type="number" step="any" data-fixv="${j}" value="${o.fixed && o.fixed[j] != null ? o.fixed[j] : ''}">`).join('')}</div></div>
@@ -252,11 +281,11 @@
     defaults: () => ({ baseline: '1', prominence: 5, shape: 'pv', smooth: 3, xrd: false, lambda: '1.5406', K: 0.9, inst: 0 }),
     form: o => `<div class="fg two"><div><label>Baseline</label>${sel('baseline', [['none', 'None'], ['0', 'Constant'], ['1', 'Linear'], ['2', 'Quadratic'], ['3', 'Cubic']], o.baseline)}</div>
       <div><label>Peak shape</label>${sel('shape', [['gauss', 'Gaussian'], ['lorentz', 'Lorentzian'], ['pv', 'Pseudo-Voigt']], o.shape)}</div></div>
-      <div class="fg two"><div><label>Minimum prominence (% of max)</label><input type="number" data-o="prominence" value="${o.prominence}" min="0.5" max="80" step="0.5"></div>
-      <div><label>Smoothing half-window (points)</label><input type="number" data-o="smooth" value="${o.smooth}" min="0" max="25"></div></div>
+      <div class="fg two"><div><label>Minimum prominence (% of max)</label><input type="number" data-o="prominence" value="${esc(o.prominence)}" min="0.5" max="80" step="0.5"></div>
+      <div><label>Smoothing half-window (points)</label><input type="number" data-o="smooth" value="${esc(o.smooth)}" min="0" max="25"></div></div>
       <div class="fg"><label class="check"><input type="checkbox" data-o="xrd"${o.xrd ? ' checked' : ''}> X is 2θ (XRD): report d-spacing and crystallite size</label></div>
       <div class="fg three" ${o.xrd ? '' : 'hidden'}><div><label>Wavelength (Å)</label>${sel('lambda', [['1.5406', 'Cu Kα 1.5406'], ['1.7890', 'Co Kα 1.7890'], ['0.7107', 'Mo Kα 0.7107'], ['1.9373', 'Fe Kα 1.9373']], o.lambda)}</div>
-      <div><label>Scherrer K</label><input type="number" data-o="K" value="${o.K}" step="0.01"></div><div><label>Instrument FWHM (°)</label><input type="number" data-o="inst" value="${o.inst}" step="0.01" min="0"></div></div>`,
+      <div><label>Scherrer K</label><input type="number" data-o="K" value="${esc(o.K)}" step="0.01"></div><div><label>Instrument FWHM (°)</label><input type="number" data-o="inst" value="${esc(o.inst)}" step="0.01" min="0"></div></div>`,
     run(t, o) {
       const d = xyData(t);
       const s = d.series[0]; if (!s) return { error: 'No numeric data.' };
@@ -307,7 +336,7 @@
     desc: 'From a UV–Vis absorbance spectrum (wavelength or photon energy) to the band gap, with the linear region found automatically.',
     defaults: () => ({ transition: 'direct', emin: '', emax: '' }),
     form: o => `<div class="fg"><label>Transition</label>${sel('transition', [['direct', 'Direct allowed, (αhν)²'], ['indirect', 'Indirect allowed, (αhν)^½'], ['direct-forbidden', 'Direct forbidden, (αhν)^⅔'], ['indirect-forbidden', 'Indirect forbidden, (αhν)^⅓']], o.transition)}</div>
-      <div class="fg two"><div><label>Linear region from (eV)</label><input type="number" data-o="emin" value="${o.emin}" step="any" placeholder="auto"></div><div><label>to (eV)</label><input type="number" data-o="emax" value="${o.emax}" step="any" placeholder="auto"></div></div>`,
+      <div class="fg two"><div><label>Linear region from (eV)</label><input type="number" data-o="emin" value="${esc(o.emin)}" step="any" placeholder="auto"></div><div><label>to (eV)</label><input type="number" data-o="emax" value="${esc(o.emax)}" step="any" placeholder="auto"></div></div>`,
     run(t, o) {
       const d = xyData(t); const s = d.series[0]; if (!s) return { error: 'No numeric data.' };
       const r = A.tauc(s.means.map(q => q.x), s.means.map(q => q.y), { transition: o.transition, range: o.emin !== '' && o.emax !== '' ? [+o.emin, +o.emax] : null });
@@ -342,7 +371,7 @@
     label: 'Tensile test (stress–strain)', types: ['xy'], group: 'Spectra and materials',
     desc: "Young's modulus, 0.2% offset yield strength, ultimate tensile strength, elongation at break and toughness.",
     defaults: () => ({ offset: 0.2 }),
-    form: o => `<div class="fg"><label>Offset for yield (% strain)</label><input type="number" data-o="offset" value="${o.offset}" step="0.05" min="0"></div><p class="hint">X: strain (% or fraction, detected automatically). Y: stress.</p>`,
+    form: o => `<div class="fg"><label>Offset for yield (% strain)</label><input type="number" data-o="offset" value="${esc(o.offset)}" step="0.05" min="0"></div><p class="hint">X: strain (% or fraction, detected automatically). Y: stress.</p>`,
     run(t, o) {
       const d = xyData(t); const s = d.series[0]; if (!s) return { error: 'No numeric data.' };
       const pts = s.pts.slice().sort((a, b) => a.x - b.x);
@@ -397,7 +426,7 @@
     label: 'Smooth and differentiate', types: ['xy'], group: 'Spectra and materials',
     desc: 'Savitzky–Golay smoothing or first derivative (e.g. DTG from TGA, inflection points), with a copy to a new table.',
     defaults: () => ({ half: 5, order: 2, deriv: '0' }),
-    form: o => `<div class="fg three"><div><label>Half-window (points)</label><input type="number" data-o="half" value="${o.half}" min="1" max="50"></div><div><label>Polynomial order</label>${sel('order', [[2, '2'], [3, '3'], [4, '4']], o.order)}</div><div><label>Output</label>${sel('deriv', [['0', 'Smoothed'], ['1', 'First derivative']], o.deriv)}</div></div>`,
+    form: o => `<div class="fg three"><div><label>Half-window (points)</label><input type="number" data-o="half" value="${esc(o.half)}" min="1" max="50"></div><div><label>Polynomial order</label>${sel('order', [[2, '2'], [3, '3'], [4, '4']], o.order)}</div><div><label>Output</label>${sel('deriv', [['0', 'Smoothed'], ['1', 'First derivative']], o.deriv)}</div></div>`,
     run(t, o) {
       const d = xyData(t); const s = d.series[0]; if (!s) return { error: 'No numeric data.' };
       const x = s.means.map(q => q.x), y = s.means.map(q => q.y);
@@ -651,8 +680,8 @@
     defaults: t => { const n = mvData(t).numeric; return { target: n.length ? n[n.length - 1].j : 0, inputs: n.slice(0, -1).map(c => c.j), goal: 'max', batch: 5, expand: 0, compo: false, compoCols: [], total: 100 }; },
     form: (o, t) => `<div class="fg two"><div><label>Property to optimise</label><select data-o="target">${colOptions(t, o.target)}</select></div><div><label>Goal</label>${sel('goal', [['max', 'Maximise'], ['min', 'Minimise']], o.goal)}</div></div>
       <div class="fg"><label>Inputs you control</label><div class="checkcols">${colChecks(t, 'inputs', o.inputs)}</div></div>
-      <div class="fg two"><div><label>Experiments to suggest</label><input type="number" data-o="batch" value="${o.batch}" min="1" max="12"></div><div><label>Explore beyond tested range (%)</label><input type="number" data-o="expand" value="${o.expand}" min="0" max="50"></div></div>
-      <div class="fg"><label class="check"><input type="checkbox" data-o="compo"${o.compo ? ' checked' : ''}> Some inputs are fractions of a mixture that must sum to</label><input type="number" data-o="total" value="${o.total}" style="width:90px"></div>
+      <div class="fg two"><div><label>Experiments to suggest</label><input type="number" data-o="batch" value="${esc(o.batch)}" min="1" max="12"></div><div><label>Explore beyond tested range (%)</label><input type="number" data-o="expand" value="${esc(o.expand)}" min="0" max="50"></div></div>
+      <div class="fg"><label class="check"><input type="checkbox" data-o="compo"${o.compo ? ' checked' : ''}> Some inputs are fractions of a mixture that must sum to</label><input type="number" data-o="total" value="${esc(o.total)}" style="width:90px"></div>
       <div class="fg" ${o.compo ? '' : 'hidden'}><label>Mixture components</label><div class="checkcols">${colChecks(t, 'compoCols', o.compoCols && o.compoCols.length ? o.compoCols : [])}</div></div>`,
     run(t, o) {
       const ins = (o.inputs || []).map(Number).filter(j => j !== +o.target);
@@ -1107,14 +1136,123 @@ ${projectSummary()}`;
     $('#st-open').onclick = () => {
       const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
       inp.onchange = () => inp.files[0] && inp.files[0].text().then(tx => {
-        try { const j = JSON.parse(tx); if (j.app !== 'benchfit-studio') throw new Error(); proj = j.project; cache = {}; cur = null; render(); U.toast('Project opened.', 'ok'); } catch (e) { U.toast('That is not a Benchfit Studio project.'); }
+        try { const j = JSON.parse(tx); if (j.app !== 'benchfit-studio') throw new Error(); const pj = sanitize(j.project); if (!pj) throw new Error(); delete pj.cloud; proj = pj; cache = {}; cur = null; render(); U.toast('Project opened.', 'ok'); } catch (e) { U.toast('That is not a Benchfit Studio project.'); }
       });
       inp.click();
     };
     $('#st-menu').onclick = () => document.body.classList.toggle('nav-open');
+    $('#st-cloud').onclick = () => cloudDialog();
     let rw; window.addEventListener('resize', () => { clearTimeout(rw); rw = setTimeout(() => { if (cur && cur.type === 'item') runItem(item(cur.id)); }, 200); });
     document.addEventListener('bf:pro', () => { if (cur && cur.type === 'item') runItem(item(cur.id)); });
   }
+
+
+  /* ================= cloud storage ================= */
+  const CL = BF.cloud || { enabled: false };
+  let cloudTimer = null, cloudBusy = false, lastPushed = '';
+  const payload = () => ({ app: 'benchfit-studio', version: 1, project: { name: proj.name, tables: proj.tables, items: proj.items } });
+  function cloudStatus(text, kind) { const el = $('#st-cloud-state'); if (el) { el.textContent = text || ''; el.className = 'cs ' + (kind || ''); } }
+  function scheduleCloud() {
+    if (!CL.enabled || !CL.user || !proj || !proj.cloud) return;
+    if (JSON.stringify(payload()) === lastPushed) return;
+    cloudStatus('Unsaved changes', '');
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(() => pushCloud(false), 3500);
+  }
+  async function pushCloud(force) {
+    if (cloudBusy || !proj.cloud) return;
+    cloudBusy = true; cloudStatus('Saving…', '');
+    const snapshot = JSON.stringify(payload());
+    try {
+      const r = await CL.save(proj.name || 'Untitled project', payload(), { id: proj.cloud.id, version: proj.cloud.version, teamId: proj.cloud.teamId, force });
+      proj.cloud.version = r.version; proj.cloud.savedAt = Date.now(); lastPushed = snapshot;
+      try { localStorage.setItem(KEY, JSON.stringify(proj)); } catch (e) { /* ignore */ }
+      cloudStatus('Saved to cloud', 'ok');
+    } catch (e) {
+      if (e.conflict) conflictDialog(); else cloudStatus(e.message.length > 60 ? 'Cloud save failed' : e.message, 'bad'), U.toast(e.message);
+    } finally { cloudBusy = false; }
+  }
+  function conflictDialog() {
+    cloudStatus('Changed elsewhere', 'bad');
+    const m = U.modal(`<p class="m-kicker">Cloud</p><h2>This project changed elsewhere</h2>
+      <p>Someone (or you, in another browser) saved a newer version since you opened it.</p>
+      <div class="menu-list"><button data-c="copy">Keep both: save my version as a copy</button><button data-c="theirs">Discard my changes and load the newer version</button><button data-c="mine" class="danger">Overwrite the newer version with mine</button></div>`);
+    m.querySelector('.menu-list').onclick = async e => {
+      const c = e.target.dataset.c; if (!c) return;
+      U.closeModal();
+      if (c === 'mine') pushCloud(true);
+      if (c === 'theirs') openCloud(proj.cloud.id);
+      if (c === 'copy') { proj.name = (proj.name || 'Project') + ' (my copy)'; delete proj.cloud; await saveToCloud(null); }
+    };
+  }
+  async function saveToCloud(teamId) {
+    try {
+      const r = await CL.save(proj.name || 'Untitled project', payload(), { teamId });
+      proj.cloud = { id: r.id, version: r.version, teamId: r.team_id, savedAt: Date.now() };
+      lastPushed = JSON.stringify(payload());
+      proj.sample = false; save(); render(); cloudStatus('Saved to cloud', 'ok');
+      U.toast('Saved to the cloud. Changes now sync automatically.', 'ok');
+      return true;
+    } catch (e) { U.toast(e.message); if (/limit|full/.test(e.message)) U.upgrade('More cloud storage'); return false; }
+  }
+  async function openCloud(id) {
+    try {
+      const row = await CL.load(id);
+      const pj = sanitize(row.data && row.data.project);
+      if (!pj) throw new Error('This cloud project could not be read.');
+      pj.cloud = { id: row.id, version: row.version, teamId: row.team_id, savedAt: Date.now() };
+      proj = pj; cache = {}; cur = null; lastPushed = JSON.stringify(payload());
+      try { localStorage.setItem(KEY, JSON.stringify(proj)); } catch (e) { /* ignore */ }
+      render(); cloudStatus('Saved to cloud', 'ok'); U.closeModal();
+      U.toast('Opened “' + pj.name + '” from the cloud.', 'ok');
+    } catch (e) { U.toast(e.message); }
+  }
+  async function cloudDialog() {
+    if (!CL.enabled) {
+      U.modal(`<p class="m-kicker">Cloud</p><h2>Cloud storage is coming soon</h2><p>Your project is saved automatically in this browser. To keep a copy elsewhere, use <b>Save</b> to download a project file.</p>`);
+      return;
+    }
+    await CL.ready;
+    if (!CL.user) {
+      const m = U.modal(`<p class="m-kicker">Cloud</p><h2>Sign in to save projects to the cloud</h2>
+        <p>Open your projects on any computer and share them with your lab. Free accounts keep 3 projects; Pro and Lab keep as many as you need.</p>
+        <form class="row" id="cl-si" style="display:flex;gap:8px;flex-wrap:wrap"><input type="email" id="cl-email" placeholder="you@university.edu" required style="flex:1;min-width:200px"><button class="btn primary" type="submit">Email me a sign-in link</button></form><p class="hint" id="cl-msg"></p>`);
+      $('#cl-si', m).onsubmit = e => {
+        e.preventDefault();
+        CL.signIn($('#cl-email', m).value).then(() => { $('#cl-msg', m).innerHTML = '<b>Check your inbox.</b> The link brings you back here, signed in. Your current project stays in this browser.'; }).catch(err => { $('#cl-msg', m).textContent = err.message; });
+      };
+      return;
+    }
+    const m = U.modal(`<p class="m-kicker">Cloud</p><h2>Cloud projects</h2><div id="cl-body"><p class="hint">Loading…</p></div>`);
+    m.querySelector('.modal-box').classList.add('wide');
+    let list = [], team = null, ent = null;
+    try { [list, team, ent] = await Promise.all([CL.list(), CL.team().catch(() => null), CL.entitlement()]); }
+    catch (e) { $('#cl-body', m).innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+    const here = proj.cloud && list.find(x => x.id === proj.cloud.id);
+    const fmtB = b => (b / 1048576).toFixed(b < 1048576 ? 2 : 1) + ' MB';
+    $('#cl-body', m).innerHTML = `
+      <p class="hint">Signed in as <b>${esc(CL.user.email)}</b> · ${ent ? `${fmtB(ent.used_bytes)} of ${fmtB(ent.quota_bytes)} · ${ent.projects}/${ent.quota_projects >= 2000 ? '∞' : ent.quota_projects} projects` : ''} · <a href="../account/">Account</a></p>
+      <div class="cl-now">${here ? `<b>${esc(proj.name)}</b> is saved in the cloud and syncs automatically${here.team_id ? ' · shared with your lab' : ''}.`
+        : `<b>${esc(proj.name || 'This project')}</b> is only in this browser.`}
+        <div class="m-actions">${here ? '<button class="btn" data-copy>Save a copy</button>' : '<button class="btn primary" data-save>Save to cloud</button>'}
+        ${team ? `<label class="check"><input type="checkbox" id="cl-share"${here && here.team_id ? ' checked' : ''}> Share with ${esc(team.name)}</label>` : ''}</div></div>
+      <h5 class="cl-h">Your projects${team ? ' and your lab’s' : ''}</h5>
+      <div class="cl-list">${list.map(x => `<div class="cl-row${proj.cloud && proj.cloud.id === x.id ? ' on' : ''}"><div><b>${esc(x.name)}</b><small>${new Date(x.updated_at).toLocaleString()} · ${fmtB(x.bytes)}${x.team_id ? ' · lab' : ''}${x.owner !== CL.user.id ? ' · shared by a colleague' : ''}</small></div>
+        <div class="acts"><button class="btn small" data-open="${esc(x.id)}">Open</button>${x.owner === CL.user.id ? `<button class="btn small ghost" data-del="${esc(x.id)}">Delete</button>` : ''}</div></div>`).join('') || '<p class="hint">No cloud projects yet.</p>'}</div>`;
+    const share = () => { const c = $('#cl-share', m); return c && c.checked && team ? team.id : null; };
+    const sv = $('[data-save]', m); if (sv) sv.onclick = async () => { if (await saveToCloud(share())) U.closeModal(); };
+    const cp = $('[data-copy]', m); if (cp) cp.onclick = async () => { proj.name = (proj.name || 'Project') + ' (copy)'; delete proj.cloud; if (await saveToCloud(share())) U.closeModal(); };
+    const sh = $('#cl-share', m); if (sh && here) sh.onchange = async () => { proj.cloud.teamId = sh.checked ? team.id : null; await pushCloud(false); U.toast(sh.checked ? 'Shared with your lab.' : 'No longer shared.'); };
+    m.querySelectorAll('[data-open]').forEach(b => b.onclick = () => {
+      if (!proj.cloud && proj.tables.length && !proj.sample && !b.dataset.sure) { b.dataset.sure = 1; b.textContent = 'Replace current?'; U.toast('Your current project is only in this browser. Click again to replace it, or save it first.'); return; }
+      openCloud(b.dataset.open);
+    });
+    m.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = 'Confirm delete'; return; }
+      try { await CL.remove(b.dataset.del); if (proj.cloud && proj.cloud.id === b.dataset.del) { delete proj.cloud; save(); cloudStatus('', ''); } U.toast('Deleted from the cloud.'); cloudDialog(); } catch (e) { U.toast(e.message); }
+    });
+  }
+  document.addEventListener('bf:auth', () => { if (proj && proj.cloud && CL.user) cloudStatus('Saved to cloud', 'ok'); else if (!CL.user) cloudStatus(CL.enabled && proj && proj.cloud ? 'Signed out' : '', ''); });
 
   /* ================= boot ================= */
   wireToolbar(); wireCoscientist();

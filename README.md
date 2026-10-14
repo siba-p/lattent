@@ -10,7 +10,13 @@
 
 Quick calculators cover routine bench assays: dose–response, standard curves, enzyme kinetics and qPCR.
 
-The analysis is free. Pro adds publication exports, auto-written methods and results, CSV and report export, project files and the AI chat.
+The analysis is free. Pro adds publication exports, auto-written methods and results, CSV and report export, project files, more cloud storage and the AI chat.
+
+The site is static, hosted on GitHub Pages. The backend runs on Supabase:
+- Postgres with row-level security, holding cloud projects, Lab teams and subscriptions.
+- Two Edge Functions: one for the Lemon Squeezy webhook, one for account deletion.
+
+Payments go through Lemon Squeezy as merchant of record. **To turn on accounts and payments, follow [docs/SETUP.md](docs/SETUP.md).**
 
 Live site: https://siba-p.github.io/benchfit/
 
@@ -28,7 +34,11 @@ Live site: https://siba-p.github.io/benchfit/
 | `assets/js/shell.js` | Header and footer, table parsing, exports, write-up panel, Pro licence and trial gate |
 | `assets/js/config.js` | Prices, checkout links, store id, support address |
 | `dose.js`, `stdcurve.js`, `kinetics.js`, `qpcr.js` | The tool pages |
-| `tests/` | Validation against SciPy |
+| `assets/js/cloud.js`, `account.js` | Sign-in, plan, cloud projects, Lab teams, checkout, account deletion |
+| `supabase/migrations/` | Database schema, row-level security policies, quotas, team functions |
+| `supabase/functions/` | `ls-webhook` (signed Lemon Squeezy events) and `delete-account` |
+| `scripts/` | One-command backend deployment and site configuration |
+| `tests/` | Validation against SciPy; database security and webhook tests (`npm run test:db`) |
 
 It is a static site with no build step. To serve it locally, run `python3 -m http.server` and open http://localhost:8000.
 
@@ -41,13 +51,15 @@ node tests/run-studio.js /tmp/st.json && python tests/check_studio.py /tmp/st.js
 
 Run this before every release. All checks must print `ok`.
 
-## Turning on payments (Lemon Squeezy)
+## Turning on payments (licence-key fallback)
+
+Account-based plans (docs/SETUP.md) are the main path. Licence keys still work for buyers without an account:
 
 1. Create a store at lemonsqueezy.com and complete identity and payout verification. Lemon Squeezy is the merchant of record, so it collects and remits VAT, GST and US sales tax.
 2. Create one product, **Benchfit Pro**, with three variants:
-   - Monthly subscription, $9.
-   - Yearly subscription, $79.
-   - **Lab** yearly subscription, $399.
+   - Monthly subscription, $4.
+   - Yearly subscription, $29.
+   - **Lab** yearly subscription, $99.
 3. On each variant, enable **License keys**. Set the activation limit to 3 for Pro and 10 for Lab, and set the key length to match the subscription.
 4. Copy each variant's checkout link (Share → Checkout link) and the numeric store id (Settings → Stores) into `assets/js/config.js`:
    ```js

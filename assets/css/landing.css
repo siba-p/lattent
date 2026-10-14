@@ -54,3 +54,5 @@ body.landing .top .menu-btn span { background: #e9edf7; }
 .cat { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 26px 36px; }
 .cat h3 { font-size: 16px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid var(--brand); display: inline-block; }
 .cat ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14.5px; display: grid; gap: 5px; }
+
+.early-tag { display: inline-block; font: 700 12px Inter, sans-serif; color: var(--ok); background: var(--ok-soft); padding: 4px 10px; border-radius: 999px; margin-bottom: 10px; letter-spacing: .02em; }

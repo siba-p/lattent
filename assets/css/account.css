@@ -1,0 +1,28 @@
+.acct-page { max-width: 820px; }
+.acct-page .acct { margin-top: 16px; }
+.acct-page .acct h2 { font-size: 18px; margin: 0 0 12px; }
+.acct-page details.acct summary { list-style: none; cursor: pointer; }
+.acct-page details.acct summary h2 { display: inline; }
+.acct-page details.acct summary::after { content: ' +'; color: var(--ink-3); }
+.acct-page details.acct[open] summary::after { content: ' –'; }
+.acct-page details.acct[open] summary { margin-bottom: 10px; }
+.acct-page .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+.acct-page .row input { flex: 1; min-width: 220px; }
+.acct-page .who { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.acct-page .signin p { color: var(--ink-2); }
+.pcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 10px 0; }
+.pcard { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.pcard.best { border: 2px solid var(--brand); background: var(--brand-soft); }
+.pcard .amt { font: 700 28px 'Inter Tight', Inter, sans-serif; }
+.pcard .amt small { font-size: 14px; color: var(--ink-3); font-weight: 500; }
+.pcard p { margin: 0 0 6px; color: var(--ink-2); font-size: 13.5px; }
+.pcard .btn { margin-top: auto; justify-content: center; }
+.early { background: var(--ok-soft); color: var(--ok); border-radius: 9px; padding: 9px 12px; font-size: 13.5px; font-weight: 600; }
+.meter { height: 10px; border-radius: 6px; background: var(--line-2); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--brand); }
+.plist { display: grid; gap: 2px; margin: 10px 0; }
+.plist > div { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--line-2); font-size: 14px; flex-wrap: wrap; }
+.plist small { color: var(--ink-3); }
+.acct.danger h2 { color: var(--bad); }
+.acct-page .row input { font-family: Inter, system-ui, sans-serif; }
+.acct-page #ac-key { font-family: var(--mono); }

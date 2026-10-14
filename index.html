@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Benchfit: analyse, graph and explain your data, for every lab</title>
 <meta name="description" content="Benchfit Studio is a browser workspace for scientific data: curve fitting with 35 equations from materials science to biology, statistics, XRD and spectra, band gaps, tensile tests, PCA, clustering and Bayesian optimisation, with an AI co-scientist. Validated against SciPy.">
@@ -166,38 +168,39 @@
 </section>
 
 <section class="wrap section" id="pricing">
-  <div class="sec-head"><h2>Free for analysis. Pro when you publish.</h2><p>Every analysis, table and warning is free with no limits. Pro adds the outputs that go into papers and reports, and the AI chat.</p></div>
+  <div class="sec-head"><span class="early-tag">Early-access pricing</span><h2>Free for analysis. Pro when you publish.</h2><p>Every analysis, table and warning is free with no limits. Pro adds what goes into papers and reports, more cloud storage and the AI chat, for less than a coffee a month.</p></div>
   <div class="pricing">
     <div class="card price">
       <h3>Free</h3>
       <div class="amt">$0</div>
       <p class="sub">for everyone, forever</p>
-      <ul><li>All analyses in Studio and the calculators</li><li>Live graphs, tables and warnings</li><li>Co-scientist suggestions</li><li>Standard PNG export</li></ul>
+      <ul><li>All analyses in Studio and the calculators</li><li>Live graphs, tables and warnings</li><li>Co-scientist suggestions</li><li>3 cloud projects with a free account</li></ul>
       <a class="btn" href="studio/">Open Studio</a>
     </div>
     <div class="card price best">
       <h3>Pro <span>Most popular</span></h3>
-      <div class="amt">$<span data-price="yearly">79</span><small> / year</small></div>
-      <p class="sub">or $<span data-price="monthly">9</span> per month</p>
-      <ul><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods, results and legends</li><li>AI co-scientist chat with your Claude or GPT key</li><li>CSV results, reports and project files</li></ul>
-      <a class="btn primary" data-buy="yearly" href="account/">Start 7-day free trial</a>
+      <div class="amt">$<span data-price="yearly">29</span><small> / year</small></div>
+      <p class="sub">or $<span data-price="monthly">4</span> per month</p>
+      <ul><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods, results and legends</li><li>Unlimited cloud projects, 250 MB</li><li>AI co-scientist chat with your Claude or GPT key</li><li>CSV results, reports and project files</li></ul>
+      <a class="btn primary" data-buy="yearly" href="account/?buy=yearly">Get Pro</a>
     </div>
     <div class="card price">
       <h3>Lab</h3>
-      <div class="amt">$<span data-price="lab">399</span><small> / year</small></div>
+      <div class="amt">$<span data-price="lab">99</span><small> / year</small></div>
       <p class="sub">up to 10 people, one invoice</p>
-      <ul><li>Everything in Pro for the whole group</li><li>One licence key, ten activations</li><li>Invoice for grant or department funds</li><li>Priority support and feature requests</li></ul>
-      <a class="btn" data-buy="lab" href="account/">Start 7-day free trial</a>
+      <ul><li>Everything in Pro for the whole group</li><li>Shared lab projects that everyone can open and edit</li><li>Invite and remove members yourself</li><li>Invoice for grant or department funds</li></ul>
+      <a class="btn" data-buy="lab" href="account/?buy=lab">Get Lab</a>
     </div>
   </div>
-  <p class="hint" style="margin-top:14px">Prices in US dollars. Payments, invoices and sales tax are handled by Lemon Squeezy, our merchant of record. 14-day refund, no questions.</p>
+  <p class="hint" style="margin-top:14px">Prices in US dollars. Secure checkout by Lemon Squeezy, our merchant of record, which handles VAT and sales tax; Benchfit never sees card details. Cancel any time from your account. 14-day refund, no questions. <a href="legal/security.html">How we keep your data safe</a>.</p>
 </section>
 
 <section class="wrap section" id="faq">
   <div class="sec-head"><h2>Questions</h2></div>
   <div class="faq">
     <details><summary>How is this different from GraphPad Prism or Origin?</summary><p>Benchfit covers the core of what scientists use those programs for (curve fitting, statistics and publication graphs), adds materials-specific analyses such as XRD, Tauc and tensile tests, plus Bayesian optimisation and an AI co-scientist. It runs in any browser with nothing to install, and costs a fraction of a desktop licence. It does not yet cover everything they do, such as survival analysis or two-way ANOVA; those are on the roadmap.</p></details>
-    <details><summary>Is my data uploaded anywhere?</summary><p>No. Calculations run in your browser and projects are stored in your browser. Data is sent only if you use the optional AI chat, and then it goes directly from your browser to the provider you chose, using your own key.</p></details>
+    <details><summary>Is my data uploaded anywhere?</summary><p>Not unless you choose to. Calculations run in your browser and projects are kept in your browser. If you save a project to the cloud, it is stored in a database where row-level security lets only you, and your lab if you share it, read it. The optional AI chat sends data directly from your browser to the provider you chose, with your own key. Details on the <a href="legal/security.html">security page</a>.</p></details>
+    <details><summary>Is payment secure?</summary><p>Yes. Checkout is run by Lemon Squeezy, a PCI-compliant merchant of record that also handles tax. Benchfit never sees your card. Your plan is activated by a signed message from Lemon Squeezy to our server, never by your browser.</p></details>
     <details><summary>How do I know the numbers are right?</summary><p>Every analysis is checked against SciPy and NumPy, the reference scientific Python libraries, on test datasets before each release: parameters, standard errors, p-values, Tukey intervals and Gaussian-process predictions. See the <a href="validation/">validation page</a>.</p></details>
     <details><summary>I have never used curve-fitting software. Where do I start?</summary><p>Open a <a href="#examples">worked example</a> close to your field, look at what Benchfit reports, then replace the numbers with yours. Or create a table, paste your data and press <b>Suggest an analysis</b>.</p></details>
     <details><summary>Do I need an AI subscription?</summary><p>No. The built-in suggestions need no key. The chat is optional and uses your own Anthropic or OpenAI key, billed by them at their API rates, usually cents per conversation.</p></details>
@@ -214,20 +217,6 @@
 <script src="assets/js/plot.js"></script>
 <script src="assets/js/shell.js"></script>
 <script src="assets/js/samples.js"></script>
-<script>
-(function () {
-  var C = window.BF_CONFIG;
-  document.querySelectorAll('[data-price]').forEach(function (el) { el.textContent = C.prices[el.dataset.price]; });
-  document.querySelectorAll('[data-buy]').forEach(function (a) {
-    var url = C.checkout[a.dataset.buy];
-    if (url) { a.href = url; a.textContent = a.dataset.buy === 'lab' ? 'Buy for your lab' : 'Get Pro'; a.target = '_blank'; a.rel = 'noopener'; }
-    else a.onclick = function (e) { e.preventDefault(); if (BF.pro.kind() === 'free') BF.pro.startTrial(); else BF.ui.upgrade(); };
-  });
-  var esc = BF.ui.esc;
-  document.getElementById('ex-cards').innerHTML = window.BF_SAMPLES.map(function (s) {
-    return '<a class="ex-card" href="studio/?example=' + s.id + '"><span class="fld">' + esc(s.field) + '</span><b>' + esc(s.title) + '</b><span>' + esc(s.blurb) + '</span><i>Open in Studio →</i></a>';
-  }).join('');
-})();
-</script>
+<script src="assets/js/home.js"></script>
 </body>
 </html>

@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Privacy | Benchfit</title>
 <meta name="description" content="Privacy policy for Benchfit.">
@@ -15,17 +17,26 @@
 <main class="wrap page">
   <h1>Privacy</h1>
   <p><i>Last updated: October 2026</i></p>
-  <p>Benchfit is designed to collect as little as possible.</p>
-  <h2>Your data</h2>
-  <p>The data you paste or open is processed only inside your browser. It is never sent to our servers. A draft of each tool's inputs is kept in your browser's local storage so your work survives a page reload; clear it at any time with your browser's site-data settings.</p>
-  <h2>Licence checks</h2>
-  <p>When you activate a Pro licence, your licence key and a browser label are sent to Lemon Squeezy's licence API to confirm the key; it is re-checked every few days. No analysis data is ever included.</p>
-  <h2>Purchases</h2>
-  <p>Payments are processed by Lemon Squeezy as merchant of record. They receive your name, email, billing address and payment details under their own privacy policy; we receive your order details to provide support.</p>
-  <h2>Third parties</h2>
-  <p>Pages are hosted on GitHub Pages and load fonts from Google Fonts, which see standard request data such as your IP address. We do not use analytics, advertising or tracking cookies.</p>
-  <h2>Contact</h2>
-  <p>Questions or requests about personal data: the support address shown on the licence page.</p>
+  <p>Benchfit is designed to collect as little as possible. Analyses run in your browser; only what you choose to store in the cloud leaves your computer.</p>
+  <h2>Without an account</h2>
+  <p>Your data is processed only inside your browser and never sent to us. A draft of your work is kept in your browser's local storage so it survives a reload; clear it at any time in your browser's site-data settings.</p>
+  <h2>With an account</h2>
+  <ul>
+    <li><b>Email address</b>: to sign you in with one-time links and to link your purchases.</li>
+    <li><b>Cloud projects</b>: projects you explicitly save to the cloud, stored in our database with row-level access control so that only you, and members of your lab if you share a project, can read them.</li>
+    <li><b>Billing status</b>: your plan, renewal date and links to your billing portal, received from Lemon Squeezy. We never receive or store card details.</li>
+  </ul>
+  <p>We do not use analytics, advertising or tracking cookies, and we never sell or share your data. Projects are not used to train any model.</p>
+  <h2>AI co-scientist chat</h2>
+  <p>If you use the optional chat, your question and a summary of your project are sent directly from your browser to the AI provider you chose, using your own API key, under that provider's terms. Benchfit's servers are not involved, and the key is stored only in your browser.</p>
+  <h2>Processors</h2>
+  <ul>
+    <li><b>Supabase</b>: authentication and database hosting for accounts and cloud projects.</li>
+    <li><b>Lemon Squeezy</b>: payments and tax, as merchant of record.</li>
+    <li><b>GitHub Pages</b>: website hosting. <b>Google Fonts</b> and <b>jsDelivr</b>: fonts and one pinned, integrity-checked library. They see standard request data such as IP addresses.</li>
+  </ul>
+  <h2>Your rights</h2>
+  <p>From the account page you can download all your cloud data as a file and permanently delete your account and every cloud project at any time. Deletion is immediate; database backups that may contain it expire within the provider's retention window. For anything else, contact the support address on the account page.</p>
 </main>
 <footer data-bf></footer>
 <script src="../assets/js/config.js"></script>

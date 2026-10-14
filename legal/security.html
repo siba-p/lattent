@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Security | Benchfit</title>
+<meta name="description" content="How Benchfit protects accounts, payments and data.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/bf.css">
+</head>
+<body>
+<header data-bf></header>
+<main class="wrap page">
+  <h1>Security</h1>
+  <p>How Benchfit protects your data, accounts and payments. Questions or vulnerability reports are welcome via the support address on the account page.</p>
+  <h2>Your data</h2>
+  <ul>
+    <li>Analyses run locally in your browser. Without an account, nothing you enter leaves your computer.</li>
+    <li>Cloud projects are stored in a Postgres database where <b>row-level security</b> is enforced by the database itself: every query runs as you, and only rows you own, or that your lab shares with you, are visible. The website holds no privileged keys.</li>
+    <li>Storage quotas, project size, version numbers and ownership are set by the server, not by the browser, so they cannot be tampered with.</li>
+    <li>Saving uses optimistic concurrency: if a project changed elsewhere, you are asked before anything is overwritten.</li>
+    <li>Projects opened from the cloud or from files are validated and every value is escaped before display, so a shared project cannot run code in your browser.</li>
+  </ul>
+  <h2>Accounts</h2>
+  <ul>
+    <li>Passwordless sign-in with one-time email links (PKCE flow); there are no passwords to leak.</li>
+    <li>Sessions use short-lived tokens with refresh-token rotation.</li>
+    <li>You can export all your data or permanently delete your account from the account page at any time.</li>
+  </ul>
+  <h2>Payments</h2>
+  <ul>
+    <li>Card payments are handled entirely by Lemon Squeezy, a PCI-DSS compliant merchant of record. Benchfit never sees or stores card numbers.</li>
+    <li>Plans change only through webhooks signed with a shared secret (HMAC-SHA256, compared in constant time). Unsigned, replayed or out-of-order events are rejected, so a plan cannot be granted from the browser.</li>
+    <li>Refunds and expired subscriptions remove access automatically.</li>
+  </ul>
+  <h2>The website</h2>
+  <ul>
+    <li>Served over HTTPS with a strict Content-Security-Policy: scripts only from Benchfit itself and one pinned library verified by Subresource Integrity.</li>
+    <li>No analytics, advertising or tracking scripts.</li>
+  </ul>
+  <h2>Verification</h2>
+  <p>Every release runs automated security tests that attack the database rules as different users (reading, editing or deleting others' projects, granting plans, bypassing quotas, joining other labs) and replay forged and duplicated payment events. All must pass before deployment. The code is public on GitHub.</p>
+</main>
+<footer data-bf></footer>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/stats.js"></script>
+<script src="../assets/js/plot.js"></script>
+<script src="../assets/js/shell.js"></script>
+</body>
+</html>

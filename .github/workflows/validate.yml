@@ -1,12 +1,12 @@
 name: validate
 on: [push, pull_request]
 jobs:
-  scipy:
+  engines:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install numpy scipy
@@ -14,3 +14,12 @@ jobs:
       - run: python -W ignore tests/check_scipy.py out.json
       - run: node tests/run-studio.js studio.json
       - run: python -W ignore tests/check_studio.py studio.json
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npm ci
+      - run: node --experimental-strip-types tests/db/rls.test.mjs
+      - run: node --experimental-strip-types tests/db/billing.test.mjs
