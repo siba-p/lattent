@@ -1325,11 +1325,11 @@ ${projectSummary()}`;
   function wireCoscientist() {
     $('#co-close').onclick = () => document.body.classList.remove('co-open');
     $('#st-co').onclick = () => { document.body.classList.toggle('co-open'); renderAdvisor(); };
-    const PANES = { 'co-tab-advisor': '#co-advisor', 'co-tab-check': '#co-check', 'co-tab-graph': '#co-graph', 'co-tab-chat': '#co-chat' };
+    const PANES = { 'co-tab-advisor': '#co-advisor', 'co-tab-check': '#co-check', 'co-tab-graph': '#co-graph', 'co-tab-report': '#co-report', 'co-tab-chat': '#co-chat' };
     $$('.co-tabs button').forEach(b => b.onclick = () => {
       $$('.co-tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
       Object.entries(PANES).forEach(([id, sel2]) => { $(sel2).hidden = id !== b.id; });
-      if (b.id === 'co-tab-advisor') renderAdvisor(); else if (b.id === 'co-tab-check') renderCheck(); else if (b.id === 'co-tab-graph') renderGraphTab(); else { renderChat(); syncAiCfg(); }
+      if (b.id === 'co-tab-advisor') renderAdvisor(); else if (b.id === 'co-tab-check') renderCheck(); else if (b.id === 'co-tab-graph') renderGraphTab(); else if (b.id === 'co-tab-report') renderReportTab(); else { renderChat(); syncAiCfg(); }
     });
     const showAtt = () => { const a = $('#co-att'); a.hidden = !attached; a.innerHTML = attached ? `<img src="${attached.url}" alt=""><span>${esc(attached.name)}</span><button type="button" aria-label="Remove figure">×</button>` : ''; if (attached) a.querySelector('button').onclick = () => { attached = null; showAtt(); }; };
     const takeImage = f => readImage(f).then(img => { attached = img; showAtt(); if (!$('#co-q').value.trim()) $('#co-q').value = 'What does this figure show, and is anything wrong with it?'; }).catch(e => U.toast(e.message));
@@ -1354,6 +1354,173 @@ ${projectSummary()}`;
       });
     };
   }
+  async function llmOnce(system, text, img, maxTokens) {
+    const cfg = AI.get();
+    if (!cfg.key) throw new Error('no key');
+    if (cfg.provider === 'openai') {
+      const content = img ? [{ type: 'text', text }, { type: 'image_url', image_url: { url: img.url } }] : text;
+      const r = await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.key }, body: JSON.stringify({ model: cfg.model || 'gpt-5', messages: [{ role: 'system', content: system }, { role: 'user', content }] }) });
+      const j = await r.json(); if (!r.ok) throw new Error((j.error && j.error.message) || 'OpenAI request failed');
+      return j.choices[0].message.content;
+    }
+    const content = img ? [{ type: 'image', source: { type: 'base64', media_type: img.type, data: img.data } }, { type: 'text', text }] : text;
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': cfg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model: cfg.model || 'claude-sonnet-5-5', max_tokens: maxTokens || 1500, system, messages: [{ role: 'user', content }] }) });
+    const j = await r.json(); if (!r.ok) throw new Error((j.error && j.error.message) || 'Anthropic request failed');
+    return j.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+  }
+
+  /* =============== Report agent: plan → run → check → write, autonomously =============== */
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const plain = h => String(h || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+  const repFigs = [];       // supplied figures: {name, url, data, type}
+  let lastReport = null;
+  function planReport(scope) {
+    const cur2 = cur && (cur.type === 'table' ? table(cur.id) : cur.type === 'item' && item(cur.id) ? table(item(cur.id).tableId) : null);
+    const tables = scope === 'current' && cur2 ? [cur2] : proj.tables;
+    const plan = [];
+    tables.forEach(t => {
+      const have = proj.items.filter(i => i.tableId === t.id);
+      have.forEach(it => plan.push({ it, t, existing: true }));
+      if (have.length) return;
+      let sug = []; try { sug = advise(t).filter(x => x.kind && K[x.kind] && K[x.kind].types.includes(t.type)); } catch (e) { sug = []; }
+      const seen = new Set();
+      sug.forEach(x => { if (seen.size < 3 && !seen.has(x.kind)) { seen.add(x.kind); plan.push({ it: { id: uid('r'), tableId: t.id, kind: x.kind, opts: Object.assign(K[x.kind].defaults(t), x.opts || {}) }, t, why: x.why, existing: false }); } });
+    });
+    return { tables, plan };
+  }
+  async function runPlanItem(p) {
+    let res = compute(p.it), n = 0;
+    while (res && res.pending && n++ < 240) { await sleep(250); res = compute(p.it); }
+    return res;
+  }
+  const fmtDate = () => new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  function paras(text) { return esc(text).split(/\n{2,}/).map(x => `<p>${x.replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join(''); }
+  function assembleReport(d) {
+    const css = `*{box-sizing:border-box}body{font:15px/1.65 Georgia,'Times New Roman',serif;color:#14182e;max-width:820px;margin:0 auto;padding:40px 28px 64px}h1,h2,h3,.k,table,figcaption,.meta{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}h1{font-size:30px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}h2{font-size:20px;margin:34px 0 8px;padding-bottom:6px;border-bottom:2px solid #e0712c}h3{font-size:16px;margin:22px 0 6px}.meta{color:#656d8c;font-size:13px;margin:0 0 22px}.k{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#a5501a;font-weight:600;margin:0 0 8px}figure{margin:14px 0;padding:10px;border:1px solid #e2e5ef;border-radius:8px}figure svg{max-width:100%;height:auto;display:block}figcaption{font-size:12.5px;color:#3a4160;margin-top:6px}table{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0}th,td{text-align:left;padding:6px 9px;border-bottom:1px solid #e2e5ef;vertical-align:top}th{background:#f6f7fb}.note{background:#fdf1e7;border-left:3px solid #e0712c;padding:8px 12px;font-size:13px;font-family:system-ui,sans-serif;margin:10px 0}.ai{background:#eceefd;border-left:3px solid #3e4ed8;padding:8px 14px;margin:10px 0}.ai small{display:block;font:600 11px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#2d3aad;margin-bottom:4px}.chk li{margin:4px 0}.foot{margin-top:40px;font:12px system-ui,sans-serif;color:#656d8c;border-top:1px solid #e2e5ef;padding-top:10px}@media print{body{padding:0;max-width:none}h2{break-after:avoid}figure,table{break-inside:avoid}}`;
+    const toc = d.sections.map(s2 => s2.title);
+    const body = [];
+    body.push(`<p class="k">Analysis report</p><h1>${esc(d.title)}</h1><p class="meta">Generated by Lattent (${esc(BF_CONFIG.site)}) on ${fmtDate()}${d.author ? ' · ' + esc(d.author) : ''} · ${d.nTables} data table${d.nTables === 1 ? '' : 's'}, ${d.nAnalyses} analys${d.nAnalyses === 1 ? 'is' : 'es'}</p>`);
+    body.push(`<h2>Summary</h2>${d.aiSummary ? `<div class="ai"><small>Drafted by ${esc(d.model)} from the results below; check before use</small>${paras(d.aiSummary)}</div>` : ''}<ul>${d.findings.map(f => `<li>${esc(f)}</li>`).join('') || '<li>No analyses could be completed.</li>'}</ul>`);
+    d.sections.forEach((sec, i) => {
+      body.push(`<h2>${i + 1}. ${esc(sec.title)}</h2><p>${esc(sec.data)}</p>`);
+      sec.runs.forEach(r => {
+        body.push(`<h3>${esc(r.label)}</h3>`);
+        if (r.error) { body.push(`<div class="note">This analysis could not be completed: ${esc(r.error)}</div>`); return; }
+        if (r.svg) body.push(`<figure>${r.svg}<figcaption><b>Figure ${r.fig}.</b> ${esc(r.label)}: ${esc(sec.title)}.</figcaption></figure>`);
+        r.sections.forEach(x => body.push(`<h4 style="font:600 13px system-ui,sans-serif;margin:12px 0 2px;color:#3a4160">${esc(x.title)}</h4>${x.html}`));
+      });
+    });
+    if (d.aiDiscussion) body.push(`<h2>Discussion</h2><div class="ai"><small>Drafted by ${esc(d.model)} from the results above; check before use</small>${paras(d.aiDiscussion)}</div>`);
+    if (d.figReviews.length) body.push(`<h2>Supplied figures</h2>${d.figReviews.map(f => `<figure><img src="${f.url}" alt="${esc(f.name)}" style="max-width:100%;height:auto"><figcaption><b>${esc(f.name)}.</b></figcaption></figure>${f.text ? `<div class="ai"><small>Reviewed by ${esc(d.model)}; values read from images are approximate</small>${paras(f.text)}</div>` : '<p class="meta">No AI key was available, so this figure was included without review.</p>'}`).join('')}`);
+    body.push(`<h2>Quality checks</h2>${d.checks.length ? `<ul class="chk">${d.checks.map(c => `<li><b>${c.sev === 'error' ? 'Error' : c.sev === 'warn' ? 'Warning' : 'Note'}:</b> ${plain(c.msg)} <span class="meta">(${esc(c.where)})</span></li>`).join('')}</ul>` : '<p>Facet found no problems with units, sample sizes, fit quality, model choice or test assumptions.</p>'}`);
+    body.push(`<h2>Limitations and next steps</h2><ul>${d.next.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`);
+    body.push(`<h2>Reproducibility</h2><table><tr><th>Analysis</th><th>Table</th><th>Options</th></tr>${d.repro.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(r.table)}</td><td style="font-family:ui-monospace,monospace;font-size:11.5px">${esc(r.opts)}</td></tr>`).join('')}</table>`);
+    body.push(`<p class="foot">Results were computed by Lattent’s validated analysis engine (checked against SciPy and NumPy) in the author’s browser. ${d.aiSummary || d.aiDiscussion || d.figReviews.some(f => f.text) ? 'Passages marked as drafted by a language model are interpretation only and were not used to compute any number. ' : ''}Lattent is research software and is not validated for GLP or clinical use.</p>`);
+    void toc;
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(d.title)}: analysis report</title><style>${css}</style></head><body>${body.join('\n')}</body></html>`;
+  }
+  async function runAgent() {
+    const log = $('#rp-log'); log.innerHTML = '';
+    const out = $('#rp-out'); out.innerHTML = '';
+    const btn = $('#rp-go'); btn.disabled = true;
+    const step = txt => { const li = document.createElement('li'); li.innerHTML = `<span class="spin"></span> ${esc(txt)}`; log.appendChild(li); log.scrollTop = log.scrollHeight; return { ok(m) { li.className = 'ok'; li.innerHTML = '<i>✓</i> ' + esc(m || txt); }, skip(m) { li.className = 'skip'; li.innerHTML = '<i>–</i> ' + esc(m); }, fail(m) { li.className = 'bad'; li.innerHTML = '<i>!</i> ' + esc(m); } }; };
+    try {
+      const scope = ($('input[name=rp-scope]:checked') || {}).value || 'all';
+      const author = $('#rp-author').value.trim();
+      const hasKey = !!AI.get().key, canAI = hasKey && Pro.active(), model = AI.get().model || (AI.get().provider === 'openai' ? 'gpt-5' : 'claude-sonnet-5-5');
+      let st = step('Reading the project'); await sleep(250);
+      const { tables, plan } = planReport(scope);
+      if (!tables.length) { st.fail('There is no data to report on. Add a table first.'); btn.disabled = false; return; }
+      st.ok(`Read ${tables.length} table${tables.length > 1 ? 's' : ''} (${tables.reduce((n, t) => n + t.rows.length, 0)} rows)`);
+      st = step('Planning the analyses'); await sleep(300);
+      st.ok(plan.length ? `Plan: ${plan.map(p => K[p.it.kind].label.split(' (')[0]).join(' · ')}` : 'No analyses to run; reporting the data only');
+      const sections = [], findings = [], repro = [], allText = [];
+      let fig = 0, nA = 0;
+      for (const t of tables) {
+        const sec = { title: t.name, data: `${TYPES[t.type].title}: ${t.rows.length} rows, columns ${t.cols.map(c => '“' + (c || '–') + '”').join(', ')}.`, runs: [] };
+        for (const p of plan.filter(x => x.t === t)) {
+          const k = K[p.it.kind], label = k.label.replace(/\s*\(.*\)$/, '');
+          const s2 = step(`${p.existing ? 'Collecting' : 'Running'} ${label} on ${t.name}`);
+          await sleep(60);
+          const res = await runPlanItem(p);
+          if (!res || res.error || res.pending) { s2.fail(`${label}: ${(res && res.error) || 'timed out'}`); sec.runs.push({ label, error: (res && res.error) || 'The analysis timed out.' }); continue; }
+          let r, text;
+          try { r = k.render(res, p.it.opts, t); text = k.text ? k.text(res, p.it.opts, t) : null; } catch (e) { s2.fail(`${label}: ${e.message}`); sec.runs.push({ label, error: e.message }); continue; }
+          const build = (r.charts || []).filter(Boolean)[0];
+          let svg = ''; try { svg = build ? build(P.print, 720, 460).svg : ''; } catch (e) { svg = ''; }
+          const run = { label, svg, fig: svg ? ++fig : 0, sections: text || [] };
+          sec.runs.push(run); nA++;
+          (text || []).filter(x => /result/i.test(x.title)).forEach(x => { const f = plain(x.html); if (f) { findings.push(`${t.name}: ${f}`); } });
+          (text || []).forEach(x => allText.push(`[${t.name} · ${label} · ${x.title}] ${plain(x.html)}`));
+          repro.push({ label, table: t.name, opts: JSON.stringify(p.it.opts) });
+          s2.ok(`${label} on ${t.name}${svg ? ' (figure ' + run.fig + ')' : ''}`);
+        }
+        sections.push(sec);
+      }
+      st = step('Checking the analyses for mistakes'); await sleep(250);
+      let checks = []; try { checks = critique().filter(c => tables.some(t => c.where.includes(t.name)) || scope === 'all'); } catch (e) { checks = []; }
+      st.ok(checks.length ? `${checks.length} point${checks.length > 1 ? 's' : ''} flagged for review` : 'No problems found');
+      const next = [];
+      tables.forEach(t => { const ran = new Set(plan.filter(p => p.t === t).map(p => p.it.kind)); try { advise(t).filter(x => x.kind && !ran.has(x.kind)).slice(0, 2).forEach(x => next.push(`${t.name}: ${x.title}. ${x.why}`)); advise(t).filter(x => x.disc).slice(0, 1).forEach(x => next.push(`${t.name}: ${x.title}. ${x.why}`)); } catch (e) { /* ignore */ } });
+      plan.filter(p => p.it.kind === 'bo').forEach(p => { const r = compute(p.it); if (r && r.s && r.s.picks) next.push(`Run the suggested experiments for ${p.t.name}: ${r.s.picks.slice(0, 3).map(q => '(' + q.x.map(v => U.fmt(v, 3)).join(', ') + ')').join('; ')}, then add the measured values and re-run.`); });
+      next.push('Treat fitted equations as descriptions of the data range, not as proof of mechanism, and do not extrapolate beyond it.');
+      next.push('Replicate key measurements; confidence intervals here reflect the scatter in the data supplied, not systematic error.');
+      const d = { title: proj.name || 'Untitled project', author, nTables: tables.length, nAnalyses: nA, sections, findings, checks, next, repro, figReviews: [], aiSummary: '', aiDiscussion: '', model };
+      /* multimodal: review supplied figures */
+      if (repFigs.length) {
+        for (const f of repFigs) {
+          const s3 = step(`Reading figure “${f.name}”`);
+          if (!canAI) { d.figReviews.push({ name: f.name, url: f.url, text: '' }); s3.skip(hasKey ? 'AI features need Pro or a trial; figure included without review' : 'Add an AI key in Ask to have figures reviewed; included without review'); continue; }
+          try {
+            const text = await llmOnce('You are Facet reviewing a scientific figure for a lab report. First describe what the figure shows in 2 to 3 sentences (axes with units, trends, notable features). Then list concrete problems as lines starting with "- " (missing or wrong units, unlabeled axes, misleading scales, missing error bars or sample sizes, overfitting, extrapolation, mis-assigned peaks). Do not state numbers you cannot read; say any values are approximate. If nothing is wrong, say so briefly.', 'Review this figure for the report.', f, 900);
+            d.figReviews.push({ name: f.name, url: f.url, text }); s3.ok(`Reviewed “${f.name}”`);
+          } catch (e) { d.figReviews.push({ name: f.name, url: f.url, text: '' }); s3.fail(`Figure review failed: ${e.message}`); }
+        }
+      }
+      if (canAI && allText.length) {
+        const s4 = step(`Drafting the summary and discussion (${model})`);
+        try {
+          const txt = await llmOnce('You are Facet writing parts of a scientific report from verified results. Write exactly two sections headed SUMMARY and DISCUSSION. SUMMARY: at most 120 words of plain scientific prose on what was measured and found. DISCUSSION: at most 220 words interpreting the results physically or chemically, noting limitations, and recommending the next experiment. Use only numbers that appear in the RESULTS text; never introduce new numbers or claim anything the results do not support.', 'RESULTS:\n' + allText.join('\n').slice(0, 9000) + (checks.length ? '\n\nCHECKS FLAGGED:\n' + checks.map(c => plain(c.msg)).join('\n') : ''), null, 1200);
+          const m = txt.match(/SUMMARY\s*:?\s*([\s\S]*?)(?:\n\s*#*\s*DISCUSSION\s*:?\s*([\s\S]*))?$/i);
+          d.aiSummary = (m && m[1] ? m[1] : txt).trim(); d.aiDiscussion = (m && m[2] ? m[2] : '').trim();
+          s4.ok('Drafted the summary and discussion');
+        } catch (e) { s4.fail('Drafting failed: ' + e.message); }
+      } else if (hasKey && !canAI) step('Drafting the summary and discussion').skip('Needs Pro or a trial; the report uses the computed findings instead');
+      st = step('Assembling the report'); await sleep(250);
+      const html = assembleReport(d);
+      lastReport = { html, d, plan };
+      st.ok(`Report ready: ${nA} analyses, ${fig} figure${fig === 1 ? '' : 's'}, ${checks.length} flagged point${checks.length === 1 ? '' : 's'}`);
+      const fname = (d.title || 'report').replace(/[^\w-]+/g, '_') + '-report.html';
+      out.innerHTML = `<div class="rp-done"><b>Your report is ready.</b><span>${nA} analyses · ${fig} figures · ${checks.length} checks flagged${d.aiSummary ? ' · AI-drafted summary' : ''}</span>
+        <div class="rp-btns"><button class="btn primary small" data-rp="preview">Preview</button><button class="btn small" data-rp="download">Download HTML <span class="lock">PRO</span></button><button class="btn small" data-rp="print">Print or save PDF <span class="lock">PRO</span></button>${plan.some(p => !p.existing) ? '<button class="btn small ghost" data-rp="add">Add these analyses to the project</button>' : ''}</div></div>`;
+      $$('[data-rp]', out).forEach(b => b.onclick = () => {
+        const a = b.dataset.rp;
+        if (a === 'preview') { const m = U.modal(`<p class="m-kicker">Facet · Report</p><h2>${esc(d.title)}</h2><iframe class="rp-frame" title="Report preview" sandbox="" srcdoc="${html.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"></iframe>`); m.querySelector('.modal-box').classList.add('xwide'); }
+        if (a === 'download') Pro.require('Report export', () => U.download(fname, 'text/html', html));
+        if (a === 'print') Pro.require('Report export', () => { const url = URL.createObjectURL(new Blob([html], { type: 'text/html' })); const w = window.open(url, '_blank'); if (w) w.addEventListener('load', () => { try { w.print(); } catch (e) { /* user prints manually */ } }); else U.toast('Allow pop-ups to print, or download the HTML and print it.'); });
+        if (a === 'add') { plan.filter(p => !p.existing).forEach(p => { proj.items.push(p.it); }); save(); render(); U.toast('Analyses added to the project.', 'ok'); b.remove(); }
+      });
+    } catch (e) { console.error(e); const li = document.createElement('li'); li.className = 'bad'; li.innerHTML = '<i>!</i> The agent stopped: ' + esc(e.message); log.appendChild(li); }
+    btn.disabled = false;
+  }
+  function renderReportTab() {
+    const box = $('#co-report'); const hasKey = !!AI.get().key;
+    box.innerHTML = `<div class="rp-intro"><b>Autonomous report</b><p>Facet plans the analyses your data call for, runs them, checks them for mistakes and writes a complete scientific report with methods, results, figures, checks and next steps. It works offline; with your AI key it also drafts the summary and discussion, and reviews figures you attach.</p></div>
+      <div class="rp-opts">
+        <div class="seg" role="radiogroup"><label><input type="radio" name="rp-scope" value="all" checked> Whole project</label><label><input type="radio" name="rp-scope" value="current"> Current table</label></div>
+        <label class="rp-l">Author or group <span>optional</span><input type="text" id="rp-author" maxlength="120" placeholder="e.g. Panigrahy lab"></label>
+        <div class="rp-figs"><div class="rp-fh"><span>Figures to review <small>optional · multimodal</small></span><button type="button" class="btn small ghost" id="rp-add">Add figure</button><input type="file" id="rp-file" accept="image/*" multiple hidden></div><div id="rp-fl"></div>
+          <p class="hint">${hasKey ? 'A vision model reads each figure and lists problems, using your key.' : 'Add your Claude or GPT key in Ask to have the figures reviewed. Without it they are included as supplied.'}</p></div>
+        <button class="btn primary" id="rp-go">Run the agent</button>
+      </div>
+      <ol class="rp-log" id="rp-log"></ol><div id="rp-out"></div>`;
+    const paint = () => { $('#rp-fl', box).innerHTML = repFigs.map((f, i) => `<div class="rp-f"><img src="${f.url}" alt=""><span>${esc(f.name)}</span><button type="button" data-rm="${i}" aria-label="Remove">×</button></div>`).join(''); $$('[data-rm]', box).forEach(b => b.onclick = () => { repFigs.splice(+b.dataset.rm, 1); paint(); }); };
+    $('#rp-add', box).onclick = () => $('#rp-file', box).click();
+    $('#rp-file', box).onchange = async e => { for (const f of [...e.target.files].slice(0, 6 - repFigs.length)) { try { repFigs.push(await readImage(f)); } catch (err) { U.toast(err.message); } } e.target.value = ''; paint(); };
+    $('#rp-go', box).onclick = runAgent;
+    paint();
+  }
+
   /* read an image file, downscaled to at most 1600 px, as base64 for the vision models */
   function readImage(file) {
     return new Promise((resolve, reject) => {
@@ -1735,5 +1902,10 @@ ${projectSummary()}`;
   /* charts read the palette when drawn, so redraw the current view when the theme changes */
   document.addEventListener('bf:theme', () => { if (proj) render(); });
   if (q.get('cloud')) { history.replaceState(null, '', location.pathname); setTimeout(() => cloudDialog(), 300); }
+  if (q.get('facet')) {
+    const TABS = { suggest: 'co-tab-advisor', check: 'co-tab-check', graph: 'co-tab-graph', report: 'co-tab-report', ask: 'co-tab-chat' };
+    const id = TABS[q.get('facet')];
+    if (id) setTimeout(() => { document.body.classList.add('co-open'); $('#' + id).click(); }, 400);
+  }
   window.BF_STUDIO = { get project() { return proj; }, compute, K, advise };
 })();

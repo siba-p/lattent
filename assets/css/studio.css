@@ -329,3 +329,26 @@ td.eqn { font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; }
 .co-send { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; }
 .co-send .btn svg { width: 15px; height: 15px; }
 .msg-img { display: block; max-width: 100%; max-height: 160px; border-radius: 8px; margin-bottom: 6px; }
+
+/* Report agent */
+#co-report { padding: 14px 16px 24px; overflow-y: auto; display: grid; gap: 12px; align-content: start; }
+.rp-intro b { font: 600 15px var(--display); }
+.rp-intro p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+.rp-opts { display: grid; gap: 10px; }
+.rp-l { display: grid; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.rp-l span, .rp-fh small { font-weight: 400; color: var(--ink-3); }
+.rp-fh { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.rp-fh span { flex: 1; }
+.rp-f { display: flex; align-items: center; gap: 8px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; font-size: 12.5px; }
+.rp-f img { width: 44px; height: 32px; object-fit: cover; border-radius: 4px; }
+.rp-f span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+.rp-f button { border: 0; background: none; font-size: 18px; color: var(--ink-3); cursor: pointer; }
+.rp-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.rp-log li { display: flex; gap: 8px; align-items: flex-start; line-height: 1.45; }
+.rp-log li i { font-style: normal; flex: none; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; color: #fff; background: var(--ok); }
+.rp-log li.skip i { background: var(--ink-3); } .rp-log li.bad i { background: var(--bad); }
+.rp-log .spin { margin-top: 2px; flex: none; }
+.rp-done { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: var(--ok-soft); font-size: 13.5px; }
+.rp-done span { color: var(--ink-2); font-size: 12.5px; }
+.rp-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.rp-frame { width: 100%; height: 68vh; border: 1px solid var(--line); border-radius: 10px; background: #fff; margin-top: 8px; }

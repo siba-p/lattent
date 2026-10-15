@@ -52,10 +52,11 @@
 </div>
 <aside class="co" aria-label="Facet, your AI lab partner">
   <div class="co-head"><span class="facet-mark" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 1.8l6.8 4v8.4L10 18.2l-6.8-4V5.8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 1.8v16.4M3.2 5.8l13.6 8.4M16.8 5.8L3.2 14.2" fill="none" stroke="currentColor" stroke-width="1" opacity=".45"/><circle cx="14.6" cy="5.4" r="2.2" fill="#f08c3e"/></svg></span><div><h3>Facet</h3><small>Your AI lab partner</small></div><button class="x" id="co-close" aria-label="Close">×</button></div>
-  <div class="co-tabs" role="tablist"><button id="co-tab-advisor" aria-selected="true">Suggest</button><button id="co-tab-check" aria-selected="false">Check</button><button id="co-tab-graph" aria-selected="false">Read a graph</button><button id="co-tab-chat" aria-selected="false">Ask</button></div>
+  <div class="co-tabs" role="tablist"><button id="co-tab-advisor" aria-selected="true">Suggest</button><button id="co-tab-check" aria-selected="false">Check</button><button id="co-tab-graph" aria-selected="false">Graph</button><button id="co-tab-report" aria-selected="false">Report</button><button id="co-tab-chat" aria-selected="false">Ask</button></div>
   <div id="co-advisor"></div>
   <div id="co-check" hidden></div>
   <div id="co-graph" hidden></div>
+  <div id="co-report" hidden></div>
   <div id="co-chat" hidden>
     <div class="co-cfg">
       <div class="row"><select id="ai-provider" aria-label="Provider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select><input id="ai-model" aria-label="Model"></div>

@@ -150,6 +150,7 @@ FIELDS = [
 ]
 
 CHANGES = [
+    ("2026-10-17", "Report agent and help guide", ["Autonomous scientific reports: Facet plans the analyses, runs them, checks them and writes the report (methods, results, figures, quality checks, limitations, next steps), offline. With your AI key it drafts the summary and discussion and reviews supplied figures.", "A Lattent guide on every page answers questions from the help articles and links to the right tool.", "Facet AI is a visible menu again."]),
     ("2026-10-16", "Support centre and a clearer home page", ["A Support centre with search, guides by topic, troubleshooting and billing help.", "The home page now opens with the problems Lattent solves and how it works in three steps.", "AI and machine learning moved into the Platform menu; Support joins the navigation."]),
     ("2026-10-16", "Facet, pricing and contact", ["The AI lab partner is now Facet. New: Check reviews the whole project for errors, Read a graph turns a picture of a plot into a table, and Ask accepts figures to interpret and critique.", "A Pricing page with plan comparison, yearly or monthly billing, and prices in US dollars or rupees. Pay by card, PayPal or Apple Pay worldwide, by UPI, cards or net banking in India through Razorpay, or by invoice.", "A Contact page; messages reach the team by email.", "Simpler navigation: Platform and Solutions menus, direct links to AI and Pricing, and a compact Resources menu."]),
     ("2026-10-15", "AI and machine learning", ["Equation discovery: symbolic regression finds a compact formula for XY data and recognises physical laws such as Arrhenius, Langmuir and Flory–Fox.", "AutoML: six kinds of model compared by cross-validation, with input importance, partial dependence, composition descriptors for formula columns and calibrated prediction intervals.", "Calibrated 90% intervals on every formation-energy and band-gap prediction.", "A new page, the periodic table of Lattent’s AI, with a live lab.", "Night mode and an account menu in every header."]),
@@ -437,6 +438,33 @@ def support():
 """
     return HEAD.format(title="Support | Lattent", desc="Lattent help centre: getting started, guides to fitting, statistics, XRD, AI and Discover, troubleshooting, billing help and contact.", root=root, fonts=FONTS).replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/support.js"></script>\n</body>')
 
+
+
+EXTRA_KB = [
+    ("How do I identify the phases in my XRD pattern?", "Fit the peaks in Studio with X set to 2θ, then press Identify phases and list the elements that may be present. Lattent matches your peaks against every computed structure of those elements and flags peaks left unexplained.", "studio/?discover=phase", "Identify phases", "phase identification diffraction pattern xrd match crystal structure"),
+    ("How do I get the band gap from a UV–Vis spectrum?", "Paste wavelength (or energy) and absorbance into the band-gap tool. It builds the Tauc plot, finds the linear part of the absorption edge and reports the gap with a confidence interval.", "tools/band-gap-tauc/", "Band-gap tool", "tauc optical band gap uv vis absorbance edge"),
+    ("How do I get activation energy from conductivity or rate data?", "Use the activation-energy tool: paste temperature and conductivity (or rate constant) and Lattent fits Arrhenius or VFT and reports Eₐ in kJ/mol and eV with confidence intervals.", "tools/activation-energy-arrhenius/", "Activation-energy tool", "arrhenius activation energy conductivity rate temperature"),
+    ("Can Lattent suggest new materials?", "Yes, at the level of composition. The generator proposes formulas inside the elements you choose, steered towards a band gap, predicts stability and band gap with intervals, and checks each candidate against 5.8 million computed structures.", "studio/?discover=gen", "Generate materials", "generate new materials diffusion generative compositions discovery"),
+    ("Can Lattent write a report for me?", "Yes. Open Facet in Studio and choose Report. The agent plans the analyses, runs them, checks them for mistakes and assembles a report with methods, results, figures, checks and next steps. With your own AI key it also drafts the summary and discussion, and it can review figures you supply.", "studio/?example=anova&facet=report", "See an autonomous report", "report autonomous agent write up paper methods results export"),
+    ("Can Lattent read a graph from an image?", "Yes. In Facet, choose Graph: calibrate the axes with four clicks, click the curve, and Lattent traces it into a data table. With an AI key you can also attach the figure and ask what it shows or what is wrong with it.", "studio/?facet=graph", "Read a graph", "digitise digitize image plot picture figure graph data extract"),
+    ("What is Facet?", "Facet is Lattent’s AI lab partner. It suggests analyses, checks your project for mistakes, reads graphs, writes reports autonomously and, with your own Claude or GPT key, answers questions and reviews figures. All numbers come from the validated engine.", "ai/", "Facet AI", "facet ai assistant partner co-scientist"),
+    ("How much does Lattent cost?", "{{pricing}}", "pricing/", "See pricing", "price cost pro plan lab free subscription payment inr rupee"),
+    ("Is my data private?", "Analyses run in your browser and projects stay there unless you save them to the cloud. Nothing you paste is uploaded. The optional AI features send data only to the provider you chose, with your own key.", "legal/privacy.html", "Privacy notice", "privacy data upload security gdpr stored"),
+    ("How do I talk to a person?", "Use the contact form and tell us what you need. We usually reply within one working day.", "contact/", "Contact us", "contact email support human sales invoice question help"),
+]
+
+def kb():
+    out = []
+    for g, link, qa in GUIDES:
+        for q, a in qa:
+            out.append({"q": q, "a": a, "l": link, "t": g, "k": g.lower()})
+    for q, a in TROUBLE:
+        out.append({"q": q, "a": a, "l": "support/", "t": "Troubleshooting", "k": "troubleshooting problem error broken"})
+    for q, a, link, label, kw in EXTRA_KB:
+        out.append({"q": q, "a": a, "l": link, "t": label, "k": kw})
+    return out
+import json as _json
+write("assets/js/kb.js", "/* Help articles for the on-site guide. Generated by scripts/build_solutions.py; do not edit. */\nwindow.BF_KB = " + _json.dumps(kb(), ensure_ascii=False, separators=(",", ":")) + ";\n")
 
 write("support/index.html", support())
 write("pricing/index.html", pricing())
