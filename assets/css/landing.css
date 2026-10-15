@@ -1,10 +1,15 @@
 /* Landing page */
 body.landing .top { background: color-mix(in srgb, var(--night) 90%, transparent); border-bottom-color: rgba(255,255,255,.07); }
-body.landing .top .logo, body.landing .top .nav a { color: #e9edf7 !important; }
-body.landing .top .nav a:hover { background: rgba(255,255,255,.08); }
+body.landing .top .logo, body.landing .top .signin { color: #e9edf7 !important; }
+@media (min-width: 961px) {
+  body.landing .top .nav-top { color: #d6dbf3; }
+  body.landing .top .nav-top:hover, body.landing .top .nav-group.open > .nav-top { color: #fff; background: rgba(255,255,255,.08); }
+}
 body.landing .top .pro-chip { color: #c9cfff !important; border-color: rgba(201,207,255,.45); }
 body.landing .top .menu-btn span { background: #e9edf7; }
-@media (max-width: 860px) { body.landing .top .nav { background: var(--night); } }
+body.landing .top.open { background: var(--night); }
+body.landing .top.open .nav { background: var(--card); }
+
 .l-hero { position: relative; background: radial-gradient(1100px 520px at 72% -12%, rgba(86,100,230,.42), transparent 62%), radial-gradient(760px 420px at 50% 112%, rgba(240,140,62,.10), transparent 62%), var(--night); color: #eef0fb; padding: 76px 0 0; overflow: hidden; isolation: isolate; }
 /* a faint lattice behind the hero, fading out towards the screenshot */
 .l-hero::before { content: ''; position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(circle, rgba(201,207,255,.16) 1.1px, transparent 1.6px); background-size: 30px 30px; background-position: center top; -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.55) 40%, transparent 72%); mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.55) 40%, transparent 72%); }

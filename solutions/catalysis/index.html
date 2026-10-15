@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catalysis | Lattent</title>
+<meta name="description" content="Extract activation energies, compare catalyst batches with the right statistics, fit adsorption isotherms, and let Bayesian optimisation choose the next composition to test.">
+<meta property="og:title" content="Catalysis | Lattent"><meta property="og:description" content="Extract activation energies, compare catalyst batches with the right statistics, fit adsorption isotherms, and let Bayesian optimisation choose the next composition to test."><meta property="og:image" content="https://siba-p.github.io/lattent/assets/img/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090c1b" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/bf.css">
+<link rel="stylesheet" href="../../assets/css/solutions.css">
+</head>
+<body>
+<header data-bf></header>
+<main>
+<section class="sol-hero"><div class="wrap sol-hero-in">
+  <div class="sol-copy">
+    <p class="crumb"><a href="../../solutions/">Solutions</a> ›</p>
+    <p class="sol-k">Catalysis</p>
+    <h1>Catalysis data, from kinetics to the next formulation.</h1>
+    <p class="sol-lede">Extract activation energies, compare catalyst batches with the right statistics, fit adsorption isotherms, and let Bayesian optimisation choose the next composition to test.</p>
+    <div class="sol-cta"><a class="btn big primary" href="../../studio/?example=anova">Open the catalyst-batch example</a><a class="btn big" href="../../studio/">Open Lattent Studio</a></div>
+  </div>
+  <figure class="sol-shot"><img src="../../assets/img/anova.webp" width="1200" height="750" alt="One-way ANOVA comparing the mass activity of catalyst batches, with Tukey significance brackets"></figure>
+</div></section>
+<section class="wrap section"><div class="sec-head"><h2>What you can do</h2><p>Each workflow opens with your data in the browser. Nothing is uploaded, and every result comes with its figure and methods text.</p></div>
+  <div class="sol-flows"><article class="sol-flow"><span class="sol-n">01</span><h3>Activation energy</h3><p>Fit rate constants measured at several temperatures with the Arrhenius equation, with replicates and weighting handled properly.</p><ul class="ticks"><li>Eₐ in kJ/mol and eV with a 95% CI</li><li>Pre-exponential factor</li></ul><a class="sol-go" href="../../tools/activation-energy-arrhenius/">Activation-energy tool →</a></article><article class="sol-flow"><span class="sol-n">02</span><h3>Compare catalyst batches</h3><p>One-way or Welch’s ANOVA with Tukey or Holm–Šidák post tests. Lattent checks normality and equal variance first and suggests the right test.</p><ul class="ticks"><li>Significance drawn on the graph</li><li>Effect sizes, not only p-values</li></ul><a class="sol-go" href="../../studio/?example=anova">Catalyst-batch example →</a></article><article class="sol-flow"><span class="sol-n">03</span><h3>Adsorption and uptake</h3><p>Rank Langmuir, Freundlich and Sips isotherms by AICc, and fit pseudo-first- and pseudo-second-order uptake kinetics.</p><ul class="ticks"><li>q_max and affinity constants</li><li>The model the data support</li></ul><a class="sol-go" href="../../tools/adsorption-isotherms/">Isotherm tool →</a></article><article class="sol-flow"><span class="sol-n">04</span><h3>Optimise the formulation</h3><p>A Gaussian-process model learns how composition and conditions drive activity and proposes the most informative next experiments.</p><ul class="ticks"><li>Next experiments, in batches</li><li>Which inputs matter</li></ul><a class="sol-go" href="../../studio/?example=discovery">Optimisation example →</a></article></div></section>
+<section class="wrap section sol-eq"><div><h2>Equations and analyses for catalysis</h2><p>Built into the curve-fitting engine and checked against SciPy, alongside 30 more and any equation you type yourself.</p></div><ul><li>Arrhenius</li><li>Langmuir</li><li>Freundlich</li><li>Sips</li><li>Pseudo-first-order</li><li>Pseudo-second-order</li><li>Tafel</li><li>Michaelis–Menten</li></ul></section>
+<section class="wrap"><div class="band"><div><h2>Start with your own data.</h2><p>Free, in your browser, with nothing to install.</p></div><a class="btn big" href="../../studio/">Open Lattent Studio</a></div>
+  <p class="sol-more">Other fields: <a href="../../solutions/nanomaterials/">Nanomaterials</a><a href="../../solutions/batteries-energy/">Batteries and energy</a><a href="../../solutions/polymers/">Polymers</a><a href="../../solutions/semiconductors/">Semiconductors and optics</a><a href="../../solutions/electrochemistry/">Electrochemistry</a><a href="../../solutions/ceramics-alloys/">Ceramics and alloys</a><a href="../../solutions/analytical-chemistry/">Analytical chemistry</a></p></section>
+</main>
+<footer data-bf></footer>
+<script src="../../assets/js/config.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/plot.js"></script>
+<script src="../../assets/js/shell.js"></script>
+</body>
+</html>

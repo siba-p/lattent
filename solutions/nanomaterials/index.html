@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nanomaterials | Lattent</title>
+<meta name="description" content="Size your crystallites, confirm the phase and read the band gap of your nanoparticles, with every number traceable to the fit that produced it.">
+<meta property="og:title" content="Nanomaterials | Lattent"><meta property="og:description" content="Size your crystallites, confirm the phase and read the band gap of your nanoparticles, with every number traceable to the fit that produced it."><meta property="og:image" content="https://siba-p.github.io/lattent/assets/img/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090c1b" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/bf.css">
+<link rel="stylesheet" href="../../assets/css/solutions.css">
+</head>
+<body>
+<header data-bf></header>
+<main>
+<section class="sol-hero"><div class="wrap sol-hero-in">
+  <div class="sol-copy">
+    <p class="crumb"><a href="../../solutions/">Solutions</a> ›</p>
+    <p class="sol-k">Nanomaterials</p>
+    <h1>Nanomaterials, measured and identified.</h1>
+    <p class="sol-lede">Size your crystallites, confirm the phase and read the band gap of your nanoparticles, with every number traceable to the fit that produced it.</p>
+    <div class="sol-cta"><a class="btn big primary" href="../../studio/?example=xrd">Open the gold-nanoparticle example</a><a class="btn big" href="../../studio/">Open Lattent Studio</a></div>
+  </div>
+  <figure class="sol-shot"><img src="../../assets/img/discover-phase.webp" width="1200" height="750" alt="Gold nanoparticle XRD identified as fcc Au, Fm-3m, with every peak indexed"></figure>
+</div></section>
+<section class="wrap section"><div class="sec-head"><h2>What you can do</h2><p>Each workflow opens with your data in the browser. Nothing is uploaded, and every result comes with its figure and methods text.</p></div>
+  <div class="sol-flows"><article class="sol-flow"><span class="sol-n">01</span><h3>Crystallite size and strain</h3><p>Fit every Bragg peak with pseudo-Voigt profiles on a fitted baseline, remove instrumental broadening and get Scherrer and Williamson–Hall sizes.</p><ul class="ticks"><li>d-spacing for every peak</li><li>Scherrer size per reflection</li><li>Williamson–Hall size and microstrain</li></ul><a class="sol-go" href="../../tools/xrd-crystallite-size/">XRD crystallite size tool →</a></article><article class="sol-flow"><span class="sol-n">02</span><h3>Which phase is it?</h3><p>Match your peaks against every computed structure of your elements in the Alexandria database. Lattent refines the lattice scale and flags peaks that point to a second phase.</p><ul class="ticks"><li>Ranked phases with match scores</li><li>Peaks indexed with hkl</li><li>Second-phase detection</li></ul><a class="sol-go" href="../../studio/?discover=phase">Identify phases →</a></article><article class="sol-flow"><span class="sol-n">03</span><h3>Band gaps and confinement</h3><p>Extract the optical gap from UV–Vis with a Tauc plot, then fit gap against particle size with a Brus-type confinement model.</p><ul class="ticks"><li>Direct or indirect gap with a 95% CI</li><li>Bulk gap from the size series</li></ul><a class="sol-go" href="../../tools/band-gap-tauc/">Band-gap tool →</a></article><article class="sol-flow"><span class="sol-n">04</span><h3>Plasmonic sensing</h3><p>Fit the plasmon shift against refractive index to get the bulk sensitivity of your particles.</p><ul class="ticks"><li>Sensitivity with its confidence interval</li><li>Residual checks</li></ul><a class="sol-go" href="../../tools/curve-fitting/">Curve-fitting tool →</a></article></div></section>
+<section class="wrap section sol-eq"><div><h2>Equations and analyses for nanomaterials</h2><p>Built into the curve-fitting engine and checked against SciPy, alongside 30 more and any equation you type yourself.</p></div><ul><li>Scherrer</li><li>Williamson–Hall</li><li>Tauc (direct, indirect, forbidden)</li><li>Quantum confinement (Brus-type)</li><li>Confinement with Coulomb term</li><li>Drude plasmon shift</li><li>Pseudo-Voigt peaks</li></ul></section>
+<section class="wrap"><div class="band"><div><h2>Start with your own data.</h2><p>Free, in your browser, with nothing to install.</p></div><a class="btn big" href="../../studio/">Open Lattent Studio</a></div>
+  <p class="sol-more">Other fields: <a href="../../solutions/catalysis/">Catalysis</a><a href="../../solutions/batteries-energy/">Batteries and energy</a><a href="../../solutions/polymers/">Polymers</a><a href="../../solutions/semiconductors/">Semiconductors and optics</a><a href="../../solutions/electrochemistry/">Electrochemistry</a><a href="../../solutions/ceramics-alloys/">Ceramics and alloys</a><a href="../../solutions/analytical-chemistry/">Analytical chemistry</a></p></section>
+</main>
+<footer data-bf></footer>
+<script src="../../assets/js/config.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/plot.js"></script>
+<script src="../../assets/js/shell.js"></script>
+</body>
+</html>

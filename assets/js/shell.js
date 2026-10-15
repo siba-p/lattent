@@ -337,31 +337,93 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
     ['tools/activation-energy-arrhenius/', 'Activation energy'], ['tools/adsorption-isotherms/', 'Adsorption isotherms'],
     ['tools/tensile-test/', 'Tensile test'], ['tools/peak-fitting/', 'Peak fitting'], ['standard-curve/', 'Calibration curves']
   ];
-  const nav = [['studio/', 'Studio'], ['#discover', 'Discover'], ['#features', 'Features'], ['tools/', 'Quick tools'], ['#pricing', 'Pricing']];
+  /* Site navigation: three mega menus in the manner of scientific-software sites, plus Pricing.
+     Item: [href (relative to the site root, or absolute), title, one-line description]. */
+  const FIELDS = [
+    ['solutions/nanomaterials/', 'Nanomaterials', 'Crystallite size, phases, band gaps'],
+    ['solutions/catalysis/', 'Catalysis', 'Kinetics, isotherms, batch statistics'],
+    ['solutions/batteries-energy/', 'Batteries and energy', 'Conductivity, cathodes, phase purity'],
+    ['solutions/polymers/', 'Polymers', 'Tensile tests, Tg, rheology, blends'],
+    ['solutions/semiconductors/', 'Semiconductors and optics', 'Band gaps, PL decay, new absorbers'],
+    ['solutions/electrochemistry/', 'Electrochemistry', 'Tafel, conductivity, calibration'],
+    ['solutions/ceramics-alloys/', 'Ceramics and alloys', 'Hall–Petch, JMAK, alloy datasets'],
+    ['solutions/analytical-chemistry/', 'Analytical chemistry', 'Calibration, LOD/LOQ, chromatography']
+  ];
+  const MENU = [
+    { id: 'platform', label: 'Platform',
+      feature: { kicker: 'Lattent Studio', title: 'One workspace, from raw data to the next material', text: 'Data tables, validated analyses, publication figures and generative discovery in your browser.', href: 'studio/', cta: 'Open Studio' },
+      cols: [
+        { h: 'Analyse', items: [['#characterise', 'Spectra and diffraction', 'Peak fits, XRD sizes, band gaps'], ['#fit', 'Curve fitting', '35 equations, ranked by AICc'], ['#compare', 'Statistics', 'Tests with the checks built in'], ['tools/tensile-test/', 'Mechanical tests', 'Modulus, yield, toughness']] },
+        { h: 'Discover', items: [['studio/?discover=search', 'Materials database', '5.8 million computed crystals'], ['studio/?discover=phase', 'Phase identification', 'Match XRD peaks to structures'], ['studio/?discover=gen', 'Generative design', 'Propose new compositions'], ['#optimise', 'Bayesian optimisation', 'Choose the next experiments']] },
+        { h: 'Work together', items: [['#co-scientist', 'AI co-scientist', 'Suggests, explains, never invents'], ['#publish', 'Figures and write-ups', '600-dpi figures and methods text'], ['account/', 'Cloud and Lab teams', 'Sync and share with your group']] }
+      ] },
+    { id: 'solutions', label: 'Solutions',
+      feature: { kicker: 'Worked example', title: 'Identify the phases in your XRD', text: 'Fit the peaks of a gold-nanoparticle pattern, then match them against every computed gold structure.', href: 'studio/?example=xrd', cta: 'Open the example' },
+      cols: [
+        { h: 'By field', wide: true, items: FIELDS },
+        { h: 'By team', items: [['#pricing', 'Students and researchers', 'Free, in the browser'], ['#pricing', 'Research groups', 'Shared projects on the Lab plan'], ['#examples', 'Teaching labs', 'Ready-made class examples'], ['life-science/', 'Life-science labs', 'IC50, kinetics, qPCR']] }
+      ] },
+    { id: 'resources', label: 'Resources',
+      feature: { kicker: 'Validation', title: 'Checked against SciPy before every release', text: 'Parameters, errors and p-values agree with the reference Python libraries.', href: 'validation/', cta: 'See the results' },
+      cols: [
+        { h: 'Learn', items: [['#examples', 'Worked examples', 'Ten ready-made projects'], ['tools/', 'Quick tools', 'One-step calculators'], ['#faq', 'FAQ', 'Common questions']] },
+        { h: 'Trust', items: [['validation/', 'Validation', 'How the numbers are checked'], ['legal/security.html', 'Security', 'How your data is protected'], ['legal/privacy.html', 'Privacy', 'What we store, and what we never do']] },
+        { h: 'Updates', items: [['changelog/', 'What’s new', 'Release notes'], ['@contact', 'Contact', 'Questions and feedback']] }
+      ] },
+    { id: 'pricing', label: 'Pricing', href: '#pricing' }
+  ];
+  const href = h => (h === '@contact' ? U.contact.href : /^https?:/.test(h) ? h : U.root + h);
+  const LOGO = '<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg>';
   function chrome() {
     const h = $('header[data-bf]');
     const path = location.pathname;
-    if (h) {
-      h.className = 'top';
-      h.innerHTML = `<div class="top-in">
-        <a class="logo" href="${U.root}"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg><span>Lattent</span></a>
-        <nav class="nav" aria-label="Site">${nav.map(([p, n]) => `<a href="${U.root}${p}"${p.endsWith('/') && path.includes('/' + p) ? ' aria-current="page"' : ''}>${n}</a>`).join('')}</nav>
-        <div class="top-r"><a class="pro-chip" href="${U.root}account/" id="pro-chip"></a><a class="btn primary small open-studio" href="${U.root}studio/">Open Studio</a>
-        <button class="menu-btn" aria-label="Menu" aria-expanded="false"><span></span><span></span></button></div></div>`;
-      const mb = $('.menu-btn', h);
-      mb.onclick = () => { const o = h.classList.toggle('open'); mb.setAttribute('aria-expanded', o); };
-    }
-    const f = $('footer[data-bf]');
     /* until a support address is configured, questions go to the public issue tracker */
     U.contact = CFG.support ? { href: 'mailto:' + CFG.support, ext: false } : { href: 'https://github.com/siba-p/lattent/issues', ext: true };
+    if (h) {
+      h.className = 'top';
+      const item = ([u, t, d]) => `<a class="mm-item" href="${href(u)}"${u === '@contact' && U.contact.ext ? ' target="_blank" rel="noopener"' : ''}><b>${t}</b><span>${d}</span></a>`;
+      const panel = m => `<div class="mm-panel" id="mm-${m.id}" role="region" aria-label="${m.label}" hidden><div class="mm-in">
+          <a class="mm-feat" href="${href(m.feature.href)}"><span class="mm-k">${m.feature.kicker}</span><b>${m.feature.title}</b><span>${m.feature.text}</span><i>${m.feature.cta} →</i></a>
+          ${m.cols.map(c => `<div class="mm-col${c.wide ? ' wide' : ''}"><h6>${c.h}</h6><div class="mm-list">${c.items.map(item).join('')}</div></div>`).join('')}
+        </div></div>`;
+      h.innerHTML = `<div class="top-in">
+        <a class="logo" href="${U.root}" aria-label="Lattent home">${LOGO}<span>Lattent</span></a>
+        <nav class="nav" aria-label="Site">${MENU.map(m => m.href
+          ? `<a class="nav-top" href="${href(m.href)}">${m.label}</a>`
+          : `<div class="nav-group"><button class="nav-top" aria-expanded="false" aria-controls="mm-${m.id}">${m.label}<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${panel(m)}</div>`).join('')}
+          <div class="nav-m-acts"><a class="btn" href="${U.root}account/">Sign in</a><a class="btn primary" href="${U.root}studio/">Open Studio</a></div></nav>
+        <div class="top-r"><a class="pro-chip" href="${U.root}account/" id="pro-chip" hidden></a><a class="signin" href="${U.root}account/">Sign in</a><a class="btn primary small open-studio" href="${U.root}studio/">Open Studio</a>
+        <button class="menu-btn" aria-label="Menu" aria-expanded="false"><span></span><span></span></button></div></div>`;
+      const mb = $('.menu-btn', h), groups = [...h.querySelectorAll('.nav-group')];
+      const mobile = () => window.matchMedia('(max-width: 960px)').matches;
+      const setOpen = (g, open) => {
+        const b = g.querySelector('.nav-top'), pnl = g.querySelector('.mm-panel');
+        b.setAttribute('aria-expanded', open); pnl.hidden = !open; g.classList.toggle('open', open);
+      };
+      const closeAll = except => groups.forEach(g => { if (g !== except) setOpen(g, false); });
+      let timer = null;
+      groups.forEach(g => {
+        const b = g.querySelector('.nav-top');
+        b.onclick = () => { const open = b.getAttribute('aria-expanded') !== 'true'; closeAll(g); setOpen(g, open); };
+        g.onmouseenter = () => { if (mobile()) return; clearTimeout(timer); timer = setTimeout(() => { closeAll(g); setOpen(g, true); }, 90); };
+        g.onmouseleave = () => { if (mobile()) return; clearTimeout(timer); timer = setTimeout(() => setOpen(g, false), 160); };
+        g.addEventListener('keydown', e => { if (e.key === 'Escape') { setOpen(g, false); b.focus(); } });
+      });
+      document.addEventListener('click', e => { if (!h.contains(e.target)) closeAll(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAll(); if (h.classList.contains('open')) { h.classList.remove('open'); mb.setAttribute('aria-expanded', false); } } });
+      h.querySelectorAll('.mm-panel a, .nav > a').forEach(a => a.addEventListener('click', () => { closeAll(); h.classList.remove('open'); mb.setAttribute('aria-expanded', false); }));
+      mb.onclick = () => { const o = h.classList.toggle('open'); mb.setAttribute('aria-expanded', o); if (!o) closeAll(); };
+      if (path.includes('/solutions/')) { const sb = h.querySelector('[aria-controls="mm-solutions"]'); if (sb) sb.classList.add('cur'); }
+    }
+    const f = $('footer[data-bf]');
     if (f) {
       f.className = 'foot';
       f.innerHTML = `<div class="foot-in">
         <div><a class="logo" href="${U.root}"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg><span>Lattent</span></a><p>Data analysis and materials discovery for the lab bench. It runs in your browser, and your data stays on your computer unless you save it to the cloud.</p></div>
-        <div><h5>Product</h5><a href="${U.root}studio/">Lattent Studio</a><a href="${U.root}studio/?discover=gen">Discover</a><a href="${U.root}#features">Features</a><a href="${U.root}#examples">Examples</a><a href="${U.root}validation/">Validation</a></div>
-        <div><h5>Quick tools</h5>${tools.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}<a href="${U.root}life-science/">Life-science tools</a></div>
-        <div><h5>Company</h5><a href="${U.root}#pricing">Pricing</a><a href="${U.root}account/">Account</a><a href="${U.root}#faq">FAQ</a><a href="${U.contact.href}"${U.contact.ext ? ' target="_blank" rel="noopener"' : ''}>Contact</a></div>
-        <div><h5>Legal</h5><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
+        <div><h5>Platform</h5><a href="${U.root}studio/">Lattent Studio</a><a href="${U.root}studio/?discover=gen">Discover</a><a href="${U.root}#features">Features</a><a href="${U.root}tools/">Quick tools</a><a href="${U.root}#pricing">Pricing</a></div>
+        <div><h5>Solutions</h5>${FIELDS.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}<a href="${U.root}life-science/">Life sciences</a></div>
+        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}#faq">FAQ</a><a href="${U.contact.href}"${U.contact.ext ? ' target="_blank" rel="noopener"' : ''}>Contact</a></div>
+        <div><h5>Company</h5><a href="${U.root}account/">Account</a><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
       </div><p class="foot-note">Built by <a href="${CFG.author.url}">${CFG.author.name}</a>. © ${new Date().getFullYear()} Lattent.</p>`;
     }
     proChip();
@@ -370,10 +432,10 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
     const c = $('#pro-chip');
     if (!c) return;
     const k = Pro.kind();
-    if (k === 'licence' || k === 'account') { c.textContent = 'Pro'; c.className = 'pro-chip on'; }
-    else if (k === 'lab' || k === 'lab-member') { c.textContent = 'Lab'; c.className = 'pro-chip on'; }
-    else if (k === 'trial') { c.textContent = 'Pro trial · ' + Math.ceil(Pro.trialLeft()) + 'd'; c.className = 'pro-chip on'; }
-    else { c.textContent = 'Get Pro'; c.className = 'pro-chip'; c.onclick = e => { if (!location.pathname.includes('/account')) { e.preventDefault(); U.upgrade(); } }; }
+    if (k === 'licence' || k === 'account') { c.textContent = 'Pro'; c.className = 'pro-chip on'; c.hidden = false; }
+    else if (k === 'lab' || k === 'lab-member') { c.textContent = 'Lab'; c.className = 'pro-chip on'; c.hidden = false; }
+    else if (k === 'trial') { c.textContent = 'Pro trial · ' + Math.ceil(Pro.trialLeft()) + 'd'; c.className = 'pro-chip on'; c.hidden = false; }
+    else { c.textContent = 'Get Pro'; c.className = 'pro-chip'; c.onclick = e => { if (!location.pathname.includes('/account')) { e.preventDefault(); U.upgrade(); } }; c.hidden = !document.body.classList.contains('studio'); }
   }
   document.addEventListener('bf:pro', proChip);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', chrome); else chrome();

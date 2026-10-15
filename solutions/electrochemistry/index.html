@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Electrochemistry | Lattent</title>
+<meta name="description" content="Fit Tafel slopes, ionic conductivities and sensor calibrations, resolve overlapping peaks and compare electrodes with statistics that check their own assumptions.">
+<meta property="og:title" content="Electrochemistry | Lattent"><meta property="og:description" content="Fit Tafel slopes, ionic conductivities and sensor calibrations, resolve overlapping peaks and compare electrodes with statistics that check their own assumptions."><meta property="og:image" content="https://siba-p.github.io/lattent/assets/img/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090c1b" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/bf.css">
+<link rel="stylesheet" href="../../assets/css/solutions.css">
+</head>
+<body>
+<header data-bf></header>
+<main>
+<section class="sol-hero"><div class="wrap sol-hero-in">
+  <div class="sol-copy">
+    <p class="crumb"><a href="../../solutions/">Solutions</a> ›</p>
+    <p class="sol-k">Electrochemistry</p>
+    <h1>Electrochemistry, fitted and tested.</h1>
+    <p class="sol-lede">Fit Tafel slopes, ionic conductivities and sensor calibrations, resolve overlapping peaks and compare electrodes with statistics that check their own assumptions.</p>
+    <div class="sol-cta"><a class="btn big primary" href="../../studio/?example=arrhenius">Open the conductivity example</a><a class="btn big" href="../../studio/">Open Lattent Studio</a></div>
+  </div>
+  <figure class="sol-shot"><img src="../../assets/img/table.webp" width="1200" height="750" alt="An XY table of ionic conductivity against temperature with replicate columns"></figure>
+</div></section>
+<section class="wrap section"><div class="sec-head"><h2>What you can do</h2><p>Each workflow opens with your data in the browser. Nothing is uploaded, and every result comes with its figure and methods text.</p></div>
+  <div class="sol-flows"><article class="sol-flow"><span class="sol-n">01</span><h3>Tafel analysis</h3><p>Fit overpotential against log current density to get the Tafel slope with its confidence interval.</p><ul class="ticks"><li>Tafel slope per decade</li><li>Residual checks</li></ul><a class="sol-go" href="../../tools/curve-fitting/">Curve-fitting tool →</a></article><article class="sol-flow"><span class="sol-n">02</span><h3>Conductivity and activation energy</h3><p>Arrhenius or VFT fits of σ(T) with replicate columns recognised automatically.</p><ul class="ticks"><li>Eₐ in kJ/mol and eV</li><li>Confidence bands on the graph</li></ul><a class="sol-go" href="../../tools/activation-energy-arrhenius/">Activation-energy tool →</a></article><article class="sol-flow"><span class="sol-n">03</span><h3>Sensor calibration</h3><p>Linear, quadratic and 4PL calibration with unknowns read off with confidence intervals, recovery, LOD and LOQ.</p><ul class="ticks"><li>Detection and quantitation limits</li><li>Back-calculated recovery</li></ul><a class="sol-go" href="../../standard-curve/">Calibration tool →</a></article><article class="sol-flow"><span class="sol-n">04</span><h3>Compare electrodes</h3><p>t tests and ANOVA with post tests, after normality and equal-variance checks.</p><ul class="ticks"><li>The right test, suggested</li><li>Significance on the graph</li></ul><a class="sol-go" href="../../studio/?example=anova">Comparison example →</a></article></div></section>
+<section class="wrap section sol-eq"><div><h2>Equations and analyses for electrochemistry</h2><p>Built into the curve-fitting engine and checked against SciPy, alongside 30 more and any equation you type yourself.</p></div><ul><li>Tafel</li><li>Arrhenius</li><li>Vogel–Fulcher–Tammann</li><li>Langmuir</li><li>Linear and polynomial</li><li>4PL calibration</li></ul></section>
+<section class="wrap"><div class="band"><div><h2>Start with your own data.</h2><p>Free, in your browser, with nothing to install.</p></div><a class="btn big" href="../../studio/">Open Lattent Studio</a></div>
+  <p class="sol-more">Other fields: <a href="../../solutions/nanomaterials/">Nanomaterials</a><a href="../../solutions/catalysis/">Catalysis</a><a href="../../solutions/batteries-energy/">Batteries and energy</a><a href="../../solutions/polymers/">Polymers</a><a href="../../solutions/semiconductors/">Semiconductors and optics</a><a href="../../solutions/ceramics-alloys/">Ceramics and alloys</a><a href="../../solutions/analytical-chemistry/">Analytical chemistry</a></p></section>
+</main>
+<footer data-bf></footer>
+<script src="../../assets/js/config.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/plot.js"></script>
+<script src="../../assets/js/shell.js"></script>
+</body>
+</html>
