@@ -108,3 +108,17 @@ body.landing .top.open .nav { background: var(--card); }
 .sv-s p { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; }
 .sv-s a { margin-top: auto; padding-top: 4px; font-weight: 600; font-size: 14px; }
 @media (max-width: 900px) { .solve-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* data privacy band */
+.l-priv { margin-top: 72px; padding-block: 64px; color: #eef0fb; background: radial-gradient(700px 320px at 90% 0%, rgba(86,100,230,.38), transparent 62%), radial-gradient(520px 280px at 0% 100%, rgba(240,140,62,.12), transparent 62%), var(--night); }
+.pv-head { max-width: 760px; margin-bottom: 30px; }
+.pv-head h2 { font-size: clamp(28px, 3.6vw, 42px); letter-spacing: -0.03em; margin-bottom: 14px; }
+.pv-head p { color: #c4c9e2; font-size: 17px; line-height: 1.65; margin: 0; }
+.pv-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.pv-grid > div { padding: 20px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); }
+.pv-grid h3 { font-size: 16.5px; color: #fff; margin-bottom: 6px; }
+.pv-grid p { margin: 0; color: #b9bfdb; font-size: 14px; line-height: 1.6; }
+.pv-foot { margin: 22px 0 0; color: #8f96bb; font-size: 13.5px; }
+.pv-foot a { color: #c9cfff; }
+@media (max-width: 960px) { .pv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .pv-grid { grid-template-columns: minmax(0, 1fr); } }

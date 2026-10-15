@@ -204,7 +204,7 @@
       let re = 0, im = 0;
       for (let j = 0; j < fr.length; j++) {
         const ph = 2 * Math.PI * (h * fr[j][0] + k * fr[j][1] + l * fr[j][2]);
-        const f = scat(Z[j], s) * Math.exp(-o.B * s * s);
+        const f = scat(Z[j], s) * Math.exp(-o.B * s * s) * (st.occ && isFinite(st.occ[j]) ? st.occ[j] : 1);
         re += f * Math.cos(ph); im += f * Math.sin(ph);
       }
       const F2 = re * re + im * im;
@@ -297,6 +297,38 @@
     const seen = new Map(), out = [];
     rows.forEach(r => { const k = r.formula + '|' + r.spacegroup; if (seen.has(k)) seen.get(k).copies++; else { r.copies = 1; seen.set(k, r); out.push(r); } });
     return { rows: out, more: res.more, searched: res.entries.length };
+  };
+
+  /* Convex-hull energy at a composition. phases: [{name, x: {El: fraction}, e: eV/atom}]; the
+     pure elements (e = 0) are added automatically. Solves min Σ wᵢeᵢ subject to Σ wᵢxᵢ = c, w ≥ 0
+     with a Big-M simplex (Bland's rule). Returns the hull energy and the decomposition. */
+  X.hullEnergy = function (phases, comp) {
+    const tot = Object.values(comp).reduce((a, b) => a + b, 0), c = {}; Object.keys(comp).forEach(e => { c[e] = comp[e] / tot; });
+    const els = Object.keys(c);
+    const P = phases.filter(p => Object.keys(p.x).every(e => els.includes(e)) && isFinite(p.e)).concat(els.map(e => ({ name: e, x: { [e]: 1 }, e: 0 })));
+    const k = els.length, n = P.length, M = 1e4;
+    const cols = n + k;
+    const T = els.map((e, i) => P.map(p => p.x[e] || 0).concat(els.map((_, j) => (i === j ? 1 : 0)), [c[e]]));
+    const cost = P.map(p => p.e).concat(els.map(() => M));
+    const basis = els.map((_, i) => n + i);
+    for (let it = 0; it < 1000; it++) {
+      let enter = -1;
+      for (let j = 0; j < cols; j++) {
+        if (basis.includes(j)) continue;
+        let r = cost[j]; for (let i = 0; i < k; i++) r -= cost[basis[i]] * T[i][j];
+        if (r < -1e-10) { enter = j; break; }
+      }
+      if (enter < 0) break;
+      let row = -1, best = Infinity;
+      for (let i = 0; i < k; i++) if (T[i][enter] > 1e-12) { const q = T[i][cols] / T[i][enter]; if (q < best - 1e-12 || (Math.abs(q - best) <= 1e-12 && basis[i] < basis[row])) { best = q; row = i; } }
+      if (row < 0) return null;
+      const pv = T[row][enter]; for (let j = 0; j <= cols; j++) T[row][j] /= pv;
+      for (let i = 0; i < k; i++) if (i !== row && T[i][enter]) { const f = T[i][enter]; for (let j = 0; j <= cols; j++) T[i][j] -= f * T[row][j]; }
+      basis[row] = enter;
+    }
+    if (basis.some((b, i) => b >= n && T[i][cols] > 1e-8)) return null;
+    const parts = basis.map((b, i) => ({ b, w: T[i][cols] })).filter(q => q.b < n && q.w > 1e-7).map(q => ({ name: P[q.b].name, w: q.w, e: P[q.b].e }));
+    return { e: parts.reduce((s2, q) => s2 + q.w * q.e, 0), parts };
   };
 
   /* CIF text for a structure (P1) */

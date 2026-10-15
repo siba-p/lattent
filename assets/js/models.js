@@ -292,7 +292,13 @@
     const more = [];
     starts.forEach(s => { more.push(s.map((v, j) => (fixed[j] ? v : v * 1.5 || 0.5))); more.push(s.map((v, j) => (fixed[j] ? v : v * 0.6 || -0.5))); });
     const w = ys.map(y => (opts.weight === '1/y2' ? (y ? 1 / (y * y) : 1) : opts.weight === '1/y' ? (y ? 1 / Math.abs(y) : 1) : 1));
-    const fit = S.multistart(model.f, xs, ys, starts.concat(more), { fixed, w });
+    /* The jittered starts only scout (60 iterations); one that beats the main fit is refined fully. */
+    let fit = S.multistart(model.f, xs, ys, starts, { fixed, w });
+    const scout = S.multistart(model.f, xs, ys, more, { fixed, w, maxIter: 60 });
+    if (scout && (!fit || scout.ssr < fit.ssr * (1 - 1e-9))) {
+      let r = null; try { r = S.lm(model.f, xs, ys, scout.p, { fixed, w }); } catch (e) { r = null; }
+      fit = r && isFinite(r.ssr) && r.ssr <= scout.ssr ? r : scout;
+    }
     if (!fit || !fit.p.every(isFinite)) return { error: 'The fit did not converge. Try another model, fix a parameter, or check the data.' };
     const derived = (model.derived || []).map(d => {
       const v = d.f(fit.p);

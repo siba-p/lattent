@@ -161,8 +161,12 @@
 
     let cur = ssr(p);
     if (!isFinite(cur)) return null;
+    /* Damping: Moré's scaling (largest diagonal seen so far) with "delayed gratification" updates,
+       λ × 2 on a rejected step and ÷ 3 on an accepted one (Transtrum and Sethna, 2012). On the NIST
+       StRD problems this converges from more starting points than the classic ×10 / ÷10 rule. */
     let lambda = 1e-3, iter = 0, converged = false;
-    const maxIter = opts.maxIter || 400;
+    const D = new Array(k).fill(0);
+    const maxIter = opts.maxIter || 1000;
     while (iter++ < maxIter && k > 0) {
       const J = jac(p);
       const JTJ = Array.from({ length: k }, () => new Array(k).fill(0));
@@ -175,22 +179,23 @@
         }
       }
       for (let a = 0; a < k; a++) for (let b = 0; b < a; b++) JTJ[a][b] = JTJ[b][a];
+      for (let a = 0; a < k; a++) D[a] = Math.max(D[a], JTJ[a][a]);
       let improved = false;
-      for (let tries = 0; tries < 30; tries++) {
-        const A = JTJ.map((r, a) => r.map((v, b) => (a === b ? v + lambda * Math.max(v, 1e-12) : v)));
+      for (let tries = 0; tries < 50; tries++) {
+        const A = JTJ.map((r, a) => r.map((v, b) => (a === b ? v + lambda * Math.max(D[a], 1e-12) : v)));
         const d = solve(A, JTr);
-        if (!d) { lambda *= 10; continue; }
+        if (!d) { lambda *= 2; continue; }
         const q = p.slice();
         free.forEach((j, a) => { q[j] += d[a]; });
         const s = ssr(q);
         if (isFinite(s) && s <= cur) {
           const rel = (cur - s) / Math.max(cur, 1e-300);
           const step = Math.max(...free.map((j, a) => Math.abs(d[a]) / Math.max(Math.abs(p[j]), 1e-8)));
-          p = q; cur = s; lambda = Math.max(lambda / 10, 1e-12); improved = true;
+          p = q; cur = s; lambda = Math.max(lambda / 3, 1e-15); improved = true;
           if (rel < 1e-13 || step < 1e-10) converged = true;
           break;
         }
-        lambda *= 10;
+        lambda *= 2;
       }
       if (!improved) { converged = true; break; }
       if (converged) break;

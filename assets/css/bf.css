@@ -417,3 +417,27 @@ table.t tr.dim td { color: var(--ink-3); }
 .ag-foot { margin: 0; padding: 0 14px 12px; font-size: 12px; color: var(--ink-3); }
 @media (max-width: 560px) { .ag-fab span { display: none; } .ag-fab { padding: 13px; } .ag-panel { width: calc(100vw - 32px); } }
 @media print { .ag { display: none; } }
+/* Cite Lattent */
+.cite-box { max-width: 640px; display: grid; gap: 14px; }
+.cite-box h2 { margin: 0; }
+.cite-box .m-sub { margin: -6px 0 0; color: var(--ink-2); font-size: 14.5px; }
+.cite-blk { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.cite-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 10px 7px 14px; background: var(--line-2); font-size: 13px; }
+.cite-blk pre { margin: 0; padding: 12px 14px; font: 12.5px/1.55 var(--mono); color: var(--ink); overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cite-apa { margin: 0; padding: 12px 14px; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.cite-more summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.cite-more ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+.cite-box .hint { margin: 0; font-size: 13px; color: var(--ink-3); }
+/* technical note (validation) */
+.note { margin: 40px 0; padding-top: 8px; border-top: 1px solid var(--line); }
+.note-meta { font: 500 12.5px var(--mono); color: var(--ink-3); margin: -4px 0 14px; }
+.note-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.note-kpis div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 4px; min-width: 0; }
+.note-kpis b { font: 700 24px/1.1 var(--display); letter-spacing: -0.02em; color: var(--ink); }
+.note-kpis span { font-size: 13px; color: var(--ink-2); line-height: 1.4; }
+.note td.bad { color: var(--bad); font-weight: 600; }
+.note th.grp { text-align: center; border-bottom: 1px solid var(--line); }
+.note-all { margin: 16px 0; }
+.note-all summary { cursor: pointer; font-weight: 600; }
+.note-cite { margin-top: 14px; }
+@media (max-width: 820px) { .note-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .note-kpis b { font-size: 20px; } }

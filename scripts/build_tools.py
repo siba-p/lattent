@@ -34,6 +34,9 @@ FOOT = """<footer data-bf></footer>
 <script src="{root}assets/js/stats.js"></script>
 <script src="{root}assets/js/plot.js"></script>
 <script src="{root}assets/js/shell.js"></script>
+<script src="{root}assets/js/chem.js"></script>
+<script src="{root}assets/js/crystal.js"></script>
+<script src="{root}assets/js/formats.js"></script>
 {extra}</body>
 </html>
 """

@@ -81,6 +81,14 @@ glob = {
 for case in d["glob"]:
     X = np.vstack([case["s"], case["i"]])
     p, cov = optimize.curve_fit(glob[case["key"]], X, np.array(case["y"]), p0=case["p"], maxfev=20000)
+    if case["key"] == "mixed":
+        # The data are competitive, so alpha diverges and is not identifiable: compare V, K and Ki,
+        # and require that both fits send alpha to a very large value.
+        close("inhibition mixed params (V, K, Ki)", case["p"][:3], p[:3], 1e-4)
+        if not (case["p"][3] > 1e5 and p[3] > 1e5):
+            fails.append("inhibition mixed alpha")
+        print(f"ok  inhibition mixed alpha diverges: lattent={case['p'][3]:.3g} scipy={p[3]:.3g}")
+        continue
     close(f"inhibition {case['key']} params", case["p"], p, 1e-4)
     if case["key"] == "competitive":
         close("inhibition competitive SE", case["se"], np.sqrt(np.diag(cov)), 1e-3)

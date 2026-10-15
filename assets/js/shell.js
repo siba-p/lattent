@@ -241,6 +241,40 @@
     if (U._esc) document.removeEventListener('keydown', U._esc);
   };
 
+  /* ---------- "Cite Lattent": software citation plus the data sources behind Discover ---------- */
+  U.CITE = {
+    version: '2026.10',
+    bibtex: () => `@software{panigrahy_lattent_2026,
+  author  = {Panigrahy, Sibasankar},
+  title   = {Lattent: browser-based data analysis for materials and chemistry},
+  year    = {2026},
+  version = {2026.10},
+  url     = {https://siba-p.github.io/lattent/},
+  urldate = {${(d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'))(new Date())}}
+}`,
+    apa: () => 'Panigrahy, S. (2026). Lattent: Browser-based data analysis for materials and chemistry (Version 2026.10) [Computer software]. https://siba-p.github.io/lattent/',
+    sources: [
+      ['Alexandria database (structure search, phase identification, hull estimates)', 'J. Schmidt, H.-C. Wang, T. F. T. Cerqueira, S. Botti and M. A. L. Marques, Adv. Mater. 35, 2210788 (2023).'],
+      ['OPTIMADE API', 'C. W. Andersen et al., Sci. Data 8, 217 (2021).'],
+      ['Training data for the generator and property models', 'A. Dunn, Q. Wang, A. Ganose, D. Dopp and A. Jain, npj Comput. Mater. 6, 138 (2020) (Matbench); A. Jain et al., APL Mater. 1, 011002 (2013) (Materials Project).']
+    ]
+  };
+  U.cite = function () {
+    const C = U.CITE;
+    const m = U.modal(`<h2>Cite Lattent</h2><p class="m-sub">If Lattent helped with work you publish, please cite it. Citations keep the free tier free.</p>
+      <div class="cite-blk"><div class="cite-h"><b>BibTeX</b><button type="button" class="btn small" data-copy="bib">Copy</button></div><pre id="cite-bib" tabindex="0">${U.esc(C.bibtex())}</pre></div>
+      <div class="cite-blk"><div class="cite-h"><b>APA</b><button type="button" class="btn small" data-copy="apa">Copy</button></div><p id="cite-apa" class="cite-apa">${U.esc(C.apa())}</p></div>
+      <details class="cite-more"><summary>Used Discover? Also cite the data</summary><ul>${C.sources.map(([w, r]) => `<li><b>${U.esc(w)}:</b> ${U.esc(r)}</li>`).join('')}</ul></details>
+      <p class="hint">A suggested methods sentence: “Curve fitting and statistics were performed in Lattent (version ${C.version}), which runs entirely in the browser.” The repository also carries a <a href="https://github.com/siba-p/lattent/blob/main/CITATION.cff" target="_blank" rel="noopener">CITATION.cff</a> file.</p>`);
+    m.querySelector('.modal-box').classList.add('cite-box');
+    m.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+      const el = m.querySelector(b.dataset.copy === 'bib' ? '#cite-bib' : '#cite-apa');
+      try { await navigator.clipboard.writeText(el.textContent); b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy'; }, 1500); }
+      catch (e) { const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); U.toast('Selected. Press Ctrl+C or ⌘C to copy.'); }
+    });
+  };
+  document.addEventListener('click', e => { const c = e.target.closest && e.target.closest('[data-cite]'); if (c) { e.preventDefault(); U.cite(); } });
+
   /* ---------- figure export ---------- */
   /* build(theme, W, H) → {svg}; name: file stem */
   U.exportFigure = function (build, name, fmt) {
@@ -333,13 +367,26 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
   };
 
   /* drag-and-drop or choose a text file into a textarea */
+  /* Load a file into a paste box. Lab formats (JCAMP-DX, XRDML, RAS, UXD, SPC, CIF…) are
+     converted to columns when assets/js/formats.js is on the page. */
+  U.fileToText = function (f) {
+    const Fm = BF.formats;
+    if (!Fm) return f.text();
+    return Fm.read(f).then(r => {
+      if (r.kind === 'structure') {
+        const pat = BF.xtal.xrd(r.structure, { tmin: 10, tmax: 90 }), prof = BF.xtal.profile(pat, 10, 90, 0.1);
+        return '2θ (°)\tIntensity (simulated)\n' + prof.map(([x, y]) => x.toFixed(3) + '\t' + y.toFixed(3)).join('\n');
+      }
+      return [r.cols].concat(r.rows).map(row => row.join('\t')).join('\n');
+    });
+  };
   U.fileInto = function (textarea, button) {
-    const read = f => f.text().then(t => { textarea.value = t; textarea.dispatchEvent(new Event('input', { bubbles: true })); U.toast('Loaded ' + f.name); });
+    const read = f => U.fileToText(f).then(t => { textarea.value = t; textarea.dispatchEvent(new Event('input', { bubbles: true })); U.toast('Loaded ' + f.name); }).catch(e => U.toast(e.message));
     textarea.addEventListener('dragover', e => { e.preventDefault(); textarea.classList.add('drag'); });
     textarea.addEventListener('dragleave', () => textarea.classList.remove('drag'));
-    textarea.addEventListener('drop', e => { e.preventDefault(); textarea.classList.remove('drag'); const f = e.dataTransfer.files[0]; if (f) read(f); });
+    textarea.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); textarea.classList.remove('drag'); const f = e.dataTransfer.files[0]; if (f) read(f); });
     if (button) button.onclick = () => {
-      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.csv,.tsv,.txt';
+      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = BF.formats ? BF.formats.accept : '.csv,.tsv,.txt';
       inp.onchange = () => inp.files[0] && read(inp.files[0]); inp.click();
     };
   };
@@ -545,7 +592,7 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         <div><a class="logo" href="${U.root}"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg><span>Lattent</span></a><p>Data analysis and materials discovery for the lab bench. It runs in your browser, and your data stays on your computer unless you save it to the cloud.</p></div>
         <div><h5>Platform</h5><a href="${U.root}studio/">Lattent Studio</a><a href="${U.root}studio/?discover=gen">Discover</a><a href="${U.root}ai/">Facet AI</a><a href="${U.root}#features">Features</a><a href="${U.root}tools/">Quick tools</a><a href="${U.root}pricing/">Pricing</a></div>
         <div><h5>Solutions</h5>${FIELDS.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}<a href="${U.root}life-science/">Life sciences</a></div>
-        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}support/">Support</a><a href="${U.root}contact/">Contact</a></div>
+        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}support/">Support</a><a href="${U.root}contact/">Contact</a><a href="#cite" data-cite>Cite Lattent</a></div>
         <div><h5>Company</h5><a href="${U.root}account/">Account</a><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
       </div><p class="foot-note">Built by <a href="${CFG.author.url}">${CFG.author.name}</a>. © ${new Date().getFullYear()} Lattent.</p>`;
     }

@@ -18,6 +18,8 @@ jobs:
       - run: node tests/ml/check_learn.js
       - run: node tests/gen/check.js tests/gen/props_parity.json
       - run: node tests/gen/check_xtal.js --offline
+      - run: node tests/formats/check.js
+      - run: node tests/bench/nist.js --check
   security:
     runs-on: ubuntu-latest
     steps:

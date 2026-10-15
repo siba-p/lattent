@@ -1064,7 +1064,7 @@
   function pasteDialog(t) {
     const m = U.modal(`<p class="m-kicker">Import</p><h2>Paste or open a file</h2>
       <div class="field"><label class="lbl" for="pd-text">Paste a block from Excel, a CSV or an instrument export. The first row is used as column titles when it contains text.</label><textarea id="pd-text" style="min-height:220px"></textarea></div>
-      <div class="m-actions"><button class="btn primary" id="pd-go">Replace table contents</button><button class="btn ghost" id="pd-file">Open CSV / TXT…</button></div>`);
+      <div class="m-actions"><button class="btn primary" id="pd-go">Replace table contents</button><button class="btn ghost" id="pd-file">Open a file…</button></div><p class="hint">Reads CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC and CIF. You can also drop files anywhere on Studio.</p>`);
     const ta = $('#pd-text', m);
     U.fileInto(ta, $('#pd-file', m));
     $('#pd-go', m).onclick = () => {
@@ -1551,6 +1551,39 @@ ${projectSummary()}`;
     return t;
   }
 
+  /* ---------- drop lab files anywhere on Studio ---------- */
+  async function importFiles(files) {
+    let n = 0;
+    for (const f of [...files].slice(0, 12)) {
+      if (/\.(lattent|benchfit)\.json$/i.test(f.name)) { U.toast('Use Open to load a project file.'); continue; }
+      try {
+        const r = await BF.formats.read(f);
+        if (r.kind === 'structure') {
+          const pat = BF.xtal.xrd(r.structure, { tmin: 10, tmax: 90 }), prof = BF.xtal.profile(pat, 10, 90, 0.1);
+          const t = addTableFromData(`${r.meta.formula || r.name} simulated XRD (from CIF)`, ['2θ (°)', 'Intensity (simulated)'], prof.map(([x, y]) => [x.toFixed(3), y.toFixed(3)]));
+          t.ylabel = 'Intensity (relative)';
+        } else {
+          const t = addTableFromData(r.name, r.cols, r.rows);
+          if (r.ylabel) t.ylabel = r.ylabel;
+          if (r.meta && r.meta.lambda) U.toast(`${f.name}: ${r.rows.length} points; wavelength ${r.meta.lambda} Å recorded in the file.`, 'ok');
+        }
+        n++;
+      } catch (e) { U.toast(`${f.name}: ${e.message}`); }
+    }
+    if (n) { save(); if (document.querySelector('.modal')) U.closeModal(); }
+  }
+  (function dropZone() {
+    let depth = 0;
+    const veil = document.createElement('div'); veil.className = 'drop-veil'; veil.hidden = true;
+    veil.innerHTML = '<div><b>Drop to import</b><span>CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC or CIF. Each file becomes a table; nothing is uploaded.</span></div>';
+    document.body.appendChild(veil);
+    const files = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+    window.addEventListener('dragenter', e => { if (!files(e)) return; depth++; veil.hidden = false; });
+    window.addEventListener('dragleave', () => { depth = Math.max(0, depth - 1); if (!depth) veil.hidden = true; });
+    window.addEventListener('dragover', e => { if (files(e)) e.preventDefault(); });
+    window.addEventListener('drop', e => { if (!files(e)) return; e.preventDefault(); depth = 0; veil.hidden = true; if (e.target.closest && e.target.closest('textarea, #gr-drop, #co-graph, #co-report, #co-chat')) return; importFiles(e.dataTransfer.files); });
+  })();
+
   /* ---------- Check: an offline reviewer of the whole project ---------- */
   const UNIT = /\(.+\)|\[.+\]|\/\s*\S+$|absorbance|\ba\.?\s?u\.?|counts|intensity|fraction|ratio|%|normali[sz]ed|relative|efficiency|coverage|transmittance|reflectance|\bod\b|cycle|\bph\b/i;
   function critique() {
@@ -1718,7 +1751,7 @@ ${projectSummary()}`;
     const S0 = window.BF_SAMPLES;
     const m = U.modal(`<p class="m-kicker">Lattent Studio</p><h2>What would you like to analyse?</h2>
       <div class="start-cols"><div><h5>Start with an example</h5><div class="ex-grid">${S0.map(s => `<button class="ex" data-ex="${s.id}"><span class="fld">${esc(s.field)}</span><b>${esc(s.title)}</b><span>${esc(s.blurb)}</span></button>`).join('')}</div></div>
-      <div><h5>Or a new, empty table</h5>${Object.entries(TYPES).map(([k, v]) => `<button class="newt" data-new="${k}"><b>${v.title}</b><span>${esc(v.desc)}</span></button>`).join('')}</div></div>`);
+      <div><h5>Or a new, empty table</h5>${Object.entries(TYPES).map(([k, v]) => `<button class="newt" data-new="${k}"><b>${v.title}</b><span>${esc(v.desc)}</span></button>`).join('')}<p class="start-drop">Or drop instrument files anywhere on this page: CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC or CIF.</p></div></div>`);
     m.querySelector('.modal-box').classList.add('xwide');
     if (!closable) m.querySelector('.modal-x').hidden = true;
     $$('[data-ex]', m).forEach(b => b.onclick = () => { loadSample(b.dataset.ex); U.closeModal(); });

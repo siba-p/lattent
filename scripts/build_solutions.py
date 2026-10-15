@@ -150,9 +150,10 @@ FIELDS = [
 ]
 
 CHANGES = [
-    ("2026-10-17", "Report agent and help guide", ["Autonomous scientific reports: Facet plans the analyses, runs them, checks them and writes the report (methods, results, figures, quality checks, limitations, next steps), offline. With your AI key it drafts the summary and discussion and reviews supplied figures.", "A Lattent guide on every page answers questions from the help articles and links to the right tool.", "Facet AI is a visible menu again."]),
-    ("2026-10-16", "Support centre and a clearer home page", ["A Support centre with search, guides by topic, troubleshooting and billing help.", "The home page now opens with the problems Lattent solves and how it works in three steps.", "AI and machine learning moved into the Platform menu; Support joins the navigation."]),
-    ("2026-10-16", "Facet, pricing and contact", ["The AI lab partner is now Facet. New: Check reviews the whole project for errors, Read a graph turns a picture of a plot into a table, and Ask accepts figures to interpret and critique.", "A Pricing page with plan comparison, yearly or monthly billing, and prices in US dollars or rupees. Pay by card, PayPal or Apple Pay worldwide, by UPI, cards or net banking in India through Razorpay, or by invoice.", "A Contact page; messages reach the team by email.", "Simpler navigation: Platform and Solutions menus, direct links to AI and Pricing, and a compact Resources menu."]),
+    ("2026-10-16", "Lab files, explained candidates and a NIST benchmark", ["Drop instrument files anywhere in Studio: CSV, TXT, XY, JCAMP-DX (including compressed), PANalytical XRDML, Rigaku RAS, Bruker UXD, Thermo SPC and CIF. A CIF becomes a simulated diffraction pattern. Files are read in your browser and never uploaded.", "Every generated material now has a Why? panel: how often the generator proposed it, its oxidation states, the predicted formation energy and band gap with intervals, and an estimate of its distance from the convex hull built from Alexandria's stable phases of the same system.", "A technical note on the Validation page: on the 52 NIST StRD nonlinear-regression fits Lattent reaches four or more correct digits in 51, against 45 for SciPy's curve_fit with default settings. The fitter uses improved damping and scouting restarts and is faster than before.", "Data privacy is now spelled out on the home page, and a Cite Lattent button gives BibTeX and APA references."]),
+    ("2026-10-15", "Report agent and help guide", ["Autonomous scientific reports: Facet plans the analyses, runs them, checks them and writes the report (methods, results, figures, quality checks, limitations, next steps), offline. With your AI key it drafts the summary and discussion and reviews supplied figures.", "A Lattent guide on every page answers questions from the help articles and links to the right tool.", "Facet AI is a visible menu again."]),
+    ("2026-10-15", "Support centre and a clearer home page", ["A Support centre with search, guides by topic, troubleshooting and billing help.", "The home page now opens with the problems Lattent solves and how it works in three steps.", "AI and machine learning moved into the Platform menu; Support joins the navigation."]),
+    ("2026-10-15", "Facet, pricing and contact", ["The AI lab partner is now Facet. New: Check reviews the whole project for errors, Read a graph turns a picture of a plot into a table, and Ask accepts figures to interpret and critique.", "A Pricing page with plan comparison, yearly or monthly billing, and prices in US dollars or rupees. Pay by card, PayPal or Apple Pay worldwide, by UPI, cards or net banking in India through Razorpay, or by invoice.", "A Contact page; messages reach the team by email.", "Simpler navigation: Platform and Solutions menus, direct links to AI and Pricing, and a compact Resources menu."]),
     ("2026-10-15", "AI and machine learning", ["Equation discovery: symbolic regression finds a compact formula for XY data and recognises physical laws such as Arrhenius, Langmuir and Flory–Fox.", "AutoML: six kinds of model compared by cross-validation, with input importance, partial dependence, composition descriptors for formula columns and calibrated prediction intervals.", "Calibrated 90% intervals on every formation-energy and band-gap prediction.", "A new page, the periodic table of Lattent’s AI, with a live lab.", "Night mode and an account menu in every header."]),
     ("2026-10-15", "Navigation, Solutions and What’s new", ["A new site navigation with Platform, Solutions and Resources menus.", "A page for each field, from nanomaterials to analytical chemistry, linking straight to the right tool, example or Discover view.", "This release-notes page."]),
     ("2026-10-15", "New identity", ["A new mark: an L of lattice points that doubles as the axes of a plot, with a copper point for the discovery.", "An indigo-and-copper palette, checked for colour-blind safety and contrast, with Space Grotesk headings.", "A custom 404 page, social previews and home-screen icons."]),
@@ -188,7 +189,6 @@ def field_page(f):
 <section class="sol-hero"><div class="wrap sol-hero-in">
   <div class="sol-copy">
     <p class="crumb"><a href="{root}solutions/">Solutions</a> ›</p>
-    <p class="sol-k">{esc(f["name"])}</p>
     <h1>{esc(f["h1"])}</h1>
     <p class="sol-lede">{esc(f["lede"])}</p>
     <div class="sol-cta"><a class="btn big primary" href="{a(f["cta"])}">{esc(f["cta"][1])}</a><a class="btn big" href="{root}studio/">Open Lattent Studio</a></div>
@@ -213,7 +213,6 @@ def hub():
     cards += f'<a class="card sol-card" href="{root}life-science/"><h3>Life sciences</h3><p>IC50, enzyme kinetics, qPCR, standard curves.</p><span>The same validated engine for biochemistry and biology assays.</span><i>Explore →</i></a>'
     body = f"""<main>
 <section class="sol-hero sol-hero-hub"><div class="wrap">
-  <p class="sol-k">Solutions</p>
   <h1>Built for the measurements your field makes.</h1>
   <p class="sol-lede">Lattent is one workspace, but every field asks different questions of its data. Choose yours to see the workflows, equations and examples that fit.</p>
 </div></section>
@@ -236,7 +235,6 @@ def changelog():
         f'<li class="cl-item"><time datetime="{d}">{date.fromisoformat(d).strftime("%-d %B %Y")}</time><div><h2>{esc(t)}</h2><ul>{"".join(f"<li>{esc(x)}</li>" for x in xs)}</ul></div></li>'
         for d, t, xs in CHANGES)
     body = f"""<main class="wrap page cl-page">
-  <p class="sol-k">Resources</p>
   <h1>What’s new</h1>
   <p class="sol-lede">Every release of Lattent, newest first.</p>
   <ol class="cl">{items}</ol>
@@ -279,7 +277,6 @@ def pricing():
         rows += f"<tr><th>{esc(name)}</th>{''.join(cell(x) for x in v)}</tr>"
     body = f"""<main>
 <section class="sol-hero sol-hero-hub"><div class="wrap pr-head">
-  <p class="sol-k">Pricing</p>
   <h1>Free for analysis. Pro when you publish.</h1>
   <p class="sol-lede">Every analysis, model and warning is free, without limits. Pro adds what goes into papers and reports. Early-access prices, locked in for as long as you stay subscribed.</p>
   <div class="pr-toggles"><div class="seg-pr" role="radiogroup" aria-label="Billing"><button data-bill="yearly" aria-pressed="true">Yearly <span>save 40%</span></button><button data-bill="monthly" aria-pressed="false">Monthly</button></div>
@@ -325,7 +322,6 @@ def contact():
     root = "../"
     body = f"""<main>
 <section class="sol-hero sol-hero-hub"><div class="wrap">
-  <p class="sol-k">Contact</p>
   <h1>Talk to us.</h1>
   <p class="sol-lede">Questions about buying, a Lab plan or an invoice, help with an analysis, or an idea for Lattent: write to us and a person will reply, usually within a day.</p>
 </div></section>
@@ -357,6 +353,7 @@ GUIDES = [
     ("Getting started", "studio/", [
         ("How do I start?", "Open Studio and choose a worked example close to your field, or create a table and paste your data straight from Excel or an instrument export. Then press Analyze, or open Facet for a suggestion."),
         ("Which table type should I use?", "XY for curves and spectra (one X column, one or more Y columns; columns with the same title are replicates). Column for comparing groups. Multiple variables for compositions, process settings and properties, one row per sample."),
+        ("Can I import instrument files?", "Yes. Drop them anywhere on Studio, or use Paste data, then Open a file. Supported: CSV, TXT, XY, JCAMP-DX, PANalytical XRDML, Rigaku RAS, Bruker UXD, Thermo SPC, and CIF (which becomes a simulated XRD pattern). Export binary .raw or .brml scans as .xy or .xrdml first. Files are read in the browser and never uploaded."),
         ("Do I need an account?", "No. Everything runs in your browser and projects are kept there. An account adds cloud storage, your plan on every computer and Lab sharing."),
     ]),
     ("Curve fitting and equations", "tools/curve-fitting/", [
@@ -412,7 +409,6 @@ def support():
     trouble = "".join(f'<details class="sp-item"><summary>{esc(q)}</summary><p>{esc(ans)}</p></details>' for q, ans in TROUBLE)
     body = f"""<main>
 <section class="sol-hero sol-hero-hub"><div class="wrap sp-head">
-  <p class="sol-k">Support</p>
   <h1>How can we help?</h1>
   <p class="sol-lede">Answers to common questions, guides by topic, and a person to talk to when you need one.</p>
   <label class="sp-search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13.5 13.5l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><input type="search" id="sp-q" placeholder="Search help: crystallite size, which test, billing…" aria-label="Search help"></label>
@@ -441,6 +437,10 @@ def support():
 
 
 EXTRA_KB = [
+    ("Which file formats can I import?", "Drag files onto Studio, or use Paste data, then Open a file. Lattent reads CSV, TXT, DAT, XY, JCAMP-DX (.jdx, .dx, including compressed data), PANalytical .xrdml, Rigaku .ras, Bruker .uxd, Thermo/Galactic .spc and .cif. A CIF becomes a simulated XRD pattern. Binary vendor files (.raw, .brml, PerkinElmer .sp) need exporting to text first. Nothing is uploaded.", "studio/", "Open Studio", "import file format csv jcamp jdx xrdml ras uxd spc cif raw drag drop upload instrument export"),
+    ("Why did the generator suggest this material?", "Press Why? next to any generated formula. It shows how often the diffusion model proposed it, its oxidation states, the predicted formation energy and band gap with 90% intervals, and an estimate of its distance from the convex hull built from Alexandria's stable phases in the same chemical system.", "studio/?discover=gen", "Generate materials", "why candidate explain generated convex hull stability decomposition suggestion reason"),
+    ("How do I cite Lattent?", "Use the Cite Lattent link in the footer or Studio's sidebar for BibTeX and APA references. If you used Discover, please also cite the Alexandria database and Matbench, listed in the same dialog.", "validation/", "Validation", "cite citation bibtex apa reference paper publish acknowledge"),
+    ("How accurate is the curve fitting?", "On the 52 NIST StRD nonlinear-regression reference fits, Lattent gets at least four correct significant digits in every parameter for 51 (median 8.6 digits); SciPy's curve_fit with default settings gets 45. The full benchmark is in the technical note on the Validation page.", "validation/#nist", "Technical note", "accuracy nist strd benchmark scipy curve_fit precision digits speed white paper"),
     ("How do I identify the phases in my XRD pattern?", "Fit the peaks in Studio with X set to 2θ, then press Identify phases and list the elements that may be present. Lattent matches your peaks against every computed structure of those elements and flags peaks left unexplained.", "studio/?discover=phase", "Identify phases", "phase identification diffraction pattern xrd match crystal structure"),
     ("How do I get the band gap from a UV–Vis spectrum?", "Paste wavelength (or energy) and absorbance into the band-gap tool. It builds the Tauc plot, finds the linear part of the absorption edge and reports the gap with a confidence interval.", "tools/band-gap-tauc/", "Band-gap tool", "tauc optical band gap uv vis absorbance edge"),
     ("How do I get activation energy from conductivity or rate data?", "Use the activation-energy tool: paste temperature and conductivity (or rate constant) and Lattent fits Arrhenius or VFT and reports Eₐ in kJ/mol and eV with confidence intervals.", "tools/activation-energy-arrhenius/", "Activation-energy tool", "arrhenius activation energy conductivity rate temperature"),

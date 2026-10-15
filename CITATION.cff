@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use Lattent in work you publish, please cite it as below."
+title: "Lattent: browser-based data analysis for materials and chemistry"
+type: software
+authors:
+  - family-names: Panigrahy
+    given-names: Sibasankar
+version: "2026.10"
+date-released: "2026-10-16"
+url: "https://siba-p.github.io/lattent/"
+repository-code: "https://github.com/siba-p/lattent"
+keywords:
+  - curve fitting
+  - X-ray diffraction
+  - materials informatics
+  - data analysis

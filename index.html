@@ -30,7 +30,6 @@
 
 <section class="l-hero">
   <div class="wrap l-hero-in">
-    <p class="l-kicker">Browser-based · validated against SciPy</p>
     <h1>Data analysis for <em>materials and chemistry.</em></h1>
     <p class="l-lede">Nonlinear regression, peak fitting, hypothesis testing and phase identification for XRD, spectroscopy, kinetics and mechanical data. Every fit reports parameter uncertainties, and every result is checked against the reference Python libraries before release.</p>
     <div class="l-cta">
@@ -52,7 +51,7 @@
 </section>
 
 <section class="wrap section solve" id="solve">
-  <div class="sec-head center"><p class="l-kicker dark">Scope</p><h2>What Lattent addresses</h2></div>
+  <div class="sec-head center"><h2>What Lattent addresses</h2></div>
   <div class="solve-grid">
     <article class="solve-card">
       <div class="sv-p"><span>The problem</span><h3>Analysis is slow and scattered.</h3><p>Data in one program, fits in another, figures in a third, and a script nobody else in the group can run.</p></div>
@@ -73,6 +72,18 @@
     <li><b>Publish, then go further</b><span>Export the figure and methods text, identify phases, and get the next experiments to run.</span></li>
   </ol>
 </section>
+
+<section class="l-priv" id="privacy"><div class="wrap">
+  <div class="pv-head"><h2>Your data never leaves your computer.</h2>
+    <p>Lattent computes every fit, test, model and figure in your browser. Unpublished measurements, formulations and process data are not uploaded to be analysed, which is why R&amp;D groups that cannot send data to cloud tools can use it.</p></div>
+  <div class="pv-grid">
+    <div><h3>Computed locally</h3><p>The analysis engine and all sixteen models are JavaScript running on your machine. Heavy jobs run in a background thread of the same browser tab.</p></div>
+    <div><h3>Verify it yourself</h3><p>Open your browser’s network panel while you work. Apart from loading the page, no request carries your data unless you choose one of the options below.</p></div>
+    <div><h3>Cloud only when you ask</h3><p>Projects reach our database only when you press Save to cloud. Row-level security limits access to you and your lab, and you can delete everything at any time.</p></div>
+    <div><h3>AI only with your key</h3><p>Facet’s suggestions, checks, graph reading and reports run locally. The optional chat goes directly from your browser to the provider you choose, under your own account.</p></div>
+  </div>
+  <p class="pv-foot">Database searches in Discover send only element names or formulas. For an internal installation behind your firewall, <a href="contact/?topic=sales">talk to us</a>. Details: <a href="legal/privacy.html">privacy notice</a> · <a href="legal/security.html">security</a>.</p>
+</div></section>
 
 <section class="wrap l-why">
   <div class="sec-head center"><h2>Why not just ask ChatGPT or Claude?</h2><p>Language models are superb at explaining and planning. They are not a dependable way to produce the numbers in your paper.</p></div>
@@ -103,7 +114,6 @@
 <section class="l-gen" id="discover">
   <div class="wrap">
     <div class="gen-head">
-      <p class="l-kicker">Discover · new</p>
       <h2>Generative AI for materials discovery, <em>in your browser.</em></h2>
       <p>Microsoft’s MatterGen and Google DeepMind’s GNoME showed a new way to find materials: generate candidates, screen them with machine-learned property models, and check them against computed data. Lattent brings that loop to your bench at the level of chemical composition, next to the 5.8 million DFT structures of the open Alexandria database.</p>
     </div>
@@ -135,7 +145,7 @@
 </section>
 
 <section class="wrap section ai-teaser-wrap" id="ai">
-  <div class="sec-head"><p class="l-kicker dark">AI and machine learning</p><h2>Sixteen models, one bench.</h2><p>Beyond generative design, Lattent recognises your data, discovers equations, trains AutoML models with calibrated uncertainty and optimises your next experiment. Each element is a model, with its result on data it never saw.</p></div>
+  <div class="sec-head"><h2>Sixteen models, one bench.</h2><p>Beyond generative design, Lattent recognises your data, discovers equations, trains AutoML models with calibrated uncertainty and optimises your next experiment. Each element is a model, with its result on data it never saw.</p></div>
   <div id="ai-teaser"></div>
   <p class="ai-more"><a class="btn" href="ai/">Explore the AI and try it live →</a></p>
 </section>
@@ -143,7 +153,6 @@
 <section class="wrap" id="features">
   <div class="feat" id="characterise">
     <div class="feat-t">
-      <p class="l-kicker dark">Characterise</p>
       <h2>Spectra, diffraction and mechanical tests</h2>
       <p>Lattent understands the measurements materials labs run every day. Fit overlapping XRD, Raman or XPS peaks on a fitted baseline; get d-spacings, Scherrer crystallite size and Williamson–Hall strain; extract optical band gaps from UV–Vis; and read modulus, yield, strength and toughness from stress–strain curves.</p>
       <ul class="ticks"><li>Gaussian, Lorentzian and pseudo-Voigt multi-peak fitting</li><li>Tauc analysis for direct and indirect transitions</li><li>Area under the curve, Savitzky–Golay smoothing and derivatives</li></ul>
@@ -152,7 +161,6 @@
   </div>
   <div class="feat rev" id="fit">
     <div class="feat-t">
-      <p class="l-kicker dark">Fit</p>
       <h2>Fit any model, then let the data choose</h2>
       <p>Thirty-five equations from materials science, polymers, nanomaterials and chemistry (Arrhenius, Langmuir and Sips, Avrami, Carreau, WLF, Hall–Petch, Tafel and more), or type your own. Lattent's <b>shape model</b> recognises what kind of behaviour your data show and narrows the equations to the plausible ones. <b>Auto-fit</b> then ranks them by AICc, so you see what the data support.</p>
       <ul class="ticks"><li>Confidence intervals and confidence bands, derived quantities such as Eₐ in kJ/mol and eV</li><li>Constraints, weighting, residual plots and runs test</li><li>Plain-language warnings when a parameter is poorly determined</li></ul>
@@ -161,7 +169,6 @@
   </div>
   <div class="feat" id="optimise">
     <div class="feat-t">
-      <p class="l-kicker dark">Optimise</p>
       <h2>From your data to the next experiment</h2>
       <p>Lattent learns a Gaussian-process model of a property from the experiments you have run, such as the toughness of a polymer blend, the yield of a synthesis or the conductivity of an electrolyte. It shows which inputs matter and proposes the next experiments most likely to improve the result, respecting mixture constraints. Add them to your table, run them, and repeat.</p>
       <ul class="ticks"><li>Bayesian optimisation with expected improvement, in batches</li><li>Cross-validated model accuracy, so you know when to trust it</li><li>PCA, k-means clustering and correlation for exploring datasets</li></ul>
@@ -170,7 +177,6 @@
   </div>
   <div class="feat rev" id="compare">
     <div class="feat-t">
-      <p class="l-kicker dark">Compare</p>
       <h2>Statistics with the checks built in</h2>
       <p>t tests, Mann–Whitney, one-way ANOVA, Welch's ANOVA and Kruskal–Wallis, with Tukey and Holm–Šidák post tests. Lattent checks equal variance and normality for you, suggests the right test when an assumption fails, and draws significance stars on the graph.</p>
       <ul class="ticks"><li>Descriptive statistics, normality tests, Grubbs outliers</li><li>Effect sizes and confidence intervals, not only p-values</li><li>Correlation matrices and multiple linear regression</li></ul>
@@ -179,7 +185,6 @@
   </div>
   <div class="feat" id="facet">
     <div class="feat-t">
-      <p class="l-kicker dark">Facet</p>
       <h2>An AI lab partner that reads, checks and never makes up a number</h2>
       <p>Open Facet, Lattent’s AI lab partner, on any table. Its built-in suggestions come from <b>Lattent's own shape model</b>, a neural network trained on 67,600 simulated lab datasets across 13 families of behaviour. It recognises a spectrum, an absorption edge, a thermally activated trend or a saturating isotherm, and proposes the right analysis with one-click Run. Facet also <b>checks your whole project</b> for errors (missing units, too few points, poorly determined parameters, the wrong test), <b>reads graphs</b> (drop a picture of a plot and it traces the data into a table) and runs as an <b>autonomous report agent</b>: it plans the analyses, runs them, checks them and writes the report. Connect your own Claude or GPT key to ask in plain language or attach a figure to have it interpreted and critiqued; the language model plans and explains, and Lattent's validated engine does the maths.</p>
       <ul class="ticks"><li>Suggestions, project checks, graph reading and the report agent work offline, with no key</li><li>Shape model: 98% accurate on held-out data</li><li>Attach a figure and ask what is wrong with it</li><li>Chat proposes analyses you approve before they run</li></ul>
@@ -188,7 +193,6 @@
   </div>
   <div class="feat rev" id="organise">
     <div class="feat-t">
-      <p class="l-kicker dark">Organise</p>
       <h2>Data tables shaped for the analysis you need</h2>
       <p>Choose an XY table for curves and spectra, a Column table for comparing groups, or a Multiple-variables table for compositions, process settings and properties. Paste straight from Excel or an instrument export; replicate columns are recognised automatically.</p>
       <ul class="ticks"><li>Spreadsheet editing with paste, transpose and CSV import</li><li>Each table remembers its analyses and graphs</li><li>Projects are saved in your browser and can be exported as a file</li></ul>
@@ -197,7 +201,6 @@
   </div>
   <div class="feat" id="publish">
     <div class="feat-t">
-      <p class="l-kicker dark">Publish</p>
       <h2>Figures and methods, ready for the paper</h2>
       <p>Every analysis produces a figure in a consistent, colour-blind-safe style, exportable as 600-dpi PNG or editable SVG, together with a methods paragraph, a results sentence and a figure legend written from your numbers. Copy them into Word, or download a one-page report for your notebook or supervisor.</p>
       <ul class="ticks"><li>Methods text names the model, weighting, tests and corrections</li><li>Results tables as CSV</li><li>Reports that record exactly what was done</li></ul>
@@ -274,7 +277,7 @@
     <details><summary>How is this different from Origin or GraphPad Prism?</summary><p>Lattent is built around the measurements materials and chemistry labs actually make (XRD, spectra, band gaps, isotherms, Arrhenius data, tensile tests), with curve fitting, statistics and publication graphs underneath, plus a shape model, Bayesian optimisation and Facet, an AI lab partner. It runs in any browser with nothing to install and costs a fraction of a desktop licence. It does not yet do everything those programs do, such as 3D plots or two-way ANOVA; those are on the roadmap.</p></details>
     <details><summary>Is my data uploaded anywhere?</summary><p>Not unless you choose to. Calculations run in your browser and projects are kept in your browser. If you save a project to the cloud, it is stored in a database where row-level security lets only you, and your lab if you share it, read it. The optional AI chat sends data directly from your browser to the provider you chose, with your own key. Details on the <a href="legal/security.html">security page</a>.</p></details>
     <details><summary>Is payment secure?</summary><p>Yes. Checkout is run by Lemon Squeezy, a PCI-compliant merchant of record that also handles tax. Lattent never sees your card. Your plan is activated by a signed message from Lemon Squeezy to our server, never by your browser.</p></details>
-    <details><summary>How do I know the numbers are right?</summary><p>Every analysis is checked against SciPy and NumPy, the reference scientific Python libraries, on test datasets before each release: parameters, standard errors, p-values, Tukey intervals and Gaussian-process predictions. See the <a href="validation/">validation page</a>.</p></details>
+    <details><summary>How do I know the numbers are right?</summary><p>Every analysis is checked against SciPy and NumPy, the reference scientific Python libraries, on test datasets before each release: parameters, standard errors, p-values, Tukey intervals and Gaussian-process predictions. The fitter is also benchmarked on NIST’s certified nonlinear-regression problems, where it gets 51 of 52 fits right to at least four significant digits. See the <a href="validation/#nist">validation page</a>.</p></details>
     <details><summary>I have never used curve-fitting software. Where do I start?</summary><p>Open a <a href="#examples">worked example</a> close to your field, look at what Lattent reports, then replace the numbers with yours. Or create a table, paste your data and press <b>Suggest an analysis</b>.</p></details>
     <details><summary>Do I need an AI subscription?</summary><p>No. The built-in suggestions need no key. The chat is optional and uses your own Anthropic or OpenAI key, billed by them at their API rates, usually cents per conversation.</p></details>
     <details><summary>Can my lab pay with a purchase order or grant?</summary><p>Yes. Lemon Squeezy issues a proper invoice with your institution's details; for purchase orders, use the Contact link at the foot of this page.</p></details>

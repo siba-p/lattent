@@ -459,14 +459,57 @@
     out.innerHTML = `<div class="card res"><div class="ds-meta"><b>${r.candidates.length} candidates</b> <span>from ${r.sampled} sampled formulas (${r.unique} distinct) in ${(r.ms / 1000).toFixed(1)} s, ranked by predicted stability${o.gap != null ? ` and closeness to ${o.gap} eV` : ''}${r.candidates.length > 40 ? '; top 40 shown' : ''}</span>
         <span class="sp"></span><button class="btn small" data-add>Add to project</button></div>
       <div class="tbl-wrap"><table class="t gn-tab"><thead><tr><th>#</th><th class="l">Formula</th><th title="Predicted formation energy of the most stable polymorph">E<sub>f</sub> <small>eV/atom</small></th><th>Gap <small>eV</small></th><th class="l hide-sm">Oxidation states</th><th class="hide-sm" title="How often the model proposed it">Seen</th><th class="l">Database</th></tr></thead>
-      <tbody>${list.map((c, i) => `<tr data-f="${esc(c.formula)}"><td>${i + 1}</td><td class="l"><b>${fhtml(c.formula)}</b></td><td>${num(c.eform, 2)}${pmv(c.eformPm)}</td><td>${num(c.gap, 2)}${pmv(c.gapPm)}</td><td class="l hide-sm">${c.cb.balanced ? ox(c.cb.states) : '<span class="hint">intermetallic</span>'}</td><td class="hide-sm">${c.count}×</td><td class="l nov">${noveltyCell(c)}</td></tr>`).join('')}</tbody></table></div>
+      <tbody>${list.map((c, i) => `<tr data-f="${esc(c.formula)}"><td>${i + 1}</td><td class="l"><b>${fhtml(c.formula)}</b> <button type="button" class="linkbtn why-b" data-why="${i}" aria-expanded="false">Why?</button></td><td>${num(c.eform, 2)}${pmv(c.eformPm)}</td><td>${num(c.gap, 2)}${pmv(c.gapPm)}</td><td class="l hide-sm">${c.cb.balanced ? ox(c.cb.states) : '<span class="hint">intermetallic</span>'}</td><td class="hide-sm">${c.count}×</td><td class="l nov">${noveltyCell(c)}</td></tr><tr class="gn-why" data-wr="${i}" hidden><td colspan="7"></td></tr>`).join('')}</tbody></table></div>
       <p class="hint">Predictions from composition alone. The ± values are 90% prediction intervals, calibrated on 9,511 compositions the networks never saw: about 9 in 10 true values fall inside. Use them to choose what to calculate or synthesise next, not as results.</p></div>`;
     wireNovelty(out);
+    $$('[data-why]', out).forEach(b => b.onclick = () => {
+      const i = +b.dataset.why, row = $(`tr[data-wr="${i}"]`, out), open = row.hidden;
+      row.hidden = !open; b.setAttribute('aria-expanded', String(open)); b.textContent = open ? 'Hide' : 'Why?';
+      if (open) explain(list[i], i, r, $('td', row));
+    });
     $('[data-add]', out).onclick = () => {
       const nm = 'Generated ' + (o.allowed ? o.allowed.join('–') : 'materials') + (o.gap != null ? ` (${o.gap} eV)` : '');
       const t = api.newTable({ type: 'mv', name: nm, cols: ['Formula', 'Pred. E form (eV/atom)', 'Pred. band gap (eV)', 'Oxidation states', 'Times sampled', 'Alexandria'], rows: r.candidates.map(c => { const n = novelty.get(c.formula); return [c.formula, c.eform.toFixed(3), c.gap.toFixed(3), c.cb.balanced ? oxText(c.cb.states) : 'intermetallic', String(c.count), !n || n === 'checking' || n === 'error' ? '' : n === 'new' ? 'not found' : `SG ${n.spacegroup}, ${num(n.hull, 3)} eV/atom above hull`]; }) });
       U.toast('Added “' + t.name + '” to your project.', 'ok');
     };
+  }
+  /* "Why this candidate?": the generator's evidence for one formula, plus an estimate of its
+     distance from the known convex hull built from Alexandria's stable phases of the same system. */
+  const hullPhases = new Map();   // chemical system → Promise<[{name, x, e}]>
+  function stablePhases(els) {
+    const k = els.slice().sort().join('-');
+    if (!hullPhases.has(k)) hullPhases.set(k, X.searchAll({ elements: els, only: true, maxHull: 0.001, provider: 'pbe', limit: 100, light: true }, 4).then(r => {
+      const m = new Map();
+      r.entries.forEach(e => { if (!isFinite(e.eform)) return; let comp; try { comp = C.parse(e.formula); } catch (err) { return; } if (Object.keys(comp).length < 2) return; if (!m.has(e.formula) || e.eform < m.get(e.formula).e) m.set(e.formula, { name: e.formula, x: C.fractions(comp), e: e.eform }); });
+      return { phases: [...m.values()], more: r.more };
+    }).catch(err => { hullPhases.delete(k); throw err; }));
+    return hullPhases.get(k);
+  }
+  async function explain(c, i, r, td) {
+    const o = r.o, els = Object.keys(c.comp), share = c.count / r.sampled;
+    const gapLine = o.gap == null ? `<li><b>Band gap.</b> No target was set; the predicted PBE gap is ${num(c.gap, 2)} ± ${num(c.gapPm, 2)} eV.</li>`
+      : `<li><b>Band gap.</b> Predicted ${num(c.gap, 2)} ± ${num(c.gapPm, 2)} eV against your target of ${o.gap} eV: ${Math.abs(c.gap - o.gap) <= c.gapPm ? 'the target lies inside the 90% interval' : `${num(Math.abs(c.gap - o.gap), 2)} eV off, outside the 90% interval`}.</li>`;
+    td.innerHTML = `<div class="gn-whyp"><h4>Why ${fhtml(c.formula)} is on the list</h4><ol>
+      <li><b>Proposed by the generator.</b> The diffusion model wrote this formula ${c.count} time${c.count === 1 ? '' : 's'} in ${r.sampled} samples (${(share * 100).toFixed(1)}%)${o.allowed ? ` within ${esc(o.allowed.join('–'))}` : ''}. Frequent proposals are compositions the model finds typical of known chemistry.</li>
+      <li><b>Chemically plausible.</b> ${c.cb.balanced ? `It balances with common oxidation states: ${ox(c.cb.states)}.` : 'It was allowed as an intermetallic, so no charge balance was required.'}</li>
+      <li><b>Predicted to form.</b> Formation energy ${num(c.eform, 3)} ± ${num(c.eformPm, 2)} eV/atom${c.eform + c.eformPm < 0 ? ', negative across the whole 90% interval' : '; the interval reaches above zero, so even formation is uncertain'}.</li>
+      ${gapLine}
+      <li><b>Stability against competing phases.</b> <span class="why-hull"><span class="spin"></span> Building the convex hull of ${esc(els.join('–'))} from Alexandria…</span></li>
+      <li><b>Rank ${i + 1}</b> by the score E<sub>f</sub>${o.gap != null ? ' + 0.35 × |gap − target|' : ''} − 0.02 ln(times sampled) = ${num(c.score, 3)}; lower is better.</li></ol>
+      <p class="hint">The networks see composition only, not a crystal structure, and were trained on Materials Project data, while the hull uses Alexandria's PBE energies; the two use similar but not identical settings, so read the hull distance to about ±0.1 eV/atom. A DFT relaxation of candidate structures is the next step before synthesis.</p></div>`;
+    const el = $('.why-hull', td);
+    try {
+      const { phases, more } = await stablePhases(els);
+      const h = X.hullEnergy(phases, C.fractions(c.comp));
+      if (!h) throw new Error('hull failed');
+      const d = c.eform - h.e, pm = c.eformPm;
+      const parts = h.parts.length ? h.parts.map(q => `${(q.w * 100).toFixed(0)}% ${fhtml(q.name)}`).join(' + ') : 'the elements';
+      const verdict = d - pm > 0 ? `<span class="tag warn">likely above the hull</span> It would probably decompose; treat it as metastable at best.`
+        : d + pm < 0 ? `<span class="tag ok">below the known hull</span> If confirmed by DFT it would be a new stable phase, which is rare: check it first.`
+        : `<span class="tag">within uncertainty of the hull</span> Stability cannot be decided from composition alone; a DFT calculation would settle it.`;
+      const known = novelty.get(c.formula), db = known && typeof known === 'object' ? ` <b>Alexandria has computed this composition:</b> its best polymorph (${X.sgHTML(known.spacegroup)}) lies ${known.hull <= 1e-4 ? 'on the hull' : num(known.hull, 3) + ' eV/atom above the hull'}. That DFT value supersedes this estimate.` : '';
+      el.innerHTML = `The lowest-energy mix of known stable phases at this composition is ${parts}, at ${num(h.e, 3)} eV/atom (${phases.length} stable phase${phases.length === 1 ? '' : 's'} in the system${more ? ', first pages only' : ''}). The prediction sits <b>${Math.abs(d) < 5e-4 ? '' : d > 0 ? '+' : '−'}${num(Math.abs(d), 3)} ± ${num(pm, 2)} eV/atom</b> from that hull. ${verdict}${db}`;
+    } catch (e) { el.innerHTML = '<span class="hint">The database could not be reached, so the hull distance is unavailable. Try again later.</span>'; }
   }
   function wireNovelty(root) {
     $$('[data-db]', root).forEach(b => b.onclick = () => { Object.assign(st.search, { q: b.dataset.db, mode: 'formula', hull: 'any', provider: 'pbe', res: null, autorun: true }); D.open('search'); });
