@@ -6,7 +6,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lattent: data analysis for materials and chemistry labs</title>
-<meta name="description" content="Lattent Studio is a browser workspace for materials and chemistry data: XRD crystallite size, band gaps, adsorption isotherms, activation energies, tensile tests, peak fitting, curve fitting with 35 equations, statistics and Bayesian optimisation, with an AI co-scientist. Validated against SciPy.">
+<meta name="description" content="Lattent Studio is a browser workspace for materials and chemistry data: XRD crystallite size and phase identification against 5.8 million DFT structures, band gaps, adsorption isotherms, activation energies, tensile tests, curve fitting, statistics, Bayesian optimisation and generative materials design, with an AI co-scientist. Validated against SciPy.">
 <meta property="og:title" content="Lattent: data analysis for materials and chemistry labs">
 <meta property="og:description" content="Curve fitting, statistics, spectra, materials characterisation and machine learning in one workspace, with an AI co-scientist that plans while a validated engine computes.">
 <meta property="og:image" content="assets/img/hero-xrd.webp">
@@ -23,7 +23,7 @@
   <div class="wrap l-hero-in">
     <p class="l-kicker">Lattent Studio</p>
     <h1>Data analysis built for materials and chemistry labs.</h1>
-    <p class="l-lede">XRD, spectra, band gaps, isotherms, kinetics, mechanical tests, statistics and formulation optimisation in one browser workspace. Our own shape model recognises your data and suggests the analysis; a validated engine does the maths.</p>
+    <p class="l-lede">XRD, spectra, band gaps, isotherms, kinetics, mechanical tests, statistics and formulation optimisation in one browser workspace, now with phase identification and generative materials design. Our own models suggest the analysis and propose new compositions; a validated engine does the maths.</p>
     <div class="l-cta">
       <a class="btn big primary" href="studio/">Open Lattent Studio, free</a>
       <a class="btn big ghost-light" href="#examples">Try a worked example</a>
@@ -68,6 +68,40 @@
   </div>
 </section>
 
+<section class="l-gen" id="discover">
+  <div class="wrap">
+    <div class="gen-head">
+      <p class="l-kicker">Discover · new</p>
+      <h2>Generative AI for materials discovery, in your browser.</h2>
+      <p>Microsoft’s MatterGen and Google DeepMind’s GNoME showed a new way to find materials: generate candidates, screen them with machine-learned property models, and check them against computed data. Lattent brings that loop to your bench at the level of chemical composition, next to the 5.8 million DFT structures of the open Alexandria database.</p>
+    </div>
+    <div class="gen-grid">
+      <article class="gen-card">
+        <span class="gen-n">01</span>
+        <h3>Search 5.8 million computed crystals</h3>
+        <p>Each material comes with its structure in 3D and conventional cell, formation energy, distance to the convex hull, band gap, a simulated powder pattern with Miller indices, and a CIF file.</p>
+        <img src="assets/img/discover-xtal.webp" loading="lazy" width="1200" height="750" alt="Rutile TiO2 from the Alexandria database in Lattent's 3D structure viewer, with lattice parameters, formation energy and band gap">
+      </article>
+      <article class="gen-card">
+        <span class="gen-n">02</span>
+        <h3>Identify the phases in your XRD</h3>
+        <p>From a peak fit to a ranked list of phases in seconds. Every candidate cell is symmetrised, simulated and matched with a refined lattice scale; peaks left unexplained point to a second phase.</p>
+        <img src="assets/img/discover-phase.webp" loading="lazy" width="1200" height="750" alt="Gold nanoparticle XRD identified as fcc Au, Fm-3m, with a match score of 0.98 and every peak indexed">
+      </article>
+      <article class="gen-card">
+        <span class="gen-n">03</span>
+        <h3>Generate new compositions</h3>
+        <p>Lattent’s own masked-diffusion model, trained on the Materials Project, proposes formulas in your chemical system, steered towards a band gap. Property networks predict formation energy (MAE 0.09 eV/atom) and band gap, and the database shows which candidates are new.</p>
+        <img src="assets/img/discover-gen.webp" loading="lazy" width="1200" height="750" alt="Generated Cs–Pb–Br compositions with predicted formation energies, band gaps, oxidation states and novelty against Alexandria">
+      </article>
+    </div>
+    <div class="gen-foot">
+      <div class="l-cta"><a class="btn big primary" href="studio/?discover=gen">Try generative design</a><a class="btn big ghost-light" href="studio/?discover=search">Search the database</a></div>
+      <p class="gen-note">Honest limits: Lattent generates compositions, not full crystal structures, and its predictions are leads for a DFT calculation or a synthesis, not results. Lattent is not affiliated with Microsoft, Google DeepMind, the Materials Project or the Alexandria project.</p>
+    </div>
+  </div>
+</section>
+
 <section class="wrap" id="features">
   <div class="feat">
     <div class="feat-t">
@@ -89,7 +123,7 @@
   </div>
   <div class="feat">
     <div class="feat-t">
-      <p class="l-kicker dark">Discover</p>
+      <p class="l-kicker dark">Optimise</p>
       <h2>From your data to the next experiment</h2>
       <p>Lattent learns a Gaussian-process model of a property from the experiments you have run, such as the toughness of a polymer blend, the yield of a synthesis or the conductivity of an electrolyte. It shows which inputs matter and proposes the next experiments most likely to improve the result, respecting mixture constraints. Add them to your table, run them, and repeat.</p>
       <ul class="ticks"><li>Bayesian optimisation with expected improvement, in batches</li><li>Cross-validated model accuracy, so you know when to trust it</li><li>PCA, k-means clustering and correlation for exploring datasets</li></ul>
@@ -147,6 +181,7 @@
     <div><h3>Spectra and materials</h3><ul><li>Multi-peak fitting (Gaussian, Lorentzian, pseudo-Voigt)</li><li>Polynomial baseline removal</li><li>XRD: d-spacing, Scherrer size, Williamson–Hall strain</li><li>Tauc band gap (direct and indirect)</li><li>Tensile test: modulus, 0.2% yield, UTS, elongation, toughness</li><li>Area under the curve</li><li>Savitzky–Golay smoothing and derivatives</li></ul></div>
     <div><h3>Statistics</h3><ul><li>Descriptive statistics, geometric mean, CV</li><li>D'Agostino–Pearson normality test</li><li>Grubbs outlier test</li><li>Welch's, Student's and paired t tests</li><li>Mann–Whitney (exact and asymptotic)</li><li>One-way ANOVA, Welch's ANOVA, Kruskal–Wallis</li><li>Tukey and Holm–Šidák post tests</li><li>Brown–Forsythe equal-variance test</li><li>Pearson and Spearman correlation</li></ul></div>
     <div><h3>Machine learning and discovery</h3><ul><li>Multiple linear regression with standardised effects</li><li>Principal component analysis</li><li>k-means clustering with silhouette selection</li><li>Gaussian-process regression with feature relevance</li><li>Bayesian optimisation with mixture constraints</li><li>Leave-one-out model validation</li></ul></div>
+    <div><h3>Discovery and generative AI</h3><ul><li>Live search of 5.8 million DFT structures (Alexandria, OPTIMADE)</li><li>3D crystal viewer and conventional cells</li><li>Simulated powder XRD with Miller indices, any common anode</li><li>XRD phase identification with lattice refinement and second-phase detection</li><li>Masked-diffusion generator of new compositions, guided by band gap</li><li>Formation-energy and band-gap prediction from composition</li><li>Novelty check against the database, CIF export</li></ul></div>
     <div><h3>Graphs, reports and AI</h3><ul><li>Live graphs that update with the data</li><li>Log axes, error bars, significance brackets, heatmaps</li><li>PNG, 600-dpi PNG and SVG export</li><li>Auto-written methods, results and legends</li><li>CSV results and HTML reports</li><li>Co-scientist suggestions and Claude or GPT chat</li></ul></div>
   </div>
 </section>
@@ -204,6 +239,7 @@
     <details><summary>I have never used curve-fitting software. Where do I start?</summary><p>Open a <a href="#examples">worked example</a> close to your field, look at what Lattent reports, then replace the numbers with yours. Or create a table, paste your data and press <b>Suggest an analysis</b>.</p></details>
     <details><summary>Do I need an AI subscription?</summary><p>No. The built-in suggestions need no key. The chat is optional and uses your own Anthropic or OpenAI key, billed by them at their API rates, usually cents per conversation.</p></details>
     <details><summary>Can my lab pay with a purchase order or grant?</summary><p>Yes. Lemon Squeezy issues a proper invoice with your institution's details; for purchase orders, write to us from the licence page.</p></details>
+    <details><summary>Does Lattent really generate new materials?</summary><p>It proposes new chemical compositions that its models predict to be stable and close to a target band gap, and tells you which are absent from a database of 5.8 million computed structures. That is a shortlist for a DFT calculation or a synthesis, not a discovery in itself: the generator works at the level of composition, not crystal structure, and composition-only predictions have errors of about 0.09 eV/atom for formation energy and 0.3 eV for the band gap. The methods and test results are on the <a href="validation/#discover">validation page</a>.</p></details>
     <details><summary>Is it suitable for regulated or clinical work?</summary><p>No. Lattent is research software and is not validated for GLP, 21 CFR Part 11 or diagnostic use.</p></details>
   </div>
 </section>

@@ -324,7 +324,9 @@
           ${res.xr ? `<div class="kpis"><div class="kpi"><div class="k">Mean Scherrer size</div><div class="v">${fmt(res.xr.meanSize, 3)} <small>nm</small></div></div>${wh ? `<div class="kpi"><div class="k">Williamson–Hall size</div><div class="v">${isFinite(wh.size) ? fmt(wh.size, 3) + ' <small>nm</small>' : '–'}</div><div class="ci">R² ${wh.r2.toFixed(3)}</div></div><div class="kpi"><div class="k">Microstrain ε</div><div class="v">${fmt(wh.strain * 100, 3)} <small>%</small></div></div>` : ''}</div>` : ''}
           <div class="tbl-wrap"><table class="t rt"><tr><th>#</th><th>Centre</th><th>Height</th><th>Rel. int. %</th><th>FWHM</th><th>Area</th>${o.shape === 'pv' ? '<th>η (Lorentz fraction)</th>' : ''}${res.xr ? '<th>d (Å)</th><th>Size (nm)</th>' : ''}</tr>${rows}</table></div>
           <p class="hint">Fit R² = ${res.pf.r2.toFixed(4)} across ${res.pf.peaks.length} peaks.${res.xr ? ' Crystallite size D = Kλ/(β cos θ) with β the instrument-corrected FWHM in radians; it is a lower bound because strain also broadens peaks.' : ''}</p>
+          ${res.xr ? '<div class="ds-cta"><div><b>Which phase is this?</b><span>Match these peaks against every computed crystal structure of your elements in the Alexandria database (5.8 million structures).</span></div><button class="btn small primary" data-identify>Identify phases</button></div>' : ''}
           ${wh ? chartBox(1, 'Williamson–Hall plot', true) : ''}`,
+        wire: (out, it) => { const b = out.querySelector('[data-identify]'); if (b) b.onclick = () => BF.discover.open('phase', { source: 'item:' + it.id }); },
         charts: [(T, W, H) => P.xy({
           x: { label: res.d.xlabel }, y: { label: res.d.ylabel }, legend: true,
           series: [
@@ -359,14 +361,17 @@
       const r = A.tauc(s.means.map(q => q.x), s.means.map(q => q.y), { transition: o.transition, range: o.emin !== '' && o.emax !== '' ? [+o.emin, +o.emax] : null });
       return r.error ? r : { d, r };
     },
-    render(res, o) {
+    render(res, o, t) {
       const r = res.r;
+      const guess = BF.discover.guessFormula(t && t.name);
       const lab = { direct: '(αhν)²', indirect: '(αhν)^½', 'direct-forbidden': '(αhν)^⅔', 'indirect-forbidden': '(αhν)^⅓' }[o.transition];
       return {
         html: `<div class="kpis"><div class="kpi"><div class="k">Band gap E<sub>g</sub></div><div class="v">${r.Eg.toFixed(3)} <small>eV</small></div><div class="ci">95% CI ${r.ci[0].toFixed(3)} to ${r.ci[1].toFixed(3)}</div></div>
           <div class="kpi"><div class="k">Absorption edge</div><div class="v">${(1239.84 / r.Eg).toFixed(0)} <small>nm</small></div></div>
           <div class="kpi"><div class="k">Linear region</div><div class="v">${r.region[0].toFixed(2)}–${r.region[1].toFixed(2)} <small>eV</small></div><div class="ci">R² ${r.r2.toFixed(4)}</div></div></div>
-          ${chartBox(0, 'Tauc plot')}<p class="hint">${r.isNm ? 'X was read as wavelength in nm and converted with E = 1239.84/λ. ' : ''}Absorbance is used as a proxy for α, which shifts the plot vertically but not the intercept. Set the region manually to override the automatic choice.</p>`,
+          ${chartBox(0, 'Tauc plot')}<p class="hint">${r.isNm ? 'X was read as wavelength in nm and converted with E = 1239.84/λ. ' : ''}Absorbance is used as a proxy for α, which shifts the plot vertically but not the intercept. Set the region manually to override the automatic choice.</p>
+          <div class="ds-cta"><div><b>Compare with computed band gaps</b><span>Look up ${guess ? esc(guess) : 'your material'} in the Alexandria DFT database. DFT (PBE) gaps are typically 30–50% below measured ones.</span></div><button class="btn small primary" data-dft>Look up DFT gaps</button></div>`,
+        wire: out => { const b = out.querySelector('[data-dft]'); if (b) b.onclick = () => BF.discover.open('search', guess ? { q: guess, mode: 'formula', hull: 'any', res: null, autorun: true } : {}); },
         charts: [(T, W, H) => {
           const e0 = r.Eg - 0.05, e1 = r.region[1] + 0.15;
           return P.xy({ x: { label: 'Photon energy hν (eV)' }, y: { label: lab + ' (a.u.)', zero: true }, legend: true,
@@ -791,6 +796,7 @@
   function render() {
     renderNav();
     const main = $('#st-main');
+    if (cur && cur.type === 'discover') { BF.discover.render(main, cur.id, discoverApi); $('#st-name').value = proj.name || 'Untitled project'; save(); return; }
     if (!proj.tables.length) { main.innerHTML = '<div class="empty">Create a table or open an example to start.</div>'; return; }
     if (!cur || (cur.type === 'table' && !table(cur.id)) || (cur.type === 'item' && !item(cur.id))) cur = { type: 'table', id: proj.tables[0].id };
     if (cur.type === 'table') renderTable(table(cur.id)); else renderItem(item(cur.id));
@@ -806,7 +812,35 @@
       ${proj.items.filter(i => i.tableId === t.id).map(i => `<button class="nv-row sub${cur && cur.type === 'item' && cur.id === i.id ? ' on' : ''}" data-sel="item:${i.id}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13c3 0 4-9 6-9s3 9 6 9" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="nm">${esc(i.name || K[i.kind].label)}</span></button>`).join('')}
     </div>`).join('');
     $$('[data-sel]', nav).forEach(b => b.onclick = () => { const [ty, id] = b.dataset.sel.split(':'); select(ty, id); document.body.classList.remove('nav-open'); });
+    $$('[data-disc]').forEach(b => b.classList.toggle('on', !!cur && cur.type === 'discover' && cur.id === b.dataset.disc));
   }
+
+  /* ---------- Discover (materials database, phase ID, generative design) ---------- */
+  function peaksFrom(res) {
+    if (!res || res.error || !res.pf) return { error: (res && res.error) || 'No peaks were found.' };
+    const pk = res.pf.peaks.filter(p => p.height > 0);
+    if (!pk.length) return { error: 'No peaks were found.' };
+    /* integrated intensities are what a powder pattern compares; heights if areas are unusable */
+    const val = p => (isFinite(p.area) && p.area > 0 ? p.area : p.height), mx = Math.max(...pk.map(val));
+    return { peaks: pk.map(p => ({ tt: p.center, rel: 100 * val(p) / mx })).sort((a, b) => a.tt - b.tt), profile: { x: res.x, y: res.yc } };
+  }
+  function xrdSources() {
+    const out = [];
+    proj.items.filter(i => i.kind === 'peaks' && i.opts.xrd && table(i.tableId)).forEach(it => {
+      const t = table(it.tableId);
+      out.push({ key: 'item:' + it.id, label: 'Peak analysis of ' + t.name, name: t.name, lambda: +it.opts.lambda || 1.5406, get: () => peaksFrom(compute(it)) });
+    });
+    proj.tables.filter(t => t.type === 'xy').forEach(t => out.push({ key: 'table:' + t.id, label: 'Table: ' + t.name + ' (peaks found automatically)', name: t.name, lambda: 1.5406,
+      get: () => { let r; try { r = K.peaks.run(t, Object.assign(K.peaks.defaults(t), { xrd: true, baseline: '2' })); } catch (e) { r = { error: e.message }; } return peaksFrom(r); } }));
+    return out;
+  }
+  const discoverApi = {
+    select, xrdSources,
+    get project() { return proj; },
+    findTable: name => proj.tables.find(t => t.name === name),
+    newTable(spec) { const t = Object.assign(blankTable(spec.type, spec.name), spec, { id: uid('t'), v: 1 }); proj.tables.push(t); save(); renderNav(); return t; },
+    touch(t) { t.v = (t.v || 0) + 1; delete cache[t.id]; save(); renderNav(); }
+  };
 
   /* ---------- data table editor ---------- */
   function renderTable(t) {
@@ -986,7 +1020,12 @@
         if (top.analysis === 'peaks') {
           const xrdLike = /2θ|2theta|two.?theta|2 theta|°/.test(xl) && x[0] >= 3 && x[n - 1] <= 160;
           out.push({ title: xrdLike ? 'Fit the diffraction peaks' : 'Resolve and fit the peaks', why: top.why + (xrdLike ? ' The axis looks like 2θ, so d-spacings and Scherrer sizes are included.' : ''), kind: 'peaks', opts: xrdLike ? { xrd: true, baseline: '2', shape: 'pv' } : { baseline: '1', shape: 'pv' } });
-        } else if (top.analysis === 'tauc') out.push({ title: 'Determine the optical band gap', why: top.why, kind: 'tauc', opts: {} });
+          if (xrdLike) out.push({ title: 'Identify the crystalline phases', why: 'Matches the peaks against every computed structure of your elements in the Alexandria database and ranks the phases.', disc: 'phase', ctx: { source: 'table:' + t.id, res: null } });
+        } else if (top.analysis === 'tauc') {
+          out.push({ title: 'Determine the optical band gap', why: top.why, kind: 'tauc', opts: {} });
+          const g = BF.discover.guessFormula(t.name);
+          if (g) out.push({ title: 'Compare with computed band gaps of ' + g, why: 'Lists every computed polymorph of ' + g + ' in the Alexandria DFT database with its band gap.', disc: 'search', ctx: { q: g, mode: 'formula', hull: 'any', res: null, autorun: true } });
+        }
         else if (top.analysis === 'tensile') out.push({ title: 'Analyse the tensile test', why: top.why, kind: 'tensile', opts: {} });
         else if (top.models) {
           const labels = (d.xlabel + ' ' + t.cols.join(' ') + ' ' + (t.ylabel || '')).toLowerCase();
@@ -1002,7 +1041,10 @@
         return out;
       }
       const peaks = n > 40 ? A.findPeaks(x, y.map((v, i) => v - Math.min(...y)), { prominence: 0.08, smooth: 3 }) : [];
-      if (/2θ|2theta|two.?theta|2 theta/.test(xl) || (peaks.length >= 3 && x[0] > 5 && x[n - 1] < 160 && n > 200)) out.push({ title: 'Fit the diffraction peaks', why: `${peaks.length} sharp peaks over a 2θ-like range. Peak fitting gives d-spacings and the Scherrer crystallite size.`, kind: 'peaks', opts: { xrd: true, baseline: '2', shape: 'pv', inst: 0.08 } });
+      if (/2θ|2theta|two.?theta|2 theta/.test(xl) || (peaks.length >= 3 && x[0] > 5 && x[n - 1] < 160 && n > 200)) {
+        out.push({ title: 'Fit the diffraction peaks', why: `${peaks.length} sharp peaks over a 2θ-like range. Peak fitting gives d-spacings and the Scherrer crystallite size.`, kind: 'peaks', opts: { xrd: true, baseline: '2', shape: 'pv', inst: 0.08 } });
+        out.push({ title: 'Identify the crystalline phases', why: 'Matches the peaks against every computed structure of your elements in the Alexandria database and ranks the phases.', disc: 'phase', ctx: { source: 'table:' + t.id, res: null } });
+      }
       else if (peaks.length >= 2 && n > 60) out.push({ title: 'Resolve the peaks', why: `${peaks.length} peaks detected; fit them to get positions, widths and areas.`, kind: 'peaks', opts: {} });
       if (/nm|wavelength|λ|ev|energy/.test(xl) && /abs|od|a\.u/.test((d.ylabel + ' ' + t.cols.join(' ')).toLowerCase())) out.push({ title: 'Determine the optical band gap', why: 'This looks like an absorbance spectrum; a Tauc plot extrapolates the band gap.', kind: 'tauc', opts: {} });
       if (/strain|elong/.test(xl)) out.push({ title: 'Analyse the tensile test', why: "X is strain: get Young's modulus, yield strength and toughness.", kind: 'tensile', opts: {} });
@@ -1040,12 +1082,12 @@
     if (t) renderAdvisor(t);
   }
   function renderAdvisor(t) {
-    t = t || (cur && (cur.type === 'table' ? table(cur.id) : table(item(cur.id).tableId)));
+    t = t || (cur && (cur.type === 'table' ? table(cur.id) : cur.type === 'item' && item(cur.id) ? table(item(cur.id).tableId) : null));
     const box = $('#co-advisor');
-    if (!t) { box.innerHTML = '<p class="hint">Open a table to get suggestions.</p>'; return; }
+    if (!t) { box.innerHTML = cur && cur.type === 'discover' ? '<p class="hint">Suggestions follow your data tables. In Discover, ask Claude or GPT in the other tab, or open a table.</p>' : '<p class="hint">Open a table to get suggestions.</p>'; return; }
     const list = advise(t);
-    box.innerHTML = `<p class="hint">Suggestions for <b>${esc(t.name)}</b>.</p>` + list.map((s, i) => (s.shape ? `<div class="sug ai">${shapeLine(s.shape)}<p class="hint" style="margin:6px 0 0">Lattent's shape model was trained on ${(BF.ml.metrics().train_samples / 1000).toFixed(0)},000 simulated lab datasets and runs in your browser.</p></div>` : `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind ? `<button class="btn small primary" data-run="${i}">Run</button>` : ''}</div>`)).join('');
-    $$('[data-run]', box).forEach(b => b.onclick = () => { const s = list[+b.dataset.run]; addItem(t.id, s.kind, s.opts); });
+    box.innerHTML = `<p class="hint">Suggestions for <b>${esc(t.name)}</b>.</p>` + list.map((s, i) => (s.shape ? `<div class="sug ai">${shapeLine(s.shape)}<p class="hint" style="margin:6px 0 0">Lattent's shape model was trained on ${(BF.ml.metrics().train_samples / 1000).toFixed(0)},000 simulated lab datasets and runs in your browser.</p></div>` : `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind || s.disc ? `<button class="btn small primary" data-run="${i}">${s.disc ? 'Open' : 'Run'}</button>` : ''}</div>`)).join('');
+    $$('[data-run]', box).forEach(b => b.onclick = () => { const s = list[+b.dataset.run]; if (s.disc) BF.discover.open(s.disc, s.ctx); else addItem(t.id, s.kind, s.opts); });
   }
 
   /* LLM chat: the model plans; Lattent computes. */
@@ -1298,6 +1340,8 @@ ${projectSummary()}`;
 
   /* ================= boot ================= */
   wireToolbar(); wireCoscientist();
+  BF.discover.init(discoverApi);
+  $$('[data-disc]').forEach(b => b.onclick = () => { select('discover', b.dataset.disc); document.body.classList.remove('nav-open'); });
   proj = load();
   const q = new URLSearchParams(location.search);
   let imported = null;
@@ -1314,6 +1358,7 @@ ${projectSummary()}`;
       select(first ? 'item' : 'table', first ? first.id : t.id);
     } else if (proj) render();
   } else if (q.get('example') && window.BF_SAMPLES.some(s => s.id === q.get('example'))) { proj = null; loadSample(q.get('example')); }
+  else if (BF.discover.views[q.get('discover')]) { if (!proj) proj = { name: 'Untitled project', tables: [], items: [] }; select('discover', q.get('discover')); }
   else if (proj) render();
   else { proj = { name: 'Untitled project', tables: [], items: [] }; render(); startScreen(false); }
   window.BF_STUDIO = { get project() { return proj; }, compute, K, advise };

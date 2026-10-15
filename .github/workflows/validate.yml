@@ -15,6 +15,8 @@ jobs:
       - run: node tests/run-studio.js studio.json
       - run: python -W ignore tests/check_studio.py studio.json
       - run: node tests/ml/check.js
+      - run: node tests/gen/check.js tests/gen/props_parity.json
+      - run: node tests/gen/check_xtal.js --offline
   security:
     runs-on: ubuntu-latest
     steps:

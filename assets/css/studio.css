@@ -183,3 +183,101 @@ body.co-open .st-main { margin-right: 400px; }
 .shape-why { flex-basis: 100%; color: var(--ink-2); font-size: 13px; }
 .sug.ai { border-color: color-mix(in srgb, var(--brand) 40%, var(--line)); }
 .sug.ai .shape { margin: 0; background: none; padding: 0; }
+
+/* ---------- Discover ---------- */
+.st-side .disc-h { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.new-badge { font: 700 9.5px Inter, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--brand-ink); background: var(--brand-soft); padding: 2px 6px; border-radius: 5px; }
+nav.disc { display: flex; flex-direction: column; gap: 1px; }
+nav.disc .nv-row svg { width: 16px; height: 16px; flex: none; color: var(--brand); }
+.ob { text-decoration: overline; }
+.sg { font-weight: 500; color: var(--ink-2); font-size: .92em; }
+.sg .sgn, .sgn { color: var(--ink-3); font-size: .9em; }
+.mono { font-family: var(--mono); font-size: .92em; }
+.dsc-form { display: grid; gap: 12px; margin-bottom: 16px; }
+.dsc-form .fg { margin: 0; }
+#dsc .card { padding: 16px 18px; }
+#dsc .card.res { padding: 18px; }
+.dsc-form .lbl2, .dsc-form .fg > div > label:not(.check), .dsc-form .fg > label:not(.check) { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin-bottom: 4px; }
+.dsc-form .fg small { display: block; color: var(--ink-3); font-size: 12.5px; margin-top: 4px; }
+.dsc-form .seg { flex-wrap: wrap; }
+.ds-go { display: flex; align-items: flex-end; }
+.ds-go .btn { width: 100%; justify-content: center; }
+.dsc-form .examples { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-3); }
+.checkcol { display: grid; gap: 4px; align-content: end; }
+.checkcol .check { margin: 0; font-size: 13px; }
+.ds-intro p { margin: 0 0 8px; max-width: 760px; font-size: 14px; color: var(--ink-2); }
+.ds-intro p:last-child { margin: 0; }
+.ds-wait { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 14px; }
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: dsspin .8s linear infinite; vertical-align: -2px; }
+@keyframes dsspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
+.ds-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 10px; font-size: 14px; }
+.ds-meta span { color: var(--ink-3); font-size: 13px; }
+.ds-meta .sp { flex: 1; }
+.ds-list { margin-bottom: 16px; }
+.ds-list .tbl-wrap, .ph-tab-wrap { max-height: 360px; overflow: auto; }
+table.ds-tab tbody tr, table.ph-tab tbody tr { cursor: pointer; }
+table.ds-tab tbody tr:hover td, table.ph-tab tbody tr:hover td { background: var(--line-2); }
+table.ds-tab tr.on td, table.ph-tab tr.on td { background: var(--brand-soft); }
+table.ds-tab tbody tr:focus-visible, table.ph-tab tbody tr:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+table.t th small { font-weight: 500; color: var(--ink-3); }
+.ds-det .ds-dh { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.ds-det h3 { font-size: 21px; }
+.ds-det .ds-dh .hint { margin: 4px 0 0; }
+.ds-det .acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.ds-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
+.ds-view { border: 1px solid var(--line); border-radius: 10px; background: radial-gradient(circle at 50% 40%, var(--card), var(--bg)); min-width: 0; }
+.ds-view canvas { display: block; width: 100%; height: 340px; cursor: grab; border-radius: 10px 10px 0 0; }
+.ds-view canvas:active { cursor: grabbing; }
+.ds-view canvas:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.ds-vbar { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; padding: 8px 10px; border-top: 1px solid var(--line); font-size: 12.5px; }
+.ds-vbar .els { display: flex; flex-wrap: wrap; gap: 6px; }
+.ds-vbar .axes { display: flex; align-items: center; gap: 4px; }
+.ds-vbar .axes .hint { margin: 0 4px 0 0; }
+.ds-vbar button { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 6px; min-width: 28px; height: 26px; font: 600 12.5px Inter, sans-serif; cursor: pointer; }
+.ds-vbar button:hover { border-color: var(--axis); }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; color: var(--ink-2); }
+.chip i { width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgba(0,0,0,.25); display: inline-block; }
+.ds-props table.kv th { font-weight: 600; color: var(--ink-2); white-space: nowrap; width: 1%; padding-right: 16px; }
+.ds-props { min-width: 0; }
+.ds-props table.kv { width: 100%; }
+.ds-props table.kv td { text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.tag { display: inline-block; font: 600 11px Inter, sans-serif; padding: 2px 7px; border-radius: 5px; background: var(--line-2); color: var(--ink-2); margin-left: 4px; }
+.tag.ok { background: var(--ok-soft); color: var(--ok); }
+.tag.new { background: var(--brand-soft); color: var(--brand-ink); margin: 0; }
+.ds-xrdbar { margin: -6px 0 10px; font-size: 13px; color: var(--ink-2); }
+.ds-xrdbar select { width: auto; display: inline-block; margin-left: 6px; padding: 5px 8px; }
+.ds-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); background: var(--brand-soft); border-radius: 10px; padding: 11px 14px; margin: 4px 0 14px; }
+.ds-cta b { display: block; font-size: 14px; }
+.ds-cta span { font-size: 13px; color: var(--ink-2); }
+.ds-cta > div { flex: 1 1 260px; min-width: 0; }
+.ph-tab td .hint { margin: 0; }
+#ph-sel { margin-top: 16px; }
+/* periodic table */
+.gn-pick { display: grid; gap: 10px; }
+.ptab-wrap { overflow-x: auto; padding-bottom: 4px; }
+.ptab { display: grid; grid-template-columns: repeat(18, minmax(30px, 1fr)); grid-template-rows: repeat(7, 30px) 4px 30px 30px; gap: 3px; min-width: 590px; max-width: 760px; }
+.ptab-gap { height: 4px; }
+.ptab button { border: 1px solid var(--line); background: var(--card); color: var(--ink-2); border-radius: 5px; font: 600 12px Inter, sans-serif; cursor: pointer; padding: 0; }
+.ptab button:hover { border-color: var(--brand); color: var(--ink); }
+.ptab button.b-s { background: color-mix(in srgb, var(--s5) 7%, var(--card)); }
+.ptab button.b-p { background: color-mix(in srgb, var(--s3) 8%, var(--card)); }
+.ptab button.b-d { background: color-mix(in srgb, var(--s1) 6%, var(--card)); }
+.ptab button.b-f { background: color-mix(in srgb, var(--s2) 7%, var(--card)); }
+.ptab button[aria-pressed=true] { background: var(--brand); border-color: var(--brand); color: #fff; }
+.ptab button:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.prog { height: 6px; background: var(--line-2); border-radius: 4px; overflow: hidden; }
+.prog i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .25s; }
+table.gn-tab td sup { font-size: .72em; }
+.gn-pred h3 { font-size: 16px; margin-bottom: 2px; }
+.gn-pred .hint { margin: 0 0 8px; }
+.gn-pred-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.gn-pred-row textarea { min-height: 90px; flex: 1; min-width: 0; font-family: var(--mono); font-size: 13px; }
+#gn-out { margin-bottom: 16px; }
+.gn-pred { margin-bottom: 16px; }
+details.gn-how summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+details.gn-how #gn-how { margin-top: 10px; max-width: 780px; }
+details.gn-how p { font-size: 13.5px; color: var(--ink-2); margin: 0 0 10px; }
+.linkbtn.inline, .ds-intro .linkbtn { display: inline; }
+@media (max-width: 900px) { .ds-grid { grid-template-columns: minmax(0, 1fr); } .ds-view canvas { height: 300px; } }
+@media (max-width: 560px) { .hide-sm { display: none; } .gn-pred-row { flex-direction: column; } .gn-pred-row .btn { width: 100%; justify-content: center; } }

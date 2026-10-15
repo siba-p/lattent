@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com https://alexandria.icams.rub.de; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lattent Studio: data analysis for materials and chemistry labs</title>
-<meta name="description" content="A browser workspace for scientific data: curve fitting with 35 equations, statistics, spectra and XRD peak analysis, band gaps, tensile tests, PCA, clustering and Bayesian optimisation, with an AI co-scientist.">
+<meta name="description" content="A browser workspace for scientific data: curve fitting with 35 equations, statistics, spectra and XRD peak analysis, band gaps, tensile tests, PCA, clustering and Bayesian optimisation, XRD phase identification against 5.8 million DFT structures and generative materials design, with an AI co-scientist.">
 <link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -33,6 +33,12 @@
     <button class="btn primary newbtn" id="st-addtable">+ New data table</button>
     <h5>Project</h5>
     <nav id="st-nav" aria-label="Tables and analyses"></nav>
+    <h5 class="disc-h">Discover <span class="new-badge">New</span></h5>
+    <nav class="disc" aria-label="Discover">
+      <button class="nv-row" data-disc="search"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l5.5 3.2v6.6L8 14.5l-5.5-3.2V4.7z M2.5 4.7L8 8l5.5-3.3M8 8v6.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="nm">Materials database</span></button>
+      <button class="nv-row" data-disc="phase"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 14h13M3 14V12M5.5 14V4M8 14V9M10.5 14V6.5M13 14v-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="nm">Identify XRD phases</span></button>
+      <button class="nv-row" data-disc="gen"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7 1.5l1.3 3.6 3.7 1.2-3.7 1.2L7 11.1 5.7 7.5 2 6.3l3.7-1.2zM12.5 10l.6 1.5 1.4.5-1.4.5-.6 1.5-.6-1.5-1.4-.5 1.4-.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="nm">Generate materials</span></button>
+    </nav>
     <div class="foot-links"><a href="../">About Lattent</a><a href="../validation/">Validation</a><a href="../#pricing">Pricing</a></div>
   </aside>
   <main class="st-main" id="st-main"></main>
@@ -63,6 +69,9 @@
 <script src="../assets/js/shell.js"></script>
 <script src="../assets/js/cloud.js"></script>
 <script src="../assets/js/samples.js"></script>
+<script src="../assets/js/chem.js"></script>
+<script src="../assets/js/crystal.js"></script>
+<script src="../assets/js/discover.js"></script>
 <script src="../assets/js/studio.js"></script>
 </body>
 </html>

@@ -337,7 +337,7 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
     ['tools/activation-energy-arrhenius/', 'Activation energy'], ['tools/adsorption-isotherms/', 'Adsorption isotherms'],
     ['tools/tensile-test/', 'Tensile test'], ['tools/peak-fitting/', 'Peak fitting'], ['standard-curve/', 'Calibration curves']
   ];
-  const nav = [['studio/', 'Studio'], ['#features', 'Features'], ['tools/', 'Quick tools'], ['#examples', 'Examples'], ['#pricing', 'Pricing']];
+  const nav = [['studio/', 'Studio'], ['#discover', 'Discover'], ['#features', 'Features'], ['tools/', 'Quick tools'], ['#pricing', 'Pricing']];
   function chrome() {
     const h = $('header[data-bf]');
     const path = location.pathname;

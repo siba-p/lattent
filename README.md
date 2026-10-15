@@ -6,6 +6,7 @@
 - statistics: t tests, ANOVA with Tukey, Kruskal–Wallis, correlation and regression;
 - spectra and materials analyses: multi-peak fitting, XRD Scherrer and Williamson–Hall, Tauc band gap, tensile tests;
 - PCA, clustering, and Gaussian-process Bayesian optimisation for materials discovery;
+- **Discover**: live search of 5.8 million DFT structures (Alexandria, via OPTIMADE) with a 3D viewer and simulated XRD; XRD phase identification; and generative design of new compositions with Lattent's own masked-diffusion model and property networks;
 - an AI co-scientist (built-in suggestions, plus Claude or GPT chat with the user's own key) that plans analyses while the validated engine computes them.
 
 Quick calculators cover routine bench assays: dose–response, standard curves, enzyme kinetics and qPCR.
@@ -30,6 +31,11 @@ Live site: https://siba-p.github.io/lattent/
 | `assets/js/samples.js` | Example projects, one per field |
 | `assets/js/ml-features.js`, `ml.js`, `assets/models/shape-v1.js` | Lattent's own specialist models (shape recogniser, scatter model), running in the browser |
 | `tests/ml/` | Simulator, training script and checks for the specialist models |
+| `assets/js/chem.js` | Elements, formula parsing, composition features, charge balance |
+| `assets/js/crystal.js` | OPTIMADE client (Alexandria), cell symmetrisation, conventional cells, powder XRD, phase matching, CIF |
+| `assets/js/generate.js`, `gen-worker.js`, `assets/models/gen-v1.js` | Generative and property models, run in a Web Worker |
+| `assets/js/discover.js` | Studio's Discover views: database, phase identification, generation, 3D viewer |
+| `tests/gen/` | Featurisation, training scripts, bundling and checks for the generative models |
 | `tools/`, `scripts/build_tools.py` | Quick-tool pages for materials and chemistry (generated) |
 | `assets/js/stats.js` | Levenberg–Marquardt fitting, covariance, t, F, χ² and studentized-range distributions, delta method |
 | `assets/js/engines.js` | Analysis engines for the four tools (no DOM access; shared with the tests) |
@@ -55,6 +61,29 @@ node tests/ml/simulate.js 600 424242 /tmp/ml/test.json; wait
 python tests/ml/train.py /tmp/ml assets/models/shape-v1.js      # needs scikit-learn
 node tests/ml/check.js                                         # parity and realistic cases
 ```
+
+## Generative models
+
+Discover's models are trained on Materials Project data from Matbench (`matbench_mp_e_form`, `matbench_mp_gap`; CC BY 4.0):
+
+- **Formation energy:** the most stable polymorph per composition. Test MAE is 0.092 eV/atom.
+- **Band gap:** test MAE is 0.32 eV.
+- **Generator:** a masked discrete-diffusion model over (element, count) slots.
+
+```bash
+python tests/gen/extract_matbench.py matbench_mp_e_form.json.gz eform.json   # also matbench_mp_gap → gap.json
+node tests/gen/featurize.js eform.json <dir>/eform_f                      # composition features (same code as the browser)
+python tests/gen/train_props.py <dir> props.json tests/gen/props_parity.json
+python tests/gen/train_mdiff.py <dir> mdiff.json report.json
+python tests/gen/bundle.py props.json mdiff.json assets/models/gen-v1.js
+node tests/gen/check.js tests/gen/props_parity.json                      # parity and behaviour
+node tests/gen/check_xtal.js                                              # XRD and phase ID (live database)
+```
+
+Data credits:
+- Materials Project (Jain et al., *APL Materials* 2013);
+- Matbench (Dunn et al., *npj Comput. Mater.* 2020);
+- Alexandria (Schmidt et al., *Sci. Data* 2022; *Adv. Mater.* 2023).
 
 ## Validation
 
