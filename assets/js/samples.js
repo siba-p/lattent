@@ -153,6 +153,23 @@
   });
 
   SAMPLES.push({
+    id: 'perovskite', field: 'Machine learning', title: 'Predict perovskite band gaps',
+    blurb: 'AutoML with composition descriptors learns the band gap of CsPb(I,Br)₃ and Sn-alloyed perovskites, then predicts four untested compositions with calibrated intervals.',
+    make() {
+      const r = S.rng(41);
+      const g = (x, y, T) => 1.73 + 0.62 * x + 0.12 * x * x - 0.45 * y + 0.25 * y * y - 0.0006 * (T - 100);
+      const name = (x, y) => { const q = v => String(Number(v.toFixed(2))); return 'Cs' + (y > 0 ? 'Sn' + q(y) : '') + (y < 1 ? 'Pb' + (y > 0 ? q(1 - y) : '') : '') + (x < 1 ? 'I' + q(3 * (1 - x)) : '') + (x > 0 ? 'Br' + q(3 * x) : ''); };
+      const rows = [];
+      for (let i = 0; i < 28; i++) { const x = Math.round(r() * 10) / 10, y = Math.round(r() * 4) / 8, T = 80 + Math.round(r() * 8) * 10; rows.push([name(x, y), String(T), f(g(x, y, T) + 0.02 * r.normal(), 3)]); }
+      [[0.35, 0.125, 100], [0.8, 0, 120], [0.5, 0.375, 90], [0.15, 0.25, 140]].forEach(([x, y, T]) => rows.push([name(x, y), String(T), '']));
+      return {
+        tables: [{ name: 'Perovskite band gaps', type: 'mv', cols: ['Composition', 'Annealing T (°C)', 'Band gap (eV)'], rows }],
+        items: [{ kind: 'automl', opts: { target: 2, inputs: [1], compo: true, level: '0.9' } }]
+      };
+    }
+  });
+
+  SAMPLES.push({
     id: 'dose', field: 'Biochemistry', title: 'Dose–response of three inhibitors',
     blurb: 'IC50 values with confidence intervals from a four-parameter logistic fit on a log axis.',
     make() {

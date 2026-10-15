@@ -30,6 +30,7 @@
   const sym = s => String(s).replace(/[^A-Za-z].*$/, '');
   const cap = s => (s ? s[0].toUpperCase() + s.slice(1) : '');
   const sgFull = n => (n ? `${X.sgHTML(n)} <span class="sgn">(${n})</span>` : '–');
+  const pmv = v => (v == null ? '' : ` <small class="pm">± ${num(v, 2)}</small>`);
   const ox = states => Object.keys(states).map(e => { const q = states[e]; return `${esc(e)}<sup>${Math.abs(q) > 1 ? Math.abs(q) : ''}${q > 0 ? '+' : '−'}</sup>`; }).join(' ');
   const oxText = states => Object.keys(states).map(e => e + (states[e] > 0 ? '+' : '') + states[e]).join(' ');
   const seg = (name, opts, v) => `<div class="seg" role="radiogroup">${opts.map(([val, lab]) => `<label><input type="radio" name="${name}" value="${val}"${String(v) === val ? ' checked' : ''}> ${esc(lab)}</label>`).join('')}</div>`;
@@ -151,6 +152,8 @@
     canvas.onpointermove = e => { if (!drag) return; const dx = e.clientX - drag[0], dy = e.clientY - drag[1]; drag = [e.clientX, e.clientY]; R = mul(rotX(dy * 0.01), mul(rotY(dx * 0.01), R)); draw(); };
     canvas.onpointerup = canvas.onpointercancel = () => { drag = null; };
     canvas.onkeydown = e => { const k = { ArrowLeft: [0, -0.15], ArrowRight: [0, 0.15], ArrowUp: [-0.15, 0], ArrowDown: [0.15, 0] }[e.key]; if (k) { e.preventDefault(); R = mul(rotX(k[0]), mul(rotY(k[1]), R)); draw(); } };
+    const onTheme = () => { if (canvas.isConnected) draw(); else document.removeEventListener('bf:theme', onTheme); };
+    document.addEventListener('bf:theme', onTheme);
     const ro = window.ResizeObserver ? new ResizeObserver(draw) : null;
     if (ro) ro.observe(canvas);
     draw();
@@ -422,7 +425,7 @@
     try { info = info || await gen('info'); } catch (e) { el.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
     const m = info.metrics;
     el.innerHTML = `<p><b>Generate.</b> A masked discrete-diffusion model writes a formula as five (element, count) slots. It starts fully masked and, over ten denoising steps, fills in the slots it is most confident about, the same idea that MatterGen uses for atom types. Classifier-free guidance steers it towards a band gap and a number of elements, and the chemical system is enforced exactly. It was trained on ${info.nTrain.toLocaleString()} compositions with negative formation energy from the Materials Project.</p>
-      <p><b>Screen.</b> Two networks predict, from composition alone, the formation energy of the most stable polymorph (test MAE ${m.eform.mae.toFixed(3)} eV/atom on ${m.eform.n_test.toLocaleString()} unseen compositions, R² ${m.eform.r2.toFixed(2)}) and the DFT band gap (MAE ${m.gap.mae.toFixed(2)} eV, R² ${m.gap.r2.toFixed(2)}). Candidates must be charge-balanced with common oxidation states and have negative predicted formation energy; they are ranked by predicted stability and distance from the target gap.</p>
+      <p><b>Screen.</b> Two networks predict, from composition alone, the formation energy of the most stable polymorph (test MAE ${m.eform.mae.toFixed(3)} eV/atom on ${m.eform.n_test.toLocaleString()} unseen compositions, R² ${m.eform.r2.toFixed(2)}) and the DFT band gap (MAE ${m.gap.mae.toFixed(2)} eV, R² ${m.gap.r2.toFixed(2)}). Every prediction carries a 90% conformal interval (±${m.interval.eform.q.toFixed(2)} eV/atom for formation energy; ±${m.interval.gap.bins[0].q.toFixed(1)} to ±${m.interval.gap.bins[2].q.toFixed(1)} eV for the gap, wider for semiconductors and insulators). Candidates must be charge-balanced with common oxidation states and have negative predicted formation energy; they are ranked by predicted stability and distance from the target gap.</p>
       <p><b>Verify.</b> Each candidate is looked up in Alexandria (5.8 million DFT structures). “Not in Alexandria” means nobody has computed it there, so it is a lead for a DFT calculation, not a discovery.</p>
       <p class="hint">Limits: this works at the level of composition, not crystal structure. Predicted gaps are PBE-like and typically 30–50% below experiment. A negative formation energy does not mean the compound is stable against competing phases; only a convex-hull calculation can show that. Everything runs in your browser; nothing is uploaded. Data: Materials Project via Matbench (CC BY 4.0).</p>`;
   }
@@ -456,8 +459,8 @@
     out.innerHTML = `<div class="card res"><div class="ds-meta"><b>${r.candidates.length} candidates</b> <span>from ${r.sampled} sampled formulas (${r.unique} distinct) in ${(r.ms / 1000).toFixed(1)} s, ranked by predicted stability${o.gap != null ? ` and closeness to ${o.gap} eV` : ''}${r.candidates.length > 40 ? '; top 40 shown' : ''}</span>
         <span class="sp"></span><button class="btn small" data-add>Add to project</button></div>
       <div class="tbl-wrap"><table class="t gn-tab"><thead><tr><th>#</th><th class="l">Formula</th><th title="Predicted formation energy of the most stable polymorph">E<sub>f</sub> <small>eV/atom</small></th><th>Gap <small>eV</small></th><th class="l hide-sm">Oxidation states</th><th class="hide-sm" title="How often the model proposed it">Seen</th><th class="l">Database</th></tr></thead>
-      <tbody>${list.map((c, i) => `<tr data-f="${esc(c.formula)}"><td>${i + 1}</td><td class="l"><b>${fhtml(c.formula)}</b></td><td>${num(c.eform, 2)}</td><td>${num(c.gap, 2)}</td><td class="l hide-sm">${c.cb.balanced ? ox(c.cb.states) : '<span class="hint">intermetallic</span>'}</td><td class="hide-sm">${c.count}×</td><td class="l nov">${noveltyCell(c)}</td></tr>`).join('')}</tbody></table></div>
-      <p class="hint">Predictions from composition alone (formation-energy MAE ≈ 0.09 eV/atom, gap MAE ≈ 0.3 eV). Use them to choose what to calculate or synthesise next, not as results.</p></div>`;
+      <tbody>${list.map((c, i) => `<tr data-f="${esc(c.formula)}"><td>${i + 1}</td><td class="l"><b>${fhtml(c.formula)}</b></td><td>${num(c.eform, 2)}${pmv(c.eformPm)}</td><td>${num(c.gap, 2)}${pmv(c.gapPm)}</td><td class="l hide-sm">${c.cb.balanced ? ox(c.cb.states) : '<span class="hint">intermetallic</span>'}</td><td class="hide-sm">${c.count}×</td><td class="l nov">${noveltyCell(c)}</td></tr>`).join('')}</tbody></table></div>
+      <p class="hint">Predictions from composition alone. The ± values are 90% prediction intervals, calibrated on 9,511 compositions the networks never saw: about 9 in 10 true values fall inside. Use them to choose what to calculate or synthesise next, not as results.</p></div>`;
     wireNovelty(out);
     $('[data-add]', out).onclick = () => {
       const nm = 'Generated ' + (o.allowed ? o.allowed.join('–') : 'materials') + (o.gap != null ? ` (${o.gap} eV)` : '');
@@ -501,6 +504,6 @@
   }
   function renderPred(host) {
     const out = $('#gn-pout', host);
-    out.innerHTML = `<div class="tbl-wrap"><table class="t"><thead><tr><th class="l">Formula</th><th>E<sub>f</sub> <small>eV/atom</small></th><th>Gap <small>eV</small></th><th class="l">Charge balance</th></tr></thead><tbody>${st.gen.pred.map(p => p.error ? `<tr><td class="l">${esc(p.f)}</td><td colspan="3" class="l"><span class="hint">${esc(p.error)}</span></td></tr>` : `<tr><td class="l">${fhtml(p.formula)}</td><td>${num(p.eform, 2)}</td><td>${num(p.gap, 2)}</td><td class="l">${p.cb.balanced ? ox(p.cb.states) : p.cb.intermetallic ? 'intermetallic' : '<span class="hint">not balanced with common states</span>'}</td></tr>`).join('')}</tbody></table></div>`;
+    out.innerHTML = `<div class="tbl-wrap"><table class="t"><thead><tr><th class="l">Formula</th><th>E<sub>f</sub> <small>eV/atom</small></th><th>Gap <small>eV</small></th><th class="l">Charge balance</th></tr></thead><tbody>${st.gen.pred.map(p => p.error ? `<tr><td class="l">${esc(p.f)}</td><td colspan="3" class="l"><span class="hint">${esc(p.error)}</span></td></tr>` : `<tr><td class="l">${fhtml(p.formula)}</td><td>${num(p.eform, 2)}${pmv(p.eformPm)}</td><td>${num(p.gap, 2)}${pmv(p.gapPm)}</td><td class="l">${p.cb.balanced ? ox(p.cb.states) : p.cb.intermetallic ? 'intermetallic' : '<span class="hint">not balanced with common states</span>'}</td></tr>`).join('')}</tbody></table></div>`;
   }
 })();

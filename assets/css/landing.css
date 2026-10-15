@@ -5,6 +5,9 @@ body.landing .top .logo, body.landing .top .signin { color: #e9edf7 !important; 
   body.landing .top .nav-top { color: #d6dbf3; }
   body.landing .top .nav-top:hover, body.landing .top .nav-group.open > .nav-top { color: #fff; background: rgba(255,255,255,.08); }
 }
+@media (min-width: 961px) { body.landing .top .theme-btn { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.18); color: #d6dbf3; } body.landing .top .theme-btn:hover { color: #fff; border-color: rgba(255,255,255,.35); } }
+body.landing .top .avatar { box-shadow: 0 0 0 2px var(--night), 0 0 0 3.5px rgba(240,140,62,.75); }
+body.landing .top .pro-chip.on { background: rgba(255,255,255,.08); color: #e9edf7 !important; }
 body.landing .top .pro-chip { color: #c9cfff !important; border-color: rgba(201,207,255,.45); }
 body.landing .top .menu-btn span { background: #e9edf7; }
 body.landing .top.open { background: var(--night); }
@@ -86,3 +89,7 @@ body.landing .top.open .nav { background: var(--card); }
 .gen-foot .l-cta { justify-content: flex-start; }
 .gen-note { color: #8f96bb; font-size: 13.5px; max-width: 560px; margin: 0; line-height: 1.55; }
 @media (max-width: 960px) { .gen-grid { grid-template-columns: minmax(0, 1fr); max-width: 620px; } .l-gen { padding-block: 64px 56px; } }
+
+.ai-teaser-wrap .sec-head { max-width: 760px; }
+.sec-head .l-kicker { font-size: 12.5px; margin-bottom: 10px; }
+.ai-more { margin: 22px 0 0; }

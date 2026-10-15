@@ -90,7 +90,7 @@
     let xs = [], ys = [];
     spec.series.forEach(s => {
       s.points.forEach(p => { xs.push(p.x); ys.push(p.y + (p.err || 0)); ys.push(p.y - (p.err || 0)); });
-      (s.curve || []).forEach(c => { xs.push(c[0]); });
+      (s.curve || []).forEach(c => { xs.push(c[0]); if (!s.points.length && isFinite(c[1])) ys.push(c[1]); });
     });
     let x0 = spec.x.min != null ? spec.x.min : Math.min(...xs), x1 = spec.x.max != null ? spec.x.max : Math.max(...xs);
     if (!spec.x.log && (spec.x.zero === true || (spec.x.zero !== false && x0 >= 0 && x0 < 0.2 * (x1 - x0)))) x0 = Math.min(x0, 0);

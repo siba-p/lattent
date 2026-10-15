@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="assets/js/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lattent: from raw data to the next material</title>
 <meta name="description" content="The analysis bench for materials and chemistry labs: XRD, spectra, curve fitting and statistics, phase identification and generative materials design, in your browser.">
@@ -21,6 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/bf.css">
 <link rel="stylesheet" href="assets/css/landing.css">
+<link rel="stylesheet" href="assets/css/ai.css">
 </head>
 <body class="landing">
 <header data-bf></header>
@@ -108,6 +110,12 @@
   </div>
 </section>
 
+<section class="wrap section ai-teaser-wrap" id="ai">
+  <div class="sec-head"><p class="l-kicker dark">AI and machine learning</p><h2>Fifteen models, one bench.</h2><p>Beyond generative design, Lattent recognises your data, discovers equations, trains AutoML models with calibrated uncertainty and optimises your next experiment. Each element is a model, with its result on data it never saw.</p></div>
+  <div id="ai-teaser"></div>
+  <p class="ai-more"><a class="btn" href="ai/">Explore the AI and try it live →</a></p>
+</section>
+
 <section class="wrap" id="features">
   <div class="feat" id="characterise">
     <div class="feat-t">
@@ -187,6 +195,7 @@
     <div><h3>Spectra and materials</h3><ul><li>Multi-peak fitting (Gaussian, Lorentzian, pseudo-Voigt)</li><li>Polynomial baseline removal</li><li>XRD: d-spacing, Scherrer size, Williamson–Hall strain</li><li>Tauc band gap (direct and indirect)</li><li>Tensile test: modulus, 0.2% yield, UTS, elongation, toughness</li><li>Area under the curve</li><li>Savitzky–Golay smoothing and derivatives</li></ul></div>
     <div><h3>Statistics</h3><ul><li>Descriptive statistics, geometric mean, CV</li><li>D'Agostino–Pearson normality test</li><li>Grubbs outlier test</li><li>Welch's, Student's and paired t tests</li><li>Mann–Whitney (exact and asymptotic)</li><li>One-way ANOVA, Welch's ANOVA, Kruskal–Wallis</li><li>Tukey and Holm–Šidák post tests</li><li>Brown–Forsythe equal-variance test</li><li>Pearson and Spearman correlation</li></ul></div>
     <div><h3>Machine learning and discovery</h3><ul><li>Multiple linear regression with standardised effects</li><li>Principal component analysis</li><li>k-means clustering with silhouette selection</li><li>Gaussian-process regression with feature relevance</li><li>Bayesian optimisation with mixture constraints</li><li>Leave-one-out model validation</li></ul></div>
+    <div><h3>AI and machine learning</h3><ul><li>Shape recogniser for 13 families of behaviour</li><li>Equation discovery by symbolic regression</li><li>AutoML: six model types, cross-validated</li><li>Permutation importance and partial dependence</li><li>Conformal prediction intervals</li><li>Composition descriptors for materials data</li></ul></div>
     <div><h3>Discovery and generative AI</h3><ul><li>Live search of 5.8 million DFT structures (Alexandria, OPTIMADE)</li><li>3D crystal viewer and conventional cells</li><li>Simulated powder XRD with Miller indices, any common anode</li><li>XRD phase identification with lattice refinement and second-phase detection</li><li>Masked-diffusion generator of new compositions, guided by band gap</li><li>Formation-energy and band-gap prediction from composition</li><li>Novelty check against the database, CIF export</li></ul></div>
     <div><h3>Graphs, reports and AI</h3><ul><li>Live graphs that update with the data</li><li>Log axes, error bars, significance brackets, heatmaps</li><li>PNG, 600-dpi PNG and SVG export</li><li>Auto-written methods, results and legends</li><li>CSV results and HTML reports</li><li>Co-scientist suggestions and Claude or GPT chat</li></ul></div>
   </div>
@@ -257,6 +266,7 @@
 <script src="assets/js/stats.js"></script>
 <script src="assets/js/plot.js"></script>
 <script src="assets/js/shell.js"></script>
+<script src="assets/js/ai.js"></script>
 <script src="assets/js/samples.js"></script>
 <script src="assets/js/home.js"></script>
 </body>

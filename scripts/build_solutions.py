@@ -16,6 +16,7 @@ HEAD = """<!doctype html>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="{root}assets/js/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title}</title>
 <meta name="description" content="{desc}">
@@ -149,6 +150,7 @@ FIELDS = [
 ]
 
 CHANGES = [
+    ("2026-10-15", "AI and machine learning", ["Equation discovery: symbolic regression finds a compact formula for XY data and recognises physical laws such as Arrhenius, Langmuir and Flory–Fox.", "AutoML: six kinds of model compared by cross-validation, with input importance, partial dependence, composition descriptors for formula columns and calibrated prediction intervals.", "Calibrated 90% intervals on every formation-energy and band-gap prediction.", "A new page, the periodic table of Lattent’s AI, with a live lab.", "Night mode and an account menu in every header."]),
     ("2026-10-15", "Navigation, Solutions and What’s new", ["A new site navigation with Platform, Solutions and Resources menus.", "A page for each field, from nanomaterials to analytical chemistry, linking straight to the right tool, example or Discover view.", "This release-notes page."]),
     ("2026-10-15", "New identity", ["A new mark: an L of lattice points that doubles as the axes of a plot, with a copper point for the discovery.", "An indigo-and-copper palette, checked for colour-blind safety and contrast, with Space Grotesk headings.", "A custom 404 page, social previews and home-screen icons."]),
     ("2026-10-15", "Discover", ["Search 5.8 million computed crystal structures in the Alexandria database, with a 3D viewer, simulated XRD with Miller indices and CIF export.", "Identify XRD phases: peaks are matched against every structure of your elements, with lattice refinement and second-phase detection.", "Generate materials: Lattent’s own masked-diffusion model proposes compositions; property networks predict formation energy (MAE 0.09 eV/atom) and band gap; each candidate is checked for novelty."]),
@@ -246,7 +248,7 @@ write("solutions/index.html", hub())
 write("changelog/index.html", changelog())
 # sitemap of every public page, for search engines
 BASE = "https://siba-p.github.io/lattent/"
-pages = ["", "studio/", "tools/", "solutions/", "changelog/", "validation/", "standard-curve/", "life-science/", "dose-response/", "enzyme-kinetics/", "qpcr/",
+pages = ["", "studio/", "ai/", "tools/", "solutions/", "changelog/", "validation/", "standard-curve/", "life-science/", "dose-response/", "enzyme-kinetics/", "qpcr/",
          "legal/terms.html", "legal/privacy.html", "legal/refunds.html", "legal/security.html"]
 pages += [f"solutions/{f['slug']}/" for f in FIELDS]
 pages += sorted(f"tools/{d}/" for d in os.listdir(os.path.join(ROOT, "tools")) if os.path.isdir(os.path.join(ROOT, "tools", d)))

@@ -120,7 +120,7 @@
     },
     run(t, o) {
       const d = xyData(t);
-      const model = o.model === 'custom' ? M.custom(o.expr || 'A*exp(-k*x) + c') : M.byId(o.model);
+      const model = o.model === 'custom' ? M.custom(o.expr || 'A*exp(-k*x) + c', o.start) : M.byId(o.model);
       const fixed = {}; Object.entries(o.fixed || {}).forEach(([j, v]) => { if (isFinite(v)) fixed[j] = +v; });
       return { d, model, fits: d.series.map(s => ({ s, r: M.fit(model, s.xs, s.ys, { fixed, weight: o.weight }) })) };
     },
@@ -755,15 +755,164 @@
     }
   };
 
+  /* ---------- AI: equation discovery and AutoML ---------- */
+  const aiTag = '<span class="ai-tag" title="Computed by Lattent’s own machine-learning code, in your browser">AI</span>';
+  K.symreg = {
+    label: 'Discover the equation (symbolic regression)', types: ['xy'], group: 'Fit a model',
+    desc: 'Lattent searches thousands of candidate equations built from powers, logarithms, exponentials and saturation terms, and returns the simplest ones that explain your data, ranked by AICc.',
+    defaults: () => ({ maxTerms: '3', logy: true, errors: 'auto' }),
+    form: o => `<div class="fg three"><div><label>Terms per equation</label>${sel('maxTerms', [['1', 'Up to 1'], ['2', 'Up to 2'], ['3', 'Up to 3']], o.maxTerms)}</div>
+      <div><label>Error scale</label>${sel('errors', [['auto', 'Automatic'], ['absolute', 'Absolute'], ['relative', 'Relative (data span decades)']], o.errors)}</div>
+      <div><label>&nbsp;</label><label class="check" style="margin:8px 0 0"><input type="checkbox" data-o="logy"${o.logy !== false ? ' checked' : ''}> Also search equations for ln(y)</label></div></div>`,
+    run(t, o) {
+      const d = xyData(t); const s = d.series[0]; if (!s) return { error: 'No numeric data.' };
+      const x = s.means.map(q => q.x), y = s.means.map(q => q.y);
+      const r = BF.learn.symreg(x, y, { maxTerms: +o.maxTerms || 3, logy: o.logy !== false, errors: o.errors || 'auto' });
+      return r.error ? r : { d, x, y, r };
+    },
+    render(res, o) {
+      const r = res.r, b = r.best, rel = r.errors === 'relative';
+      const top = r.results.slice(0, 8);
+      const err = v => (rel ? (100 * v).toFixed(2) + '%' : fmt(v, 3));
+      const xs0 = Math.min(...res.x), xs1 = Math.max(...res.x);
+      const grid = Array.from({ length: 200 }, (_, i) => xs0 + (xs1 - xs0) * i / 199);
+      const alts = top.filter(q => q !== b).slice(0, 2);
+      return {
+        html: `<div class="verdict">${aiTag} <b>Discovered:</b> <span class="eqn big">${esc(b.pretty)}</span><br><span class="sub-v">${esc(b.law)} · R² ${b.r2.toFixed(4)} · from ${r.tried.toLocaleString()} candidate equations. ${b.preferred ? `A generic equation fits slightly better (ΔAICc ${b.dAICc.toFixed(1)}); this recognised law is preferred because the data do not clearly reject it.` : 'It is also the best-supported equation by AICc.'}</span></div>
+          ${chartBox(0, 'Data and discovered equation')}
+          <div class="tbl-wrap"><table class="t rt"><tr><th>#</th><th class="l">Equation</th><th class="l">Recognised as</th><th>R²</th><th>${rel ? 'Relative error' : 'RMSE'}</th><th>ΔAICc</th><th></th></tr>
+          ${top.map((q, i) => `<tr${q === b ? ' class="best"' : ''}><td>${i + 1}</td><td class="l eqn">${esc(q.pretty)}</td><td class="l">${esc(q.law)}</td><td>${q.r2.toFixed(4)}</td><td>${err(q.rmse)}</td><td>${q.dAICc.toFixed(1)}</td><td><button class="btn small ghost" data-full="${r.results.indexOf(q)}">Fit with statistics</button></td></tr>`).join('')}</table></div>
+          ${chartBox(1, 'Accuracy against complexity (Pareto front)', true)}
+          <p class="hint">Equation discovery searches combinations of up to ${+o.maxTerms || 3} terms from a library of ${r.library} (powers, 1/x, √x, logarithms, exponentials and saturation terms at several scales)${r.errors === 'relative' ? '; because your data span decades, errors are judged on a relative scale' : ''}. It finds a compact formula that fits, which is a hypothesis, not proof of mechanism: check that the form makes physical sense and do not extrapolate beyond the data. “Fit with statistics” opens the equation in nonlinear regression with standard errors and confidence bands.</p>`,
+        charts: [(T, W, H) => P.xy({ x: { label: res.d.xlabel }, y: { label: res.d.ylabel }, legend: true, series: [
+            { name: 'Data', ci: 0, points: res.x.map((x, i) => ({ x, y: res.y[i] })) },
+            { name: b.pretty.replace(/^y = /, ''), ci: 1, points: [], curve: grid.map(x => [x, b.f(x)]) }
+          ].concat(alts.map((q, k) => ({ name: q.law, ci: 3 + k, dash: true, points: [], curve: grid.map(x => [x, q.f(x)]) }))) }, T, W, H),
+          (T, W, H) => P.xy({ x: { label: 'Complexity (terms and operations)', zero: false }, y: { label: rel ? 'Relative error' : 'RMSE', log: false }, legend: true, series: [
+            { name: 'Candidates', ci: 3, points: r.results.map(q => ({ x: q.cx, y: q.rmse, label: q.pretty })) },
+            { name: 'Pareto front', ci: 0, points: r.pareto.map(q => ({ x: q.cx, y: q.rmse, label: q.pretty })), curve: r.pareto.map(q => [q.cx, q.rmse]) },
+            { name: 'Chosen', ci: 1, points: [{ x: b.cx, y: b.rmse, label: b.pretty }] }] }, T, W, H)],
+        csv: () => [['Equation', 'Law', 'R2', 'RMSE', 'dAICc', 'Expression']].concat(r.results.map(q => [q.pretty, q.law, q.r2, q.rmse, q.dAICc, q.expr])),
+        wire(el, it) { $$('[data-full]', el).forEach(btn => btn.onclick = () => { const q = r.results[+btn.dataset.full]; addItem(it.tableId, 'nlfit', { model: 'custom', expr: q.expr, start: q.start, weight: rel ? '1/y2' : 'none' }); }); }
+      };
+    },
+    text(res) {
+      const r = res.r, b = r.best;
+      return [{ title: 'Methods', html: `<p>Candidate equations were generated by sparse symbolic regression: up to three terms from a library of ${r.library} functions of x (powers, reciprocals, square roots, logarithms, and exponential and saturation terms on grids of scale parameters) were combined linearly${r.results.some(q => q.logTarget) ? ', for y and for ln(y)' : ''}, and ${r.tried.toLocaleString()} candidates were ranked by AICc on ${r.errors} errors. The most promising structures were refined by Levenberg–Marquardt least squares. A recognised physical law was selected when within 14 AICc units of the best equation (correcting for the many generic forms searched), otherwise the simplest equation within 4 units. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
+        { title: 'Results', html: `<p>The selected equation was ${esc(b.pretty)} (${esc(b.law.toLowerCase())}), with R² = ${b.r2.toFixed(4)}.</p>` }];
+    }
+  };
+
+  /* A text column whose values are chemical formulas, for composition descriptors */
+  function formulaCol(t) {
+    const d = mvData(t);
+    for (const c of d.cols.filter(c => !c.numeric)) {
+      const vals = t.rows.map(r => String(r[c.j] || '').trim()).filter(Boolean);
+      if (vals.length < 3) continue;
+      const okv = vals.filter(v => { if (!/^[A-Z][A-Za-z0-9().·]*$/.test(v) || !/[a-z0-9]/.test(v)) return false; try { return Object.keys(BF.chem.parse(v)).length > 0; } catch (e) { return false; } });
+      if (okv.length >= 0.8 * vals.length) return c.j;
+    }
+    return null;
+  }
+  const DESC = (() => { const P2 = [['Z', 'atomic number'], ['group', 'group'], ['period', 'period'], ['EN', 'electronegativity'], ['r', 'covalent radius'], ['valence', 'valence']]; const out = []; P2.forEach(([s2], k) => { out.push(['mean ' + s2, 94 + 5 * k], ['range ' + s2, 94 + 5 * k + 4]); }); out.push(['number of elements', 128]); return out; })();
+  const TARGET_RE = /strength|toughness|yield|efficien|activity|capacity|conductiv|selectiv|modulus|hardness|response|output|target|score|band ?gap|tg\b|energy|density/i;
+  K.automl = {
+    label: 'AutoML: predict a property', types: ['mv'], group: 'Multivariate and machine learning', async: true,
+    desc: 'Trains six kinds of model, from linear regression to random forests and Gaussian processes, picks the best by cross-validation, explains which inputs matter and predicts new samples with calibrated intervals.',
+    defaults: t => { const n = mvData(t).numeric; const tg = n.find(c => TARGET_RE.test(c.name)) || n[n.length - 1]; return { target: tg ? tg.j : 0, inputs: n.filter(c => c !== tg).map(c => c.j), level: '0.9', compo: formulaCol(t) != null }; },
+    form: (o, t) => { const fc = formulaCol(t); return `<div class="fg two"><div><label>Property to predict</label><select data-o="target">${colOptions(t, o.target)}</select></div><div><label>Prediction interval</label>${sel('level', [['0.8', '80%'], ['0.9', '90%'], ['0.95', '95%']], o.level)}</div></div>
+      <div class="fg"><label>Inputs</label><div class="checkcols">${colChecks(t, 'inputs', o.inputs)}</div></div>
+      ${fc != null ? `<div class="fg"><label class="check"><input type="checkbox" data-o="compo"${o.compo ? ' checked' : ''}> Add composition descriptors from “${esc(mvData(t).cols[fc].name)}” (electronegativity, radius, valence and more)</label></div>` : ''}
+      <p class="hint" style="margin:0">Rows with inputs but no measured value are predicted.</p>`; },
+    run(t, o) {
+      const target = +o.target, ins = (o.inputs || []).map(Number).filter(j => j !== target);
+      const fc = o.compo ? formulaCol(t) : null;
+      if (!ins.length && fc == null) return { error: 'Choose at least one input.' };
+      const d = mvData(t), names = ins.map(j => d.cols[j].name).concat(fc != null ? DESC.map(q => q[0]) : []);
+      const X = [], y = [], Xnew = [], labels = [], newLabels = [], newRows = [];
+      t.rows.forEach((r, i) => {
+        const v = ins.map(j => num(r[j]));
+        if (!v.every(isFinite)) return;
+        if (fc != null) { let f; try { f = BF.chem.features(BF.chem.parse(String(r[fc]).trim())); } catch (e) { return; } DESC.forEach(q => v.push(f[q[1]])); }
+        const lab = d.label ? String(r[d.label.j] || '') : 'Row ' + (i + 1);
+        const tv = num(r[target]);
+        if (isFinite(tv)) { X.push(v); y.push(tv); labels.push(lab); } else if (String(r[target] == null ? '' : r[target]).trim() === '') { Xnew.push(v); newLabels.push(lab); newRows.push(i); }
+      });
+      if (y.length < 8) return { error: 'AutoML needs at least 8 rows with the inputs and the measured property.' };
+      return { async: { X, y, names, Xnew, opts: { level: +o.level || 0.9 } }, X, y, names, labels, Xnew, newLabels, newRows, yname: d.cols[target].name, target };
+    },
+    render(res, o) {
+      const b = res.best, lv = Math.round(100 * res.level), yn = res.yname;
+      const verdictQ = b.r2 > 0.8 ? 'a strong model' : b.r2 > 0.5 ? 'a useful but noisy model' : 'a weak model: more data or better inputs are needed';
+      const imp = res.importance.filter(q => isFinite(q.v));
+      const lo = Math.min(...res.y, ...b.oof), hi = Math.max(...res.y, ...b.oof);
+      return {
+        html: `<div class="verdict">${aiTag} <b>${esc(b.name)}</b> predicts ${esc(yn)} best: cross-validated R² ${b.r2.toFixed(2)}, ${verdictQ}. Most influential input: <b>${esc(imp[0] ? imp[0].name : '–')}</b>.</div>
+          <div class="kpis"><div class="kpi"><div class="k">Cross-validated R²</div><div class="v">${b.r2.toFixed(3)}</div><div class="ci">${res.folds === res.n ? 'leave-one-out' : res.folds + '-fold'}, ${res.n} samples</div></div>
+            <div class="kpi"><div class="k">Mean absolute error</div><div class="v">${fmt(b.mae, 3)}</div><div class="ci">${esc(yn)}</div></div>
+            <div class="kpi"><div class="k">${lv}% prediction interval</div><div class="v">± ${fmt(res.q, 3)}</div><div class="ci">conformal, from held-out errors</div></div></div>
+          <h4 class="sub">Model comparison</h4>
+          <div class="tbl-wrap"><table class="t rt"><tr><th>#</th><th class="l">Model</th><th class="l">Cross-validated R²</th><th>MAE</th><th>RMSE</th><th>Time</th></tr>
+          ${res.board.map((m, i) => `<tr${i === 0 ? ' class="best"' : ''}><td>${i + 1}</td><td class="l">${esc(m.name)}</td><td class="l"><span class="wbar"><i style="width:${Math.max(0, Math.min(100, 100 * m.r2)).toFixed(0)}%"></i></span>${m.r2.toFixed(3)}</td><td>${fmt(m.mae, 3)}</td><td>${fmt(m.rmse, 3)}</td><td>${m.ms < 1000 ? m.ms + ' ms' : (m.ms / 1000).toFixed(1) + ' s'}</td></tr>`).join('')}</table></div>
+          <div class="grid2">${chartBox(0, 'Predicted against measured (held out)')}${chartBox(1, 'Which inputs matter')}</div>
+          ${res.pdp.length ? `<div class="grid2">${res.pdp.map((q, k) => chartBox(2 + k, 'Effect of ' + q.name, true)).join('')}</div>` : ''}
+          ${res.Xnew.length ? `<h4 class="sub">Predictions for ${res.Xnew.length} new sample${res.Xnew.length > 1 ? 's' : ''}</h4>
+          <div class="tbl-wrap"><table class="t rt"><tr><th class="l">Sample</th><th>Predicted ${esc(yn)}</th><th>${lv}% interval</th><th class="l">Note</th></tr>${res.preds.map((p2, i) => `<tr><td class="l">${esc(res.newLabels[i])}</td><td><b>${fmt(p2.y, 4)}</b></td><td>${fmt(p2.lo, 3)} to ${fmt(p2.hi, 3)}</td><td class="l">${p2.extrapolating ? '<span class="flag bad">outside the training range</span>' : ''}</td></tr>`).join('')}</table></div>
+          <button class="btn small primary" data-fill>Write predictions into the table</button>` : '<p class="hint">Add rows with the inputs but an empty ' + esc(yn) + ' cell, and AutoML will predict them.</p>'}
+          ${res.dropped && res.dropped.length ? `<p class="hint">Left out because they do not vary or duplicate another input: ${res.dropped.map(esc).join(', ')}.</p>` : ''}
+          <p class="hint">Every model is scored only on samples it did not see during training. Importance is the rise in held-out error when an input is shuffled, so it reflects what the best model actually uses. The interval is split-conformal: it covers about ${lv}% of new samples like these, and it is not valid far outside the training range.</p>`,
+        charts: [(T, W, H) => P.xy({ x: { label: 'Predicted ' + yn + ' (held out)', zero: false }, y: { label: 'Measured ' + yn }, series: [{ name: 'Samples', ci: 0, points: b.oof.map((p2, i) => ({ x: p2, y: res.y[i], label: res.labels[i] })), curve: [[lo, lo], [hi, hi]] }] }, T, W, H),
+          (T, W, H) => P.bars({ items: imp.slice(0, 12).map(q => ({ name: q.name, v: Math.max(0, q.v), ci: 0 })), x: { label: 'Increase in error when shuffled' } }, T, W, H),
+          ].concat(res.pdp.map((q, k) => (T, W, H) => P.xy({ x: { label: q.name, zero: false }, y: { label: 'Predicted ' + yn, zero: false }, series: [{ name: q.name, ci: k + 1, points: [], curve: q.pts, hideLegend: true }] }, T, W, H))),
+        csv: () => [['Model', 'CV R2', 'MAE', 'RMSE']].concat(res.board.map(m => [m.name, m.r2, m.mae, m.rmse])).concat([[], ['Sample', 'Predicted', 'Low', 'High']]).concat(res.preds.map((p2, i) => [res.newLabels[i], p2.y, p2.lo, p2.hi])),
+        wire(el, it) {
+          const f = $('[data-fill]', el); if (!f) return;
+          f.onclick = () => {
+            const t = table(it.tableId), nm = 'Predicted ' + yn;
+            let j = t.cols.indexOf(nm); if (j < 0) { t.cols.push(nm); j = t.cols.length - 1; }
+            res.newRows.forEach((ri, k) => { while (t.rows[ri].length <= j) t.rows[ri].push(''); t.rows[ri][j] = String(Number(res.preds[k].y.toPrecision(4))); });
+            t.v = (t.v || 0) + 1; save(); U.toast('Predictions written to “' + nm + '”.', 'ok');
+          };
+        }
+      };
+    },
+    text(res) {
+      if (res.pending || !res.best) return null;
+      const b = res.best, lv = Math.round(100 * res.level);
+      return [{ title: 'Methods', html: `<p>${res.board.length} regression models (${res.board.map(m => m.name.toLowerCase()).join(', ')}) were trained to predict ${esc(res.yname)} from ${res.p} inputs and compared by ${res.folds === res.n ? 'leave-one-out' : res.folds + '-fold'} cross-validation on ${res.n} samples. Input importance was measured by permutation of each input on held-out folds, and ${lv}% prediction intervals were obtained by split-conformal calibration on held-out residuals. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
+        { title: 'Results', html: `<p>The best model was ${esc(b.name.toLowerCase())} (cross-validated R² = ${b.r2.toFixed(2)}, MAE = ${fmt(b.mae, 3)}). The most influential inputs were ${res.importance.slice(0, 3).map(q => esc(q.name)).join(', ')}.</p>` }];
+    }
+  };
+
   const GROUPS = ['Fit a model', 'Spectra and materials', 'Statistics', 'Multivariate and machine learning'];
 
   /* ================= results cache and execution ================= */
+  let lw = null, lwSeq = 0;
+  const lwJobs = new Map();
+  function learnJob(payload) {
+    if (!lw) {
+      lw = new Worker(U.root + 'assets/js/learn-worker.js');
+      lw.onmessage = e => { const j = lwJobs.get(e.data.id); if (!j) return; lwJobs.delete(e.data.id); if (e.data.ok) j.resolve(e.data.result); else j.reject(new Error(e.data.error)); };
+      lw.onerror = e => { lwJobs.forEach(j => j.reject(new Error(e.message || 'The learning worker failed.'))); lwJobs.clear(); lw = null; };
+    }
+    const id = ++lwSeq;
+    return new Promise((resolve, reject) => { lwJobs.set(id, { resolve, reject }); lw.postMessage(Object.assign({ id }, payload)); });
+  }
   function compute(it) {
     const t = table(it.tableId);
     const key = it.id + '|' + tableVersion(t) + '|' + JSON.stringify(it.opts);
     if (cache[it.id] && cache[it.id].key === key) return cache[it.id].res;
     let res;
     try { res = K[it.kind].run(t, it.opts); } catch (e) { console.error(e); res = { error: 'This analysis could not run on the current data: ' + (e.message || e) }; }
+    if (res && res.async) {
+      /* heavy analyses train in a worker; show progress and re-render when done */
+      const job = res.async, base = res; delete base.async;
+      const entry = { key, res: Object.assign({ pending: true }, base) };
+      cache[it.id] = entry;
+      const done = r => { if (cache[it.id] !== entry) return; entry.res = r && r.error ? { error: r.error } : Object.assign(base, r); if (cur && cur.type === 'item' && cur.id === it.id) runItem(it); };
+      learnJob(job).then(done, e => done({ error: e.message }));
+      return entry.res;
+    }
     cache[it.id] = { key, res };
     return res;
   }
@@ -983,6 +1132,7 @@
   function runItem(it) {
     const out = $('#it-out'), k = K[it.kind], t = table(it.tableId);
     const res = compute(it);
+    if (res && res.pending) { out.innerHTML = `<div class="card res"><div class="ds-wait"><span class="spin"></span> Training ${Object.keys(BF.learn.modelNames).length} kinds of model with cross-validation on ${res.y ? res.y.length : ''} samples…</div></div>`; $('#it-rep').innerHTML = ''; return; }
     if (!res || res.error) { out.innerHTML = `<div class="card res"><div class="err">${esc(res ? res.error : 'No result')}</div></div>`; $('#it-rep').innerHTML = ''; return; }
     let r;
     try { r = k.render(res, it.opts, t); } catch (e) { console.error(e); out.innerHTML = `<div class="card res"><div class="err">Could not display this result: ${esc(e.message)}</div></div>`; return; }
@@ -1035,6 +1185,7 @@
           const hinted = hints.filter(([re, id]) => re.test(labels) && top.models.includes(id)).map(h => h[1]);
           const fit = hinted.concat(top.models).map(id => M.byId(id)).find(mm => mm && M.applicable(mm, s.xs, s.ys));
           if (fit) out.push({ title: 'Fit ' + fit.name, why: top.why + (w === '1/y2' ? ' Scatter grows with the signal, so 1/Y² weighting is applied.' : ''), kind: 'nlfit', opts: { model: fit.id, weight: w, logx: x.every(v => v > 0) && Math.log10(x[n - 1] / x[0]) > 2, logy: top.key === 'thermally_activated' } });
+          if (n >= 6) out.push({ title: 'Let AI discover the equation', why: 'Symbolic regression searches thousands of candidate formulas, including ones not in the library, and returns the simplest that fits.', kind: 'symreg', opts: {} });
           out.push({ title: 'Compare every model for this shape', why: 'Fits all ' + BF.ml.candidates(shape, 0.97).length + ' candidate equations for the likely shapes and ranks them by AICc.', kind: 'autofit', opts: { field: 'shape', logx: x.every(v => v > 0) && Math.log10(x[n - 1] / x[0]) > 2 } });
         }
         if (d.series.length > 1 && n >= 3 && top.key === 'linear') out.push({ title: 'Compare the slopes of the data sets', why: 'Tests whether one common slope fits every data set.', kind: 'linreg', opts: {} });
@@ -1068,6 +1219,7 @@
       if (nn < 2) return [{ title: 'Add numeric variables', why: 'Each column is a variable; each row a sample.' }];
       const tgt = d.numeric.find(c => /strength|toughness|yield|efficien|activity|capacity|conductiv|selectiv|modulus|hardness|response|output|target|score|band ?gap|tg\b/i.test(c.name));
       if (tgt && rows >= 6) out.push({ title: 'Suggest the next experiments for ' + tgt.name, why: 'A Gaussian-process model learns how your inputs drive this property and proposes the most informative next runs.', kind: 'bo', opts: { target: tgt.j, inputs: d.numeric.filter(c => c !== tgt).map(c => c.j) } });
+      if (tgt && rows >= 8) out.push({ title: 'Train AutoML to predict ' + tgt.name, why: 'Six kinds of model compete under cross-validation; you get the best one, the inputs that matter and predictions with calibrated intervals.', kind: 'automl', opts: { target: tgt.j, inputs: d.numeric.filter(c => c !== tgt).map(c => c.j) } });
       if (tgt) out.push({ title: 'Regress ' + tgt.name + ' on the other variables', why: 'Linear effects with confidence intervals and standardised importance.', kind: 'mlr', opts: { y: tgt.j, xs: d.numeric.filter(c => c !== tgt).map(c => c.j) } });
       if (nn >= 3) out.push({ title: 'Principal component analysis', why: `${nn} variables: see which move together and how samples group.`, kind: 'pca', opts: {} });
       out.push({ title: 'Correlation matrix', why: 'Quick overview of pairwise relationships.', kind: 'corr', opts: {} });
@@ -1357,9 +1509,17 @@ ${projectSummary()}`;
       history.replaceState(null, '', location.pathname);
       select(first ? 'item' : 'table', first ? first.id : t.id);
     } else if (proj) render();
-  } else if (q.get('example') && window.BF_SAMPLES.some(s => s.id === q.get('example'))) { proj = null; loadSample(q.get('example')); }
+  } else if (q.get('example') && window.BF_SAMPLES.some(s => s.id === q.get('example'))) {
+    proj = null; loadSample(q.get('example'));
+    /* ?example=floryfox&run=symreg opens the example with that analysis already added */
+    const run = q.get('run'), t0 = proj.tables[0];
+    if (run && K[run] && t0 && K[run].types.includes(t0.type)) addItem(t0.id, run);
+  }
   else if (BF.discover.views[q.get('discover')]) { if (!proj) proj = { name: 'Untitled project', tables: [], items: [] }; select('discover', q.get('discover')); }
   else if (proj) render();
   else { proj = { name: 'Untitled project', tables: [], items: [] }; render(); startScreen(false); }
+  /* charts read the palette when drawn, so redraw the current view when the theme changes */
+  document.addEventListener('bf:theme', () => { if (proj) render(); });
+  if (q.get('cloud')) { history.replaceState(null, '', location.pathname); setTimeout(() => cloudDialog(), 300); }
   window.BF_STUDIO = { get project() { return proj; }, compute, K, advise };
 })();

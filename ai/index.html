@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="../assets/js/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI and machine learning | Lattent</title>
+<meta name="description" content="Fifteen machine-learning models in Lattent, from a shape recogniser and equation discovery to AutoML, conformal intervals and a diffusion generator, each with its measured accuracy.">
+<meta property="og:title" content="AI and machine learning | Lattent"><meta property="og:description" content="Fifteen machine-learning models in Lattent, from a shape recogniser and equation discovery to AutoML, conformal intervals and a diffusion generator, each with its measured accuracy."><meta property="og:image" content="https://siba-p.github.io/lattent/assets/img/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090c1b" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/bf.css">
+<link rel="stylesheet" href="../assets/css/solutions.css">
+<link rel="stylesheet" href="../assets/css/ai.css">
+</head>
+<body>
+<header data-bf></header>
+<main>
+<section class="sol-hero ai-hero"><div class="wrap">
+  <p class="sol-k">AI and machine learning</p>
+  <h1>Fifteen models, one bench.</h1>
+  <p class="sol-lede">Lattent’s AI recognises your data, discovers equations, predicts properties with honest uncertainty and proposes new materials. Every model was built and tested by Lattent, runs on your computer, and states how well it works on data it never saw.</p>
+</div></section>
+<section class="wrap section ai-main">
+  <div class="sec-head"><h2>The periodic table of Lattent’s AI</h2><p>Each element is a model. The number in the corner is its headline result on held-out data. Choose one to see what it does, how it learned and where to try it.</p></div>
+  <div class="ai-layout"><div id="ai-table"></div><div id="ai-detail" aria-live="polite"></div></div>
+</section>
+<section class="wrap section" id="lab">
+  <div class="sec-head"><h2>Try it live</h2><p>Paste two columns, X then Y, or choose a sample. Everything runs in this page.</p></div>
+  <div class="card ai-lab" id="ai-lab">
+    <div class="lab-top"><div class="lab-tabs" role="tablist"><button data-mode="symreg" role="tab" aria-selected="true">Discover the equation</button><button data-mode="shape" role="tab" aria-selected="false">Read the shape</button></div>
+      <div class="lab-samples"><span>Samples</span><button data-sample="arrhenius">Ionic conductivity</button><button data-sample="isotherm">Adsorption</button><button data-sample="decay">PL decay</button></div></div>
+    <div class="lab-body"><div class="lab-in"><textarea id="lab-data" spellcheck="false" aria-label="Data: X and Y columns"></textarea><button class="btn primary" id="lab-run">Run</button></div><div id="lab-out" aria-live="polite"></div></div>
+  </div>
+</section>
+<section class="wrap section ai-principles">
+  <div class="sec-head"><h2>Built to be trusted</h2></div>
+  <div class="sol-team-grid ai-p4">
+    <div class="card"><h3>Our own models</h3><p>Trained by Lattent on simulated data or open, licensed databases. Never on your data, and never on the output of other AI models.</p></div>
+    <div class="card"><h3>On your computer</h3><p>Every model runs in your browser, heavy ones in a background thread. Your measurements are not uploaded to train or run anything.</p></div>
+    <div class="card"><h3>Measured, not claimed</h3><p>Every number on this page comes from data the model did not see in training. The checks run before each release; see the <a href="../validation/#ai">validation page</a>.</p></div>
+    <div class="card"><h3>Uncertainty included</h3><p>Predictions carry calibrated intervals, fits carry confidence intervals and AICc, and models report their cross-validated accuracy, so you know when to trust them.</p></div>
+  </div>
+</section>
+<section class="wrap"><div class="band"><div><h2>Put the AI to work on your data.</h2><p>Free, in your browser, with nothing to install.</p></div><a class="btn big" href="../studio/">Open Lattent Studio</a></div></section>
+</main>
+<footer data-bf></footer>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/stats.js"></script>
+<script src="../assets/js/plot.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/models.js"></script>
+<script src="../assets/js/analysis.js"></script>
+<script src="../assets/js/learn.js"></script>
+<script src="../assets/js/ml-features.js"></script>
+<script src="../assets/models/shape-v1.js"></script>
+<script src="../assets/js/ml.js"></script>
+<script src="../assets/js/ai.js"></script>
+</body>
+</html>

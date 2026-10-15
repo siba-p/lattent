@@ -50,7 +50,7 @@
     const M = root.BF_GEN_MODELS && root.BF_GEN_MODELS.props;
     if (!M) return null;
     const mk = m => ({ mean: f32(m.mean), std: f32(m.std), positive: m.positive, layers: m.layers.map(lin32), metrics: m.metrics });
-    P = { eform: mk(M.eform), gap: mk(M.gap) };
+    P = { eform: mk(M.eform), gap: mk(M.gap), interval: { eform: M.eform.interval, gap: M.gap.interval } };
     return P;
   }
   function loadDiff() {
@@ -61,7 +61,7 @@
     return D;
   }
   G.ready = () => !!(root.BF_GEN_MODELS && root.BF_GEN_MODELS.props && root.BF_GEN_MODELS.mdiff);
-  G.metrics = () => { const p = loadProps(); return p ? { eform: p.eform.metrics, gap: p.gap.metrics } : null; };
+  G.metrics = () => { const p = loadProps(); return p ? { eform: p.eform.metrics, gap: p.gap.metrics, interval: p.interval } : null; };
 
   /* ---------- property prediction ---------- */
   function mlp(net, feats) {
@@ -79,9 +79,17 @@
     const p = loadProps();
     const feats = comps.map(c => C.features(c));
     const e = mlp(p.eform, feats), g = mlp(p.gap, feats);
-    return comps.map((_, i) => ({ eform: e[i], gap: g[i] }));
+    return comps.map((_, i) => ({ eform: e[i], gap: g[i], eformPm: G.halfWidth('eform', e[i]), gapPm: G.halfWidth('gap', g[i]) }));
   };
   G.predictFeatures = (which, feats) => mlp(loadProps()[which], feats);
+  /* 90% split-conformal half-width from held-out errors (band gap: per predicted-gap range) */
+  G.halfWidth = function (which, v) {
+    const iv = loadProps().interval[which];
+    if (!iv) return null;
+    if (iv.q != null) return iv.q;
+    const b = iv.bins.find(x => v >= x.lo && v < x.hi) || iv.bins[iv.bins.length - 1];
+    return b.q;
+  };
 
   /* ---------- masked discrete diffusion ---------- */
   function forward(d, E, Cn, cond, r, rows) {
@@ -194,7 +202,7 @@
     if (!o.allowIntermetallic) cands = cands.filter(x => x.cb.balanced);
     else cands = cands.filter(x => x.cb.balanced || x.cb.intermetallic);
     const pred = cands.length ? G.predict(cands.map(x => x.comp)) : [];
-    cands.forEach((x, i) => { x.eform = pred[i].eform; x.gap = pred[i].gap; });
+    cands.forEach((x, i) => { Object.assign(x, pred[i]); });
     cands = cands.filter(x => x.eform < (o.maxEform != null ? o.maxEform : 0));
     const target = o.gap;
     cands.forEach(x => { x.score = x.eform + (target != null ? 0.35 * Math.abs(x.gap - target) : 0) - 0.02 * Math.log(x.count); });

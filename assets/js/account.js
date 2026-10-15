@@ -166,5 +166,11 @@
     C.ready.then(() => (C.user ? renderAccount() : renderSignIn()));
   }
   document.addEventListener('bf:auth', () => { if (C.enabled) (C.user ? renderAccount() : renderSignIn()); });
+  /* "Sign out" in the header's account menu lands here */
+  if (qs.get('signout')) {
+    history.replaceState(null, '', location.pathname);
+    if (C.enabled) C.ready.then(() => (C.user ? C.signOut() : null)).then(() => U.toast('You are signed out.')).catch(() => null);
+    else { try { localStorage.removeItem('bf.auth'); } catch (e) { /* storage blocked */ } }
+  }
   render();
 })();

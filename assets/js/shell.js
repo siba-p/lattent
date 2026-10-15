@@ -329,6 +329,82 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
     host.onmouseleave = () => { tip.hidden = true; };
   };
 
+  /* ---------- colour theme: system, light or dark ---------- */
+  const ICON = {
+    system: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="10" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 16.5h6M10 13.5v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    light: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2.1M10 16.1v2.1M1.8 10h2.1M16.1 10h2.1M4.2 4.2l1.5 1.5M14.3 14.3l1.5 1.5M4.2 15.8l1.5-1.5M14.3 5.7l1.5-1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    dark: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.2 12.6A6.8 6.8 0 0 1 7.4 3.8a6.8 6.8 0 1 0 8.8 8.8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>'
+  };
+  const THEMES = [['system', 'System'], ['light', 'Light'], ['dark', 'Dark']];
+  const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : { matches: false, addEventListener() {} };
+  const themeGet = () => { try { const t = localStorage.getItem('bf.theme'); return t === 'light' || t === 'dark' ? t : 'system'; } catch (e) { return 'system'; } };
+  const isDark = () => { const t = themeGet(); return t === 'dark' || (t === 'system' && mq.matches); };
+  function syncThemeColor() {
+    $$('meta[name="theme-color"][media]').forEach(m => {
+      if (!m.dataset.orig) m.dataset.orig = m.content;
+      const t = themeGet();
+      m.content = t === 'system' ? m.dataset.orig : (t === 'dark' ? '#090c1b' : '#f6f7fb');
+    });
+  }
+  const themeEvent = () => document.dispatchEvent(new CustomEvent('bf:theme', { detail: { theme: themeGet(), dark: isDark() } }));
+  function themeSet(t) {
+    try { if (t === 'system') localStorage.removeItem('bf.theme'); else localStorage.setItem('bf.theme', t); } catch (e) { /* storage blocked: applies to this page only */ }
+    if (t === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+    syncThemeColor(); paintThemes(); themeEvent();
+  }
+  mq.addEventListener('change', () => { if (themeGet() === 'system') { paintThemes(); themeEvent(); } });
+  U.theme = { get: themeGet, set: themeSet, dark: isDark };
+  function paintThemes() {
+    const t = themeGet();
+    $$('.theme-btn').forEach(b => { b.innerHTML = ICON[t]; b.title = 'Theme: ' + t[0].toUpperCase() + t.slice(1); });
+    $$('[data-theme-opt]').forEach(o => o.setAttribute('aria-checked', o.dataset.themeOpt === t));
+  }
+  const closePops = except => $$('.pop-menu').forEach(m => { if (m !== except) { m.hidden = true; const b = m.previousElementSibling; if (b) b.setAttribute('aria-expanded', false); } });
+  document.addEventListener('click', e => { if (!e.target.closest('.pop-wrap')) closePops(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePops(); });
+  function popWrap(cls, button, menu) {
+    const w = document.createElement('div');
+    w.className = 'pop-wrap ' + cls;
+    w.innerHTML = button + menu;
+    const b = w.firstElementChild, m = w.lastElementChild;
+    b.onclick = e => { e.stopPropagation(); const open = m.hidden; closePops(m); m.hidden = !open; b.setAttribute('aria-expanded', open); };
+    return w;
+  }
+  U.themeControl = function () {
+    const w = popWrap('theme-wrap', '<button class="theme-btn" aria-haspopup="true" aria-expanded="false" aria-label="Colour theme"></button>',
+      `<div class="pop-menu theme-menu" role="menu" hidden>${THEMES.map(([k, n]) => `<button role="menuitemradio" data-theme-opt="${k}">${ICON[k]}<span>${n}</span></button>`).join('')}</div>`);
+    w.querySelector('.theme-menu').onclick = e => { const o = e.target.closest('[data-theme-opt]'); if (o) { themeSet(o.dataset.themeOpt); closePops(); } };
+    setTimeout(paintThemes);
+    return w;
+  };
+
+  /* ---------- account: read the stored session without loading the Supabase client ---------- */
+  U.session = function () {
+    if (!(CFG.supabase && CFG.supabase.url)) return null;
+    try {
+      const s = JSON.parse(localStorage.getItem('bf.auth') || 'null');
+      const u = s && (s.user || (s.currentSession && s.currentSession.user));
+      return u && u.email ? { email: u.email, id: u.id } : null;
+    } catch (e) { return null; }
+  };
+  const planLabel = () => {
+    const k = Pro.kind();
+    return k === 'lab' || k === 'lab-member' ? ['Lab plan', 'pro'] : k === 'account' || k === 'licence' ? ['Pro', 'pro'] : k === 'trial' ? ['Pro trial · ' + Math.ceil(Pro.trialLeft()) + ' days left', 'trial'] : ['Free plan', 'free'];
+  };
+  U.accountControl = function () {
+    const s = U.session();
+    if (!s) { const a = document.createElement('a'); a.className = 'signin'; a.href = U.root + 'account/'; a.textContent = 'Sign in'; return a; }
+    const ini = (s.email.split('@')[0].split(/[._+-]/).filter(Boolean).slice(0, 2).map(x => x[0]).join('') || s.email[0]).toUpperCase();
+    const [plan, pk] = planLabel(), free = pk === 'free';
+    return popWrap('acct-wrap', `<button class="avatar" aria-haspopup="true" aria-expanded="false" aria-label="Your account (${U.esc(s.email)})">${U.esc(ini)}</button>`,
+      `<div class="pop-menu acct-menu" role="menu" hidden>
+        <div class="am-head"><span class="avatar lg" aria-hidden="true">${U.esc(ini)}</span><div><b>${U.esc(s.email)}</b><span class="am-plan ${pk}">${plan}</span></div></div>
+        <a role="menuitem" href="${U.root}account/">Account and billing</a>
+        <a role="menuitem" href="${U.root}studio/?cloud=1">Cloud projects</a>
+        ${free ? `<a role="menuitem" class="am-up" href="${U.root}#pricing">Upgrade to Pro</a>` : ''}
+        <a role="menuitem" class="am-out" href="${U.root}account/?signout=1">Sign out</a></div>`);
+  };
+
   /* ---------- chrome ---------- */
   const here = document.currentScript && document.currentScript.src;
   U.root = here ? here.replace(/assets\/js\/shell\.js.*$/, '') : '/';
@@ -355,7 +431,8 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
       cols: [
         { h: 'Analyse', items: [['#characterise', 'Spectra and diffraction', 'Peak fits, XRD sizes, band gaps'], ['#fit', 'Curve fitting', '35 equations, ranked by AICc'], ['#compare', 'Statistics', 'Tests with the checks built in'], ['tools/tensile-test/', 'Mechanical tests', 'Modulus, yield, toughness']] },
         { h: 'Discover', items: [['studio/?discover=search', 'Materials database', '5.8 million computed crystals'], ['studio/?discover=phase', 'Phase identification', 'Match XRD peaks to structures'], ['studio/?discover=gen', 'Generative design', 'Propose new compositions'], ['#optimise', 'Bayesian optimisation', 'Choose the next experiments']] },
-        { h: 'Work together', items: [['#co-scientist', 'AI co-scientist', 'Suggests, explains, never invents'], ['#publish', 'Figures and write-ups', '600-dpi figures and methods text'], ['account/', 'Cloud and Lab teams', 'Sync and share with your group']] }
+        { h: 'AI and ML', items: [['ai/', 'The AI inside Lattent', 'Fifteen models, each with its accuracy'], ['studio/?example=floryfox&run=symreg', 'Equation discovery', 'Symbolic regression finds the formula'], ['studio/?example=perovskite', 'AutoML predictions', 'Best model, importance, intervals'], ['#co-scientist', 'AI co-scientist', 'Suggests, explains, never invents']] },
+        { h: 'Work together', items: [['#publish', 'Figures and write-ups', '600-dpi figures and methods text'], ['account/', 'Cloud and Lab teams', 'Sync and share with your group'], ['#organise', 'Data tables', 'XY, column and multi-variable']] }
       ] },
     { id: 'solutions', label: 'Solutions',
       feature: { kicker: 'Worked example', title: 'Identify the phases in your XRD', text: 'Fit the peaks of a gold-nanoparticle pattern, then match them against every computed gold structure.', href: 'studio/?example=xrd', cta: 'Open the example' },
@@ -391,9 +468,14 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         <nav class="nav" aria-label="Site">${MENU.map(m => m.href
           ? `<a class="nav-top" href="${href(m.href)}">${m.label}</a>`
           : `<div class="nav-group"><button class="nav-top" aria-expanded="false" aria-controls="mm-${m.id}">${m.label}<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${panel(m)}</div>`).join('')}
-          <div class="nav-m-acts"><a class="btn" href="${U.root}account/">Sign in</a><a class="btn primary" href="${U.root}studio/">Open Studio</a></div></nav>
-        <div class="top-r"><a class="pro-chip" href="${U.root}account/" id="pro-chip" hidden></a><a class="signin" href="${U.root}account/">Sign in</a><a class="btn primary small open-studio" href="${U.root}studio/">Open Studio</a>
+          <div class="nav-m-theme"><span>Theme</span><div class="seg-t">${THEMES.map(([k, n]) => `<button data-theme-opt="${k}" role="menuitemradio">${ICON[k]}<span>${n}</span></button>`).join('')}</div></div>
+          <div class="nav-m-acts">${U.session() ? `<a class="btn" href="${U.root}account/">Your account</a>` : `<a class="btn" href="${U.root}account/">Sign in</a>`}<a class="btn primary" href="${U.root}studio/">Open Studio</a></div></nav>
+        <div class="top-r"><a class="pro-chip" href="${U.root}account/" id="pro-chip" hidden></a><span class="slot-theme"></span><span class="slot-acct"></span><a class="btn primary small open-studio" href="${U.root}studio/">Open Studio</a>
         <button class="menu-btn" aria-label="Menu" aria-expanded="false"><span></span><span></span></button></div></div>`;
+      $('.slot-theme', h).replaceWith(U.themeControl());
+      $('.slot-acct', h).replaceWith(U.accountControl());
+      $$('.nav-m-theme [data-theme-opt]', h).forEach(b => b.onclick = () => themeSet(b.dataset.themeOpt));
+      paintThemes();
       const mb = $('.menu-btn', h), groups = [...h.querySelectorAll('.nav-group')];
       const mobile = () => window.matchMedia('(max-width: 960px)').matches;
       const setOpen = (g, open) => {
@@ -415,6 +497,9 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
       mb.onclick = () => { const o = h.classList.toggle('open'); mb.setAttribute('aria-expanded', o); if (!o) closeAll(); };
       if (path.includes('/solutions/')) { const sb = h.querySelector('[aria-controls="mm-solutions"]'); if (sb) sb.classList.add('cur'); }
     }
+    const st = $('#st-theme'); if (st) st.replaceWith(U.themeControl());
+    const sa = $('#st-acct'); if (sa) sa.replaceWith(U.accountControl());
+    syncThemeColor();
     const f = $('footer[data-bf]');
     if (f) {
       f.className = 'foot';
@@ -431,6 +516,8 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
   function proChip() {
     const c = $('#pro-chip');
     if (!c) return;
+    /* signed in: the account menu shows the plan, so the chip is only needed inside Studio */
+    if (U.session && U.session() && !document.body.classList.contains('studio')) { c.hidden = true; return; }
     const k = Pro.kind();
     if (k === 'licence' || k === 'account') { c.textContent = 'Pro'; c.className = 'pro-chip on'; c.hidden = false; }
     else if (k === 'lab' || k === 'lab-member') { c.textContent = 'Lab'; c.className = 'pro-chip on'; c.hidden = false; }

@@ -34,6 +34,9 @@ Live site: https://siba-p.github.io/lattent/
 | `assets/js/chem.js` | Elements, formula parsing, composition features, charge balance |
 | `assets/js/crystal.js` | OPTIMADE client (Alexandria), cell symmetrisation, conventional cells, powder XRD, phase matching, CIF |
 | `assets/js/generate.js`, `gen-worker.js`, `assets/models/gen-v1.js` | Generative and property models, run in a Web Worker |
+| `assets/js/learn.js`, `learn-worker.js` | Equation discovery (symbolic regression) and AutoML with permutation importance and conformal intervals |
+| `ai/`, `assets/js/ai.js` | The AI page: periodic table of Lattent's models and a live lab |
+| `assets/js/theme.js` | Applies the saved light or dark theme before the page paints |
 | `assets/js/discover.js` | Studio's Discover views: database, phase identification, generation, 3D viewer |
 | `tests/gen/` | Featurisation, training scripts, bundling and checks for the generative models |
 | `tools/`, `scripts/build_tools.py` | Quick-tool pages for materials and chemistry (generated) |
