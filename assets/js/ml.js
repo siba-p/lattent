@@ -1,4 +1,4 @@
-/* In-browser inference for Benchfit's specialist models (weights in assets/models/shape-v1.js).
+/* In-browser inference for Lattent's specialist models (weights in assets/models/shape-v1.js).
    A two-layer network reads the shape fingerprint of XY data and says which family of
    behaviour it shows; a second model judges whether scatter grows with the signal. */
 (function (root) {

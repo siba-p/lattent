@@ -1,4 +1,4 @@
-"""Compare Benchfit engine results with SciPy. Usage: python tests/check_scipy.py out.json"""
+"""Compare Lattent engine results with SciPy. Usage: python tests/check_scipy.py out.json"""
 import json
 import sys
 
@@ -12,7 +12,7 @@ fails = []
 def close(name, a, b, rtol):
     a, b = np.asarray(a, float), np.asarray(b, float)
     ok = np.allclose(a, b, rtol=rtol, atol=1e-9)
-    print(f"{'ok ' if ok else 'FAIL'} {name}: benchfit={np.round(a, 6).tolist()} scipy={np.round(b, 6).tolist()}")
+    print(f"{'ok ' if ok else 'FAIL'} {name}: lattent={np.round(a, 6).tolist()} scipy={np.round(b, 6).tolist()}")
     if not ok:
         fails.append(name)
 

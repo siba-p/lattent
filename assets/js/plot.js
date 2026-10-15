@@ -1,4 +1,4 @@
-/* Benchfit charts: SVG strings with inline attributes, so the same markup serves the
+/* Lattent charts: SVG strings with inline attributes, so the same markup serves the
    screen and the exported figure. */
 (function (root) {
   'use strict';

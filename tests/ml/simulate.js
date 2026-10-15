@@ -1,4 +1,4 @@
-/* Simulates labelled XY datasets for training Benchfit's shape and noise models.
+/* Simulates labelled XY datasets for training Lattent's shape and noise models.
    Every dataset is turned into features by assets/js/ml-features.js, the same code the
    browser uses. Usage: node tests/ml/simulate.js <per-class> <seed> <out.json> */
 const fs = require('fs'), path = require('path'), vm = require('vm');

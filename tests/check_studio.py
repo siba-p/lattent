@@ -1,4 +1,4 @@
-"""Compare Benchfit studio engines with SciPy/NumPy. Usage: python tests/check_studio.py out.json"""
+"""Compare Lattent studio engines with SciPy/NumPy. Usage: python tests/check_studio.py out.json"""
 import json
 import sys
 
@@ -12,7 +12,7 @@ fails = []
 def close(name, a, b, rtol, atol=1e-9):
     a, b = np.asarray(a, float), np.asarray(b, float)
     ok = a.shape == b.shape and np.allclose(a, b, rtol=rtol, atol=atol)
-    print(f"{'ok ' if ok else 'FAIL'} {name}: benchfit={np.round(a, 6).tolist()} ref={np.round(b, 6).tolist()}")
+    print(f"{'ok ' if ok else 'FAIL'} {name}: lattent={np.round(a, 6).tolist()} ref={np.round(b, 6).tolist()}")
     if not ok:
         fails.append(name)
 

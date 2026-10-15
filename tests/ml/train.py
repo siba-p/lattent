@@ -1,4 +1,4 @@
-"""Train Benchfit's in-browser specialist models on simulated data and export them.
+"""Train Lattent's in-browser specialist models on simulated data and export them.
 
 Usage: python tests/ml/train.py <out-dir-with-train*.json-and-test.json> <assets/models/shape-v1.js>
 
@@ -66,7 +66,7 @@ model = {
                 "train_samples": int(len(y)), "test_samples": int(len(yt)), "confusion": cm.tolist()},
 }
 with open(out_js, "w") as f:
-    f.write("/* Benchfit specialist models, trained on simulated data by tests/ml/train.py. Do not edit. */\n")
+    f.write("/* Lattent specialist models, trained on simulated data by tests/ml/train.py. Do not edit. */\n")
     f.write("window.BF_ML_MODELS = " + json.dumps(model, separators=(",", ":")) + ";\n")
 # reference predictions for the JavaScript parity test
 json.dump({"X": Xt[:60].tolist(), "P": P[:60].tolist(), "NX": NXt[:60].tolist(), "PN": pn[:60].tolist()},

@@ -1,4 +1,4 @@
-/* Fits reference datasets with the Benchfit engines and writes the results as JSON
+/* Fits reference datasets with the Lattent engines and writes the results as JSON
    for tests/check_scipy.py to compare against SciPy. Usage: node tests/run-engines.js out.json */
 const fs = require('fs');
 const path = require('path');

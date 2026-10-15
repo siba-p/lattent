@@ -1,7 +1,7 @@
 {
-  "name": "benchfit",
+  "name": "lattent",
   "private": true,
-  "description": "Benchfit: browser workspace for scientific data analysis",
+  "description": "Lattent: browser workspace for scientific data analysis",
   "scripts": {
     "test:db": "node tests/db/rls.test.mjs && node tests/db/billing.test.mjs",
     "test:engines": "node tests/run-engines.js out.json && node tests/run-studio.js studio.json"

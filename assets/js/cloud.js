@@ -1,4 +1,4 @@
-/* Benchfit cloud: accounts (email sign-in links), plan, cloud projects, Lab teams,
+/* Lattent cloud: accounts (email sign-in links), plan, cloud projects, Lab teams,
    checkout and account deletion. Talks only to Supabase with the public anon key;
    the database's row-level security decides what each user may read or write. */
 (function () {
@@ -96,7 +96,7 @@
     need();
     const { data, error } = await sb.from('projects').select('*').eq('owner', C.user.id);
     if (error) throw new Error(friendly(error));
-    U.download('benchfit-cloud-export-' + new Date().toISOString().slice(0, 10) + '.json', 'application/json', JSON.stringify({ exported: new Date().toISOString(), email: C.user.email, projects: data }, null, 1));
+    U.download('lattent-cloud-export-' + new Date().toISOString().slice(0, 10) + '.json', 'application/json', JSON.stringify({ exported: new Date().toISOString(), email: C.user.email, projects: data }, null, 1));
   };
 
   /* ---------- billing ---------- */

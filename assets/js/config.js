@@ -1,7 +1,7 @@
 /* Site configuration. Fill in the Lemon Squeezy values once the store is approved;
    until then the Pro buttons offer the free 7-day trial only. */
 window.BF_CONFIG = {
-  brand: 'Benchfit',
+  brand: 'Lattent',
   /* Supabase project (Settings → API). The anon key is public by design; row-level
      security in the database protects every table. Leave empty to run without accounts. */
   supabase: { url: '', anonKey: '' },
@@ -14,6 +14,6 @@ window.BF_CONFIG = {
   earlyAccess: true,
   trialDays: 7,
   support: '',
-  site: 'siba-p.github.io/benchfit',
+  site: 'siba-p.github.io/lattent',
   author: { name: 'Sibasankar Panigrahy, PhD', url: 'https://siba-p.github.io/' }
 };

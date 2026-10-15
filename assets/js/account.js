@@ -16,9 +16,9 @@
     if (!live) return '<p class="m-note">Paid plans open shortly. Meanwhile, the 7-day trial unlocks everything.</p>';
     const card = (id, title, price, per, sub, best) => `<div class="pcard${best ? ' best' : ''}"><b>${title}</b><div class="amt">$${price}<small>/${per}</small></div><p>${sub}</p>
       <button class="btn ${best ? 'primary' : ''}" data-buy="${id}">${signedIn ? 'Continue to secure checkout' : 'Sign in to buy'}</button></div>`;
-    return `${CFG.earlyAccess ? '<p class="early">Early-access pricing while Benchfit is new.</p>' : ''}
+    return `${CFG.earlyAccess ? '<p class="early">Early-access pricing while Lattent is new.</p>' : ''}
       <div class="pcards">${card('yearly', 'Pro yearly', p.yearly, 'year', 'Best value: about $' + (p.yearly / 12).toFixed(2) + ' a month', true)}${card('monthly', 'Pro monthly', p.monthly, 'month', 'Cancel any time')}${card('lab', 'Lab', p.lab, 'year', 'Up to 10 people, shared projects')}</div>
-      <p class="hint">Payments are processed by Lemon Squeezy, our merchant of record, over a secure checkout. Benchfit never sees your card details. Sales tax and VAT are included where they apply. 14-day refund, no questions asked.</p>`;
+      <p class="hint">Payments are processed by Lemon Squeezy, our merchant of record, over a secure checkout. Lattent never sees your card details. Sales tax and VAT are included where they apply. 14-day refund, no questions asked.</p>`;
   }
 
   /* ---------- cloud disabled: licence keys and trial only ---------- */

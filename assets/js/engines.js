@@ -1,4 +1,4 @@
-/* Benchfit analysis engines: dose–response, standard curves, enzyme kinetics, qPCR.
+/* Lattent analysis engines: dose–response, standard curves, enzyme kinetics, qPCR.
    Pure functions with no DOM access, shared by the web tools and the test suite. */
 (function (root) {
   'use strict';

@@ -1,4 +1,4 @@
-/* Benchfit numerical core: special functions, distributions, Levenberg–Marquardt
+/* Lattent numerical core: special functions, distributions, Levenberg–Marquardt
    least squares with covariance, delta-method intervals, model comparison. */
 (function (root) {
   'use strict';

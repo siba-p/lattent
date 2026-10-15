@@ -1,4 +1,4 @@
-/* Benchfit Studio: data tables → analyses → graphs → write-up, with an AI co-scientist. */
+/* Lattent Studio: data tables → analyses → graphs → write-up, with an AI co-scientist. */
 (function () {
   'use strict';
   const { stats: S, models: M, analysis: A, plot: P, ui: U, pro: Pro } = BF;
@@ -158,7 +158,7 @@
       const ok = res.fits.filter(f => !f.r.error); if (!ok.length) return null;
       const m = res.model;
       const reps = ok[0].s.reps;
-      const methods = `Data (${ok.map(f => f.s.means.length + ' X values').join(', ')}${reps > 1 ? ', ' + reps + ' replicates' : ''}) were fitted by nonlinear least squares (Levenberg–Marquardt) to the ${m.name.toLowerCase()} model, ${esc(m.eq)}${o.weight !== 'none' ? `, weighted by ${o.weight === '1/y2' ? '1/Y²' : '1/Y'}` : ''}. Parameter uncertainties are asymptotic standard errors with 95% confidence intervals from the t distribution; derived quantities were propagated by the delta method. Analyses were performed with Benchfit (${BF_CONFIG.site}).`;
+      const methods = `Data (${ok.map(f => f.s.means.length + ' X values').join(', ')}${reps > 1 ? ', ' + reps + ' replicates' : ''}) were fitted by nonlinear least squares (Levenberg–Marquardt) to the ${m.name.toLowerCase()} model, ${esc(m.eq)}${o.weight !== 'none' ? `, weighted by ${o.weight === '1/y2' ? '1/Y²' : '1/Y'}` : ''}. Parameter uncertainties are asymptotic standard errors with 95% confidence intervals from the t distribution; derived quantities were propagated by the delta method. Analyses were performed with Lattent (${BF_CONFIG.site}).`;
       const results = ok.map(f => `For ${esc(f.s.name)}, ${m.params.map((p, j) => `${esc(p)} = ${fmt(f.r.fit.p[j], 4)}${f.r.fit.fixed[j] ? ' (fixed)' : ` (95% CI ${fmt(f.r.fit.ci[j][0], 3)} to ${fmt(f.r.fit.ci[j][1], 3)})`}`).join(', ')}${f.r.derived.length ? '; ' + f.r.derived.map(d => `${esc(d.name)} = ${fmt(d.value, 4)} ± ${fmt(d.se, 2)}`).join(', ') : ''} (R² = ${f.r.fit.r2.toFixed(4)}).`).join(' ');
       return [{ title: 'Methods', html: `<p>${methods}</p>` }, { title: 'Results', html: `<p>${results}</p>` }];
     }
@@ -245,7 +245,7 @@
     text(res) {
       if (!res.list || !res.list.length) return null;
       const b = res.list[0];
-      return [{ title: 'Methods', html: `<p>${res.list.length} candidate models were fitted to ${esc(res.s.name)} by nonlinear least squares and compared with the corrected Akaike information criterion (AICc); Akaike weights give the relative support for each model. Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+      return [{ title: 'Methods', html: `<p>${res.list.length} candidate models were fitted to ${esc(res.s.name)} by nonlinear least squares and compared with the corrected Akaike information criterion (AICc); Akaike weights give the relative support for each model. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
         { title: 'Results', html: `<p>The ${esc(b.model.name.toLowerCase())} model was preferred (Akaike weight ${(100 * b.weight).toFixed(0)}%, R² = ${b.fit.r2.toFixed(4)})${res.list[1] ? `, ahead of the ${esc(res.list[1].model.name.toLowerCase())} model (ΔAICc = ${res.list[1].dAICc.toFixed(1)})` : ''}.</p>` }];
     }
   };
@@ -287,7 +287,7 @@
     },
     text(res) {
       const ok = res.fits.filter(f => f.f); if (!ok.length) return null;
-      return [{ title: 'Methods', html: `<p>Straight lines were fitted by ordinary least squares; 95% confidence intervals use the t distribution.${res.cmp ? ' Slopes were compared with an extra-sum-of-squares F test against a model with one common slope.' : ''} Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+      return [{ title: 'Methods', html: `<p>Straight lines were fitted by ordinary least squares; 95% confidence intervals use the t distribution.${res.cmp ? ' Slopes were compared with an extra-sum-of-squares F test against a model with one common slope.' : ''} Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
         { title: 'Results', html: `<p>${ok.map(f => `${esc(f.s.name)}: slope ${fmt(f.f.p[1])} (95% CI ${fmt(f.f.ci[1][0], 3)} to ${fmt(f.f.ci[1][1], 3)}), R² = ${f.f.r2.toFixed(3)}`).join('; ')}.${res.cmp ? ` The slopes ${res.cmp.p < 0.05 ? 'differed' : 'did not differ'} significantly (F(${res.cmp.df1}, ${res.cmp.df2}) = ${res.cmp.F.toFixed(2)}, ${pEq(res.cmp.p)}).` : ''}</p>` }];
     }
   };
@@ -341,7 +341,7 @@
       const shape = { gauss: 'Gaussian', lorentz: 'Lorentzian', pv: 'pseudo-Voigt' }[o.shape];
       let m = `${o.baseline !== 'none' ? `A ${['constant', 'linear', 'quadratic', 'cubic'][+o.baseline]} baseline was removed by iterative polynomial fitting. ` : ''}Peaks were located on the Savitzky–Golay-smoothed signal and fitted simultaneously with ${shape} profiles by nonlinear least squares.`;
       if (res.xr) m += ` Crystallite sizes were estimated with the Scherrer equation (K = ${o.K}, λ = ${o.lambda} Å${+o.inst ? `, instrumental broadening of ${o.inst}° removed in quadrature` : ''})${res.xr.wh ? ' and with a Williamson–Hall analysis' : ''}.`;
-      m += ` Analyses were performed with Benchfit (${BF_CONFIG.site}).`;
+      m += ` Analyses were performed with Lattent (${BF_CONFIG.site}).`;
       let r = `${res.pf.peaks.length} peaks were resolved (R² = ${res.pf.r2.toFixed(3)}), at ${res.pf.peaks.map(p => fmt(p.center, 4)).join(', ')}.`;
       if (res.xr) r += ` The mean Scherrer crystallite size was ${fmt(res.xr.meanSize, 3)} nm${res.xr.wh && isFinite(res.xr.wh.size) ? `; the Williamson–Hall analysis gave ${fmt(res.xr.wh.size, 3)} nm with a microstrain of ${fmt(res.xr.wh.strain * 100, 2)}%` : ''}.`;
       return [{ title: 'Methods', html: `<p>${m}</p>` }, { title: 'Results', html: `<p>${r}</p>` }];
@@ -379,7 +379,7 @@
     },
     text(res, o) {
       const r = res.r;
-      return [{ title: 'Methods', html: `<p>Optical band gaps were determined from Tauc plots of (αhν)<sup>${{ direct: 2, indirect: '1/2', 'direct-forbidden': '2/3', 'indirect-forbidden': '1/3' }[o.transition]}</sup> against photon energy, by linear extrapolation of the absorption edge (${r.region[0].toFixed(2)}–${r.region[1].toFixed(2)} eV) to zero. Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+      return [{ title: 'Methods', html: `<p>Optical band gaps were determined from Tauc plots of (αhν)<sup>${{ direct: 2, indirect: '1/2', 'direct-forbidden': '2/3', 'indirect-forbidden': '1/3' }[o.transition]}</sup> against photon energy, by linear extrapolation of the absorption edge (${r.region[0].toFixed(2)}–${r.region[1].toFixed(2)} eV) to zero. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
         { title: 'Results', html: `<p>The ${o.transition.replace('-', ' ')} optical band gap was ${r.Eg.toFixed(2)} eV (95% CI ${r.ci[0].toFixed(2)}–${r.ci[1].toFixed(2)} eV), corresponding to an absorption edge near ${(1239.84 / r.Eg).toFixed(0)} nm.</p>` }];
     }
   };
@@ -414,7 +414,7 @@
     },
     text(res, o) {
       const r = res.r, unit = (res.d.ylabel.match(/\(([^)]+)\)/) || [])[1] || '';
-      return [{ title: 'Methods', html: `<p>Young's modulus was obtained by linear regression over the steepest linear segment of the initial loading curve; the yield strength was determined by the ${o.offset}% offset method, and toughness by trapezoidal integration of the stress–strain curve to failure. Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+      return [{ title: 'Methods', html: `<p>Young's modulus was obtained by linear regression over the steepest linear segment of the initial loading curve; the yield strength was determined by the ${o.offset}% offset method, and toughness by trapezoidal integration of the stress–strain curve to failure. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
         { title: 'Results', html: `<p>The specimen showed a modulus of ${fmt(r.E, 3)} ${unit}, a yield strength of ${fmt(r.yieldS, 3)} ${unit}, an ultimate tensile strength of ${fmt(r.uts, 3)} ${unit} and an elongation at break of ${fmt(r.pct ? r.elong * 100 : r.elong, 3)}${r.pct ? '%' : ''}.</p>` }];
     }
   };
@@ -436,7 +436,7 @@
         csv: () => [['Data set', 'Total', 'Positive', 'Negative', 'Peak X', 'Peak Y']].concat(res.list.map(l => [l.s.name, l.r.total, l.r.positive, l.r.negative, l.r.peakX, l.r.peakY]))
       };
     },
-    text: res => [{ title: 'Methods', html: `<p>Areas under the curve were computed by the trapezoidal rule. Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` }, { title: 'Results', html: `<p>${res.list.map(l => `${esc(l.s.name)}: ${fmt(l.r.total)}`).join('; ')}.</p>` }]
+    text: res => [{ title: 'Methods', html: `<p>Areas under the curve were computed by the trapezoidal rule. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` }, { title: 'Results', html: `<p>${res.list.map(l => `${esc(l.s.name)}: ${fmt(l.r.total)}`).join('; ')}.</p>` }]
   };
 
   K.smooth = {
@@ -469,7 +469,7 @@
         csv: () => [['X', der ? 'dY/dX' : 'Smoothed']].concat(res.x.map((x, i) => [x, res.out[i]]))
       };
     },
-    text: (res, o) => [{ title: 'Methods', html: `<p>Data were ${o.deriv === '1' ? 'differentiated' : 'smoothed'} with a Savitzky–Golay filter (window ${2 * o.half + 1} points, polynomial order ${o.order}). Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` }]
+    text: (res, o) => [{ title: 'Methods', html: `<p>Data were ${o.deriv === '1' ? 'differentiated' : 'smoothed'} with a Savitzky–Golay filter (window ${2 * o.half + 1} points, polynomial order ${o.order}). Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` }]
   };
 
   /* ---------- Column ---------- */
@@ -524,7 +524,7 @@
     text(res, o) {
       const r = res.r;
       const name = { welch: "Welch's unpaired t test", student: "Student's unpaired t test", paired: 'a paired t test', mw: 'the two-sided Mann–Whitney U test' }[o.test];
-      return [{ title: 'Methods', html: `<p>${esc(res.a.name)} and ${esc(res.b.name)} were compared with ${name} (two-tailed, α = 0.05). Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+      return [{ title: 'Methods', html: `<p>${esc(res.a.name)} and ${esc(res.b.name)} were compared with ${name} (two-tailed, α = 0.05). Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
         { title: 'Results', html: `<p>${o.test === 'mw' ? `Medians were ${fmt(r.medA)} and ${fmt(r.medB)} (U = ${fmt(r.U)}, ${pEq(r.p)}).` : `The mean difference was ${fmt(r.diff)} (95% CI ${fmt(r.lo)} to ${fmt(r.hi)}; t(${fmt(r.df, 3)}) = ${r.t.toFixed(2)}, ${pEq(r.p)}).`}</p>` }];
     }
   };
@@ -570,7 +570,7 @@
       const p = o.test === 'welch' ? r.welch.p : o.test === 'kw' ? r.kw.p : r.p;
       const pk = o.post === 'tukey' ? 'pTukey' : 'pHolm';
       const sig = r.pairs.filter(x => x[pk] < 0.05);
-      return [{ title: 'Methods', html: `<p>Groups were compared by ${name} followed by ${post}; homogeneity of variance was assessed with the Brown–Forsythe test. Data are shown as ${o.err === 'sem' ? 'mean ± SEM' : o.err === 'ci' ? 'mean ± 95% CI' : 'mean ± SD'} with individual values. Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+      return [{ title: 'Methods', html: `<p>Groups were compared by ${name} followed by ${post}; homogeneity of variance was assessed with the Brown–Forsythe test. Data are shown as ${o.err === 'sem' ? 'mean ± SEM' : o.err === 'ci' ? 'mean ± 95% CI' : 'mean ± SD'} with individual values. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
         { title: 'Results', html: `<p>Group means ${p < 0.05 ? 'differed significantly' : 'did not differ significantly'} (${pEq(p)}).${sig.length ? ' Post tests showed significant differences for ' + sig.map(x => `${esc(x.a)} vs ${esc(x.b)} (${pEq(x[pk])})`).join(', ') + '.' : ''}</p>` },
         { title: 'Figure legend', html: `<p>Individual values with ${o.err === 'sem' ? 'mean ± SEM' : o.err === 'ci' ? 'mean ± 95% CI' : 'mean ± SD'}. * p < 0.05, ** p < 0.01, *** p < 0.001 (${post}).</p>` }];
     }
@@ -601,7 +601,7 @@
         csv: () => [[''].concat(res.names)].concat(res.m.map((r, i) => [res.names[i]].concat(r.map(c => c.r))))
       };
     },
-    text: (res, o) => [{ title: 'Methods', html: `<p>${o.method === 'spearman' ? 'Spearman rank' : 'Pearson'} correlation coefficients were computed between all pairs of variables (n = ${res.n}). Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` }]
+    text: (res, o) => [{ title: 'Methods', html: `<p>${o.method === 'spearman' ? 'Spearman rank' : 'Pearson'} correlation coefficients were computed between all pairs of variables (n = ${res.n}). Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` }]
   };
 
   K.mlr = {
@@ -627,7 +627,7 @@
         csv: () => [['Term', 'Coefficient', 'SE', 'CI low', 'CI high', 'p']].concat(r.coefs.map(c => [c.name, c.b, c.se, c.lo, c.hi, c.p]))
       };
     },
-    text: res => [{ title: 'Methods', html: `<p>${esc(res.names[res.names.length - 1])} was modelled by multiple linear regression on ${res.names.slice(0, -1).map(esc).join(', ')} (ordinary least squares, n = ${res.r.n}). Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+    text: res => [{ title: 'Methods', html: `<p>${esc(res.names[res.names.length - 1])} was modelled by multiple linear regression on ${res.names.slice(0, -1).map(esc).join(', ')} (ordinary least squares, n = ${res.r.n}). Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
       { title: 'Results', html: `<p>The model explained ${(100 * res.r.r2).toFixed(1)}% of the variance (adjusted R² = ${res.r.adj.toFixed(3)}, F test ${pEq(res.r.pF)}). ${res.r.coefs.slice(1).filter(c => c.p < 0.05).map(c => `${esc(c.name)} had a significant effect (β = ${c.beta.toFixed(2)}, ${pEq(c.p)})`).join('; ')}.</p>` }]
   };
 
@@ -656,7 +656,7 @@
         csv: () => [['Variable'].concat(r.values.map((_, i) => 'PC' + (i + 1)))].concat(r.names.map((n, j) => [n].concat(r.loadings.map(l => l[j]))))
       };
     },
-    text: res => [{ title: 'Methods', html: `<p>Principal component analysis was performed on the standardised variables (${res.r.names.map(esc).join(', ')}; n = ${res.mx.rows.length}). Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+    text: res => [{ title: 'Methods', html: `<p>Principal component analysis was performed on the standardised variables (${res.r.names.map(esc).join(', ')}; n = ${res.mx.rows.length}). Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
       { title: 'Results', html: `<p>The first two components explained ${(100 * res.r.explained[0]).toFixed(1)}% and ${(100 * (res.r.explained[1] || 0)).toFixed(1)}% of the variance.</p>` }]
   };
 
@@ -688,7 +688,7 @@
         csv: () => [['Sample', 'Cluster']].concat(res.mx.labels.map((l, i) => [l, b.labels[i] + 1]))
       };
     },
-    text: res => [{ title: 'Methods', html: `<p>Samples were clustered by k-means (k-means++ initialisation, 12 restarts) on standardised variables; ${res.tries.length > 1 ? 'the number of clusters was chosen by the mean silhouette width' : 'k was set by the user'}. Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` }]
+    text: res => [{ title: 'Methods', html: `<p>Samples were clustered by k-means (k-means++ initialisation, 12 restarts) on standardised variables; ${res.tries.length > 1 ? 'the number of clusters was chosen by the mean silhouette width' : 'k was set by the user'}. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` }]
   };
 
   K.bo = {
@@ -745,7 +745,7 @@
     },
     text(res, o) {
       const g = res.s.gp, yn = res.names[res.names.length - 1];
-      return [{ title: 'Methods', html: `<p>${esc(yn)} was modelled as a function of ${res.names.slice(0, -1).map(esc).join(', ')} with Gaussian-process regression (squared-exponential kernel with automatic relevance determination; hyperparameters by maximum marginal likelihood; n = ${res.y.length}). Predictive accuracy was assessed by leave-one-out cross-validation. New experiments were proposed by Bayesian optimisation, maximising expected improvement${o.compo ? ` subject to the mixture constraint (components sum to ${o.total})` : ''}. Analyses were performed with Benchfit (${BF_CONFIG.site}).</p>` },
+      return [{ title: 'Methods', html: `<p>${esc(yn)} was modelled as a function of ${res.names.slice(0, -1).map(esc).join(', ')} with Gaussian-process regression (squared-exponential kernel with automatic relevance determination; hyperparameters by maximum marginal likelihood; n = ${res.y.length}). Predictive accuracy was assessed by leave-one-out cross-validation. New experiments were proposed by Bayesian optimisation, maximising expected improvement${o.compo ? ` subject to the mixture constraint (components sum to ${o.total})` : ''}. Analyses were performed with Lattent (${BF_CONFIG.site}).</p>` },
         { title: 'Results', html: `<p>The surrogate model reached a leave-one-out Q² of ${g.q2.toFixed(2)}. ${res.names.slice(0, -1).map((n, j) => [n, g.relevance[j]]).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([n, v]) => `${esc(n)} (${(100 * v).toFixed(0)}%)`).join(' and ')} were the most influential inputs. The top suggested experiment is predicted to give ${fmt(res.s.picks[0].mean, 3)} ± ${fmt(res.s.picks[0].sd, 2)}.</p>` }];
     }
   };
@@ -962,7 +962,7 @@
     if (r.wire) r.wire(out, it);
     $('#it-csv').onclick = () => Pro.require('CSV export', () => r.csv && U.download((t.name + '-' + it.kind).replace(/[^\w-]+/g, '_') + '.csv', 'text/csv', U.csv(r.csv())));
     const sections = k.text ? k.text(res, it.opts, t) : null;
-    if (sections) U.renderReport($('#it-rep'), sections, { title: k.label + ': ' + t.name, file: 'benchfit-' + it.kind, figure: () => charts[0] ? charts[0](P.print, 720, 500).svg : '' });
+    if (sections) U.renderReport($('#it-rep'), sections, { title: k.label + ': ' + t.name, file: 'lattent-' + it.kind, figure: () => charts[0] ? charts[0](P.print, 720, 500).svg : '' });
     else $('#it-rep').innerHTML = '';
     lastRendered = { it, res, r };
   }
@@ -1011,7 +1011,7 @@
       if (/mn|mw|molecular/.test(xl)) out.push({ title: 'Fit Flory–Fox', why: 'Property vs molecular weight: Flory–Fox gives the infinite-chain limit.', kind: 'nlfit', opts: { model: 'floryfox', logx: true } });
       if (/shear|rate|γ/.test(xl)) out.push({ title: 'Fit a shear-thinning model', why: 'Viscosity vs shear rate: Carreau or Cross models give η₀ and the power-law index.', kind: 'autofit', opts: { field: 'Polymers', logx: true } });
       if (/cₑ|ce\b|equilib|isotherm|pressure/.test(xl + ' ' + t.cols.join(' ').toLowerCase())) out.push({ title: 'Compare adsorption isotherms', why: 'Langmuir, Freundlich and Sips ranked by AICc.', kind: 'autofit', opts: { field: 'Materials & chemistry' } });
-      if (n >= 5 && !out.some(o => o.kind === 'autofit')) out.push({ title: 'Let Benchfit find the best model', why: 'Tries every applicable equation and ranks them by AICc, so you can see what the data support before choosing.', kind: 'autofit', opts: { field: 'all' } });
+      if (n >= 5 && !out.some(o => o.kind === 'autofit')) out.push({ title: 'Let Lattent find the best model', why: 'Tries every applicable equation and ranks them by AICc, so you can see what the data support before choosing.', kind: 'autofit', opts: { field: 'all' } });
       if (d.series.length > 1 && n >= 3) out.push({ title: 'Compare the data sets with linear regression', why: 'Tests whether the slopes differ between data sets.', kind: 'linreg', opts: {} });
     } else if (t.type === 'col') {
       const g = colData(t);
@@ -1044,11 +1044,11 @@
     const box = $('#co-advisor');
     if (!t) { box.innerHTML = '<p class="hint">Open a table to get suggestions.</p>'; return; }
     const list = advise(t);
-    box.innerHTML = `<p class="hint">Suggestions for <b>${esc(t.name)}</b>.</p>` + list.map((s, i) => (s.shape ? `<div class="sug ai">${shapeLine(s.shape)}<p class="hint" style="margin:6px 0 0">Benchfit's shape model was trained on ${(BF.ml.metrics().train_samples / 1000).toFixed(0)},000 simulated lab datasets and runs in your browser.</p></div>` : `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind ? `<button class="btn small primary" data-run="${i}">Run</button>` : ''}</div>`)).join('');
+    box.innerHTML = `<p class="hint">Suggestions for <b>${esc(t.name)}</b>.</p>` + list.map((s, i) => (s.shape ? `<div class="sug ai">${shapeLine(s.shape)}<p class="hint" style="margin:6px 0 0">Lattent's shape model was trained on ${(BF.ml.metrics().train_samples / 1000).toFixed(0)},000 simulated lab datasets and runs in your browser.</p></div>` : `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind ? `<button class="btn small primary" data-run="${i}">Run</button>` : ''}</div>`)).join('');
     $$('[data-run]', box).forEach(b => b.onclick = () => { const s = list[+b.dataset.run]; addItem(t.id, s.kind, s.opts); });
   }
 
-  /* LLM chat: the model plans; Benchfit computes. */
+  /* LLM chat: the model plans; Lattent computes. */
   const AI = { get: () => U.store.get('bf.ai', { provider: 'anthropic', model: 'claude-sonnet-5-5', key: '' }), set: v => U.store.set('bf.ai', v) };
   let chat = [];
   function projectSummary() {
@@ -1062,8 +1062,8 @@
   function systemPrompt() {
     const cat = Object.entries(K).map(([id, k]) => `- ${id} (${k.types.join(',')} tables): ${k.label}. ${k.desc} Default options: ${JSON.stringify(k.defaults(proj.tables[0] || blankTable('xy')))}`).join('\n');
     const eqs = M.library.map(m => `${m.id}: ${m.name} [${m.field}] ${m.eq}`).join('\n');
-    return `You are the co-scientist inside Benchfit Studio, a data-analysis workspace for materials, chemistry, polymers, nanomaterials, physics and biology. You help scientists choose and interpret analyses. You never compute numbers yourself: every number must come from Benchfit's validated engine. To run an analysis, include one fenced block:
-\`\`\`benchfit
+    return `You are the co-scientist inside Lattent Studio, a data-analysis workspace for materials, chemistry, polymers, nanomaterials, physics and biology. You help scientists choose and interpret analyses. You never compute numbers yourself: every number must come from Lattent's validated engine. To run an analysis, include one fenced block:
+\`\`\`lattent
 {"actions":[{"table":"<table id>","kind":"<analysis id>","opts":{...}}]}
 \`\`\`
 The user sees a Run button for each action. Only use table ids and analysis ids listed below. Explain your reasoning briefly, mention assumptions, and when results are in the project summary, interpret them in physical or biological terms and suggest the next experiment. Be concise.
@@ -1101,12 +1101,12 @@ ${projectSummary()}`;
     log.innerHTML = chat.map((m, mi) => {
       if (m.role === 'user') return `<div class="msg u">${esc(m.content)}</div>`;
       const acts = [];
-      const body = m.content.replace(/```benchfit\s*([\s\S]*?)```/g, (_, js) => { try { const j = JSON.parse(js); (j.actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore malformed */ } return ''; });
+      const body = m.content.replace(/```(?:lattent|benchfit)\s*([\s\S]*?)```/g, (_, js) => { try { const j = JSON.parse(js); (j.actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore malformed */ } return ''; });
       return `<div class="msg a">${esc(body.trim()).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}${acts.map((a, i) => (K[a.kind] && table(a.table) ? `<div class="act"><span>${esc(K[a.kind].label)} on ${esc(table(a.table).name)}</span><button class="btn small primary" data-act="${mi}:${i}">Run</button></div>` : '')).join('')}</div>`;
     }).join('') || '<p class="hint">Ask in plain language, for example: “Which isotherm fits best and what is the maximum capacity?” or “Plan my next five blend experiments to maximise toughness.”</p>';
     $$('[data-act]', log).forEach(b => b.onclick = () => {
       const [mi, i] = b.dataset.act.split(':').map(Number);
-      const acts = []; chat[mi].content.replace(/```benchfit\s*([\s\S]*?)```/g, (_, js) => { try { (JSON.parse(js).actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore */ } });
+      const acts = []; chat[mi].content.replace(/```(?:lattent|benchfit)\s*([\s\S]*?)```/g, (_, js) => { try { (JSON.parse(js).actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore */ } });
       const a = acts[i]; if (a && K[a.kind] && table(a.table)) addItem(a.table, a.kind, a.opts || {});
     });
     log.scrollTop = log.scrollHeight;
@@ -1141,7 +1141,7 @@ ${projectSummary()}`;
   /* ================= start screen ================= */
   function startScreen(closable) {
     const S0 = window.BF_SAMPLES;
-    const m = U.modal(`<p class="m-kicker">Benchfit Studio</p><h2>What would you like to analyse?</h2>
+    const m = U.modal(`<p class="m-kicker">Lattent Studio</p><h2>What would you like to analyse?</h2>
       <div class="start-cols"><div><h5>Start with an example</h5><div class="ex-grid">${S0.map(s => `<button class="ex" data-ex="${s.id}"><span class="fld">${esc(s.field)}</span><b>${esc(s.title)}</b><span>${esc(s.blurb)}</span></button>`).join('')}</div></div>
       <div><h5>Or a new, empty table</h5>${Object.entries(TYPES).map(([k, v]) => `<button class="newt" data-new="${k}"><b>${v.title}</b><span>${esc(v.desc)}</span></button>`).join('')}</div></div>`);
     m.querySelector('.modal-box').classList.add('xwide');
@@ -1174,11 +1174,11 @@ ${projectSummary()}`;
       const m = U.modal(`<p class="m-kicker">New table</p><h2>Choose the table type</h2>${Object.entries(TYPES).map(([k, v]) => `<button class="newt" data-new="${k}"><b>${v.title}</b><span>${esc(v.desc)}</span></button>`).join('')}`);
       $$('[data-new]', m).forEach(b => b.onclick = () => { const t = blankTable(b.dataset.new); proj.tables.push(t); proj.sample = false; U.closeModal(); select('table', t.id); });
     };
-    $('#st-save').onclick = () => Pro.require('Project files', () => U.download((proj.name || 'project').replace(/[^\w-]+/g, '_') + '.benchfit.json', 'application/json', JSON.stringify({ app: 'benchfit-studio', version: 1, project: proj })));
+    $('#st-save').onclick = () => Pro.require('Project files', () => U.download((proj.name || 'project').replace(/[^\w-]+/g, '_') + '.lattent.json', 'application/json', JSON.stringify({ app: 'lattent-studio', version: 1, project: proj })));
     $('#st-open').onclick = () => {
       const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
       inp.onchange = () => inp.files[0] && inp.files[0].text().then(tx => {
-        try { const j = JSON.parse(tx); if (j.app !== 'benchfit-studio') throw new Error(); const pj = sanitize(j.project); if (!pj) throw new Error(); delete pj.cloud; proj = pj; cache = {}; cur = null; render(); U.toast('Project opened.', 'ok'); } catch (e) { U.toast('That is not a Benchfit Studio project.'); }
+        try { const j = JSON.parse(tx); if (!['lattent-studio', 'benchfit-studio'].includes(j.app)) throw new Error(); const pj = sanitize(j.project); if (!pj) throw new Error(); delete pj.cloud; proj = pj; cache = {}; cur = null; render(); U.toast('Project opened.', 'ok'); } catch (e) { U.toast('That is not a Lattent Studio project.'); }
       });
       inp.click();
     };
@@ -1192,7 +1192,7 @@ ${projectSummary()}`;
   /* ================= cloud storage ================= */
   const CL = BF.cloud || { enabled: false };
   let cloudTimer = null, cloudBusy = false, lastPushed = '';
-  const payload = () => ({ app: 'benchfit-studio', version: 1, project: { name: proj.name, tables: proj.tables, items: proj.items } });
+  const payload = () => ({ app: 'lattent-studio', version: 1, project: { name: proj.name, tables: proj.tables, items: proj.items } });
   function cloudStatus(text, kind) { const el = $('#st-cloud-state'); if (el) { el.textContent = text || ''; el.className = 'cs ' + (kind || ''); } }
   function scheduleCloud() {
     if (!CL.enabled || !CL.user || !proj || !proj.cloud) return;

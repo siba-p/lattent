@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Martian+Mono:wght@600&display=swap');
 :root {
   --bg: #f7f8fa; --card: #ffffff; --ink: #0f1729; --ink-2: #3c4559; --ink-3: #6b7385;
   --line: #e3e6ec; --line-2: #eef0f4; --grid: #eceef2; --axis: #9aa1ae;
@@ -42,6 +43,7 @@ h1, h2, h3, h4 { font-family: 'Inter Tight', Inter, system-ui, sans-serif; lette
 .top-in { max-width: 1240px; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 28px; }
 .logo { display: inline-flex; align-items: center; gap: 9px; color: var(--ink) !important; font: 700 17px 'Inter Tight', Inter, sans-serif; letter-spacing: -0.02em; text-decoration: none !important; }
 .logo svg { width: 28px; height: 28px; }
+.logo span { font-family: 'Martian Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace; font-weight: 600; letter-spacing: -0.045em; text-transform: lowercase; font-size: 16px; }
 .nav { display: flex; gap: 4px; flex: 1; }
 .nav a { color: var(--ink-2); font-weight: 500; font-size: 14.5px; padding: 7px 11px; border-radius: 8px; text-decoration: none; }
 .nav a:hover { background: var(--line-2); }

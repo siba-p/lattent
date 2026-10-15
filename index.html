@@ -5,9 +5,9 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Benchfit: data analysis for materials and chemistry labs</title>
-<meta name="description" content="Benchfit Studio is a browser workspace for materials and chemistry data: XRD crystallite size, band gaps, adsorption isotherms, activation energies, tensile tests, peak fitting, curve fitting with 35 equations, statistics and Bayesian optimisation, with an AI co-scientist. Validated against SciPy.">
-<meta property="og:title" content="Benchfit: data analysis for materials and chemistry labs">
+<title>Lattent: data analysis for materials and chemistry labs</title>
+<meta name="description" content="Lattent Studio is a browser workspace for materials and chemistry data: XRD crystallite size, band gaps, adsorption isotherms, activation energies, tensile tests, peak fitting, curve fitting with 35 equations, statistics and Bayesian optimisation, with an AI co-scientist. Validated against SciPy.">
+<meta property="og:title" content="Lattent: data analysis for materials and chemistry labs">
 <meta property="og:description" content="Curve fitting, statistics, spectra, materials characterisation and machine learning in one workspace, with an AI co-scientist that plans while a validated engine computes.">
 <meta property="og:image" content="assets/img/hero-xrd.webp">
 <link rel="icon" href="favicon.svg">
@@ -21,16 +21,16 @@
 
 <section class="l-hero">
   <div class="wrap l-hero-in">
-    <p class="l-kicker">Benchfit Studio</p>
+    <p class="l-kicker">Lattent Studio</p>
     <h1>Data analysis built for materials and chemistry labs.</h1>
     <p class="l-lede">XRD, spectra, band gaps, isotherms, kinetics, mechanical tests, statistics and formulation optimisation in one browser workspace. Our own shape model recognises your data and suggests the analysis; a validated engine does the maths.</p>
     <div class="l-cta">
-      <a class="btn big primary" href="studio/">Open Benchfit Studio, free</a>
+      <a class="btn big primary" href="studio/">Open Lattent Studio, free</a>
       <a class="btn big ghost-light" href="#examples">Try a worked example</a>
     </div>
     <p class="l-note">Runs in your browser · nothing to install · your data never leaves your computer</p>
     <div class="l-shot">
-      <img src="assets/img/hero-xrd.webp" width="1600" height="1000" alt="Benchfit Studio fitting the X-ray diffraction pattern of gold nanoparticles, with Scherrer crystallite size and microstrain">
+      <img src="assets/img/hero-xrd.webp" width="1600" height="1000" alt="Lattent Studio fitting the X-ray diffraction pattern of gold nanoparticles, with Scherrer crystallite size and microstrain">
     </div>
   </div>
 </section>
@@ -56,10 +56,10 @@
       </ul>
     </div>
     <div class="cmp-col good">
-      <h3>Benchfit Studio</h3>
+      <h3>Lattent Studio</h3>
       <ul class="ok">
         <li>One engine, checked against SciPy on every release, gives the same answer every time</li>
-        <li>The co-scientist proposes analyses; Benchfit computes them and shows its working</li>
+        <li>The co-scientist proposes analyses; Lattent computes them and shows its working</li>
         <li>Data, analysis options, results and graphs stay linked: edit a value and everything updates</li>
         <li>Consistent, colour-blind-safe, journal-ready figures and methods text</li>
         <li>Calculations run locally; the AI is optional and uses your own key</li>
@@ -73,7 +73,7 @@
     <div class="feat-t">
       <p class="l-kicker dark">Characterise</p>
       <h2>Spectra, diffraction and mechanical tests</h2>
-      <p>Benchfit understands the measurements materials labs run every day. Fit overlapping XRD, Raman or XPS peaks on a fitted baseline; get d-spacings, Scherrer crystallite size and Williamson–Hall strain; extract optical band gaps from UV–Vis; and read modulus, yield, strength and toughness from stress–strain curves.</p>
+      <p>Lattent understands the measurements materials labs run every day. Fit overlapping XRD, Raman or XPS peaks on a fitted baseline; get d-spacings, Scherrer crystallite size and Williamson–Hall strain; extract optical band gaps from UV–Vis; and read modulus, yield, strength and toughness from stress–strain curves.</p>
       <ul class="ticks"><li>Gaussian, Lorentzian and pseudo-Voigt multi-peak fitting</li><li>Tauc analysis for direct and indirect transitions</li><li>Area under the curve, Savitzky–Golay smoothing and derivatives</li></ul>
     </div>
     <div class="feat-i"><img src="assets/img/tauc.webp" loading="lazy" width="1600" height="1000" alt="Tauc plot giving the optical band gap of ZnO nanocrystals"></div>
@@ -82,7 +82,7 @@
     <div class="feat-t">
       <p class="l-kicker dark">Fit</p>
       <h2>Fit any model, then let the data choose</h2>
-      <p>Thirty-five equations from materials science, polymers, nanomaterials and chemistry (Arrhenius, Langmuir and Sips, Avrami, Carreau, WLF, Hall–Petch, Tafel and more), or type your own. Benchfit's <b>shape model</b> recognises what kind of behaviour your data show and narrows the equations to the plausible ones. <b>Auto-fit</b> then ranks them by AICc, so you see what the data support.</p>
+      <p>Thirty-five equations from materials science, polymers, nanomaterials and chemistry (Arrhenius, Langmuir and Sips, Avrami, Carreau, WLF, Hall–Petch, Tafel and more), or type your own. Lattent's <b>shape model</b> recognises what kind of behaviour your data show and narrows the equations to the plausible ones. <b>Auto-fit</b> then ranks them by AICc, so you see what the data support.</p>
       <ul class="ticks"><li>Confidence intervals and confidence bands, derived quantities such as Eₐ in kJ/mol and eV</li><li>Constraints, weighting, residual plots and runs test</li><li>Plain-language warnings when a parameter is poorly determined</li></ul>
     </div>
     <div class="feat-i"><img src="assets/img/autofit.webp" loading="lazy" width="1600" height="1000" alt="Shape-guided auto-fit ranking adsorption isotherm models by AICc"></div>
@@ -91,7 +91,7 @@
     <div class="feat-t">
       <p class="l-kicker dark">Discover</p>
       <h2>From your data to the next experiment</h2>
-      <p>Benchfit learns a Gaussian-process model of a property from the experiments you have run, such as the toughness of a polymer blend, the yield of a synthesis or the conductivity of an electrolyte. It shows which inputs matter and proposes the next experiments most likely to improve the result, respecting mixture constraints. Add them to your table, run them, and repeat.</p>
+      <p>Lattent learns a Gaussian-process model of a property from the experiments you have run, such as the toughness of a polymer blend, the yield of a synthesis or the conductivity of an electrolyte. It shows which inputs matter and proposes the next experiments most likely to improve the result, respecting mixture constraints. Add them to your table, run them, and repeat.</p>
       <ul class="ticks"><li>Bayesian optimisation with expected improvement, in batches</li><li>Cross-validated model accuracy, so you know when to trust it</li><li>PCA, k-means clustering and correlation for exploring datasets</li></ul>
     </div>
     <div class="feat-i"><img src="assets/img/discovery.webp" loading="lazy" width="1600" height="1000" alt="Bayesian optimisation suggesting the next polymer blend experiments"></div>
@@ -100,7 +100,7 @@
     <div class="feat-t">
       <p class="l-kicker dark">Compare</p>
       <h2>Statistics with the checks built in</h2>
-      <p>t tests, Mann–Whitney, one-way ANOVA, Welch's ANOVA and Kruskal–Wallis, with Tukey and Holm–Šidák post tests. Benchfit checks equal variance and normality for you, suggests the right test when an assumption fails, and draws significance stars on the graph.</p>
+      <p>t tests, Mann–Whitney, one-way ANOVA, Welch's ANOVA and Kruskal–Wallis, with Tukey and Holm–Šidák post tests. Lattent checks equal variance and normality for you, suggests the right test when an assumption fails, and draws significance stars on the graph.</p>
       <ul class="ticks"><li>Descriptive statistics, normality tests, Grubbs outliers</li><li>Effect sizes and confidence intervals, not only p-values</li><li>Correlation matrices and multiple linear regression</li></ul>
     </div>
     <div class="feat-i"><img src="assets/img/anova.webp" loading="lazy" width="1600" height="1000" alt="One-way ANOVA comparing catalyst batches with Tukey significance brackets"></div>
@@ -109,10 +109,10 @@
     <div class="feat-t">
       <p class="l-kicker dark">Co-scientist</p>
       <h2>An AI co-scientist that never makes up a number</h2>
-      <p>Open the co-scientist on any table. Its built-in suggestions come from <b>Benchfit's own shape model</b>, a neural network trained on 67,600 simulated lab datasets across 13 families of behaviour. It recognises a spectrum, an absorption edge, a thermally activated trend or a saturating isotherm, and proposes the right analysis with one-click Run. It runs offline in your browser. Connect your own Claude or GPT key to ask in plain language; the language model plans and interprets, and Benchfit's validated engine does the maths.</p>
+      <p>Open the co-scientist on any table. Its built-in suggestions come from <b>Lattent's own shape model</b>, a neural network trained on 67,600 simulated lab datasets across 13 families of behaviour. It recognises a spectrum, an absorption edge, a thermally activated trend or a saturating isotherm, and proposes the right analysis with one-click Run. It runs offline in your browser. Connect your own Claude or GPT key to ask in plain language; the language model plans and interprets, and Lattent's validated engine does the maths.</p>
       <ul class="ticks"><li>Shape model: 98% accurate on held-out data, and checked on real-style lab examples</li><li>Built-in suggestions work offline, with no key</li><li>Chat proposes analyses you approve before they run</li><li>Your key stays in your browser and calls the provider directly</li></ul>
     </div>
-    <div class="feat-i"><img src="assets/img/cosci.webp" loading="lazy" width="1600" height="1000" alt="The co-scientist panel showing Benchfit's shape model recognising an adsorption isotherm"></div>
+    <div class="feat-i"><img src="assets/img/cosci.webp" loading="lazy" width="1600" height="1000" alt="The co-scientist panel showing Lattent's shape model recognising an adsorption isotherm"></div>
   </div>
   <div class="feat rev">
     <div class="feat-t">
@@ -140,7 +140,7 @@
 </section>
 
 <section class="wrap section" id="catalogue">
-  <div class="sec-head"><h2>Everything in Benchfit Studio</h2></div>
+  <div class="sec-head"><h2>Everything in Lattent Studio</h2></div>
   <div class="cat">
     <div><h3>Curve fitting</h3><ul><li>Nonlinear regression, 35 built-in equations</li><li>User-defined equations</li><li>Automatic model selection by AICc</li><li>Parameter constraints and weighting (1/Y, 1/Y²)</li><li>Confidence intervals and bands</li><li>Derived parameters by the delta method</li><li>Residual plots and runs test</li><li>Linear regression with slope comparison</li></ul></div>
     <div><h3>Equations by field</h3><ul><li><b>Materials and chemistry:</b> Arrhenius, Vogel–Fulcher–Tammann, Langmuir, Freundlich, Sips, pseudo-first and second-order kinetics, Avrami (JMAK), stretched exponential, Tafel, Curie–Weiss</li><li><b>Polymers:</b> Flory–Fox, Mark–Houwink, WLF, Carreau, Cross</li><li><b>Nanomaterials and physics:</b> Hall–Petch, quantum confinement</li><li><b>Biology:</b> dose–response, Michaelis–Menten, Hill, binding</li><li><b>General:</b> exponentials, power law, sigmoids, peaks, growth curves, polynomials</li></ul></div>
@@ -191,24 +191,24 @@
       <a class="btn" data-buy="lab" href="account/?buy=lab">Get Lab</a>
     </div>
   </div>
-  <p class="hint" style="margin-top:14px">Prices in US dollars. Secure checkout by Lemon Squeezy, our merchant of record, which handles VAT and sales tax; Benchfit never sees card details. Cancel any time from your account. 14-day refund, no questions. <a href="legal/security.html">How we keep your data safe</a>.</p>
+  <p class="hint" style="margin-top:14px">Prices in US dollars. Secure checkout by Lemon Squeezy, our merchant of record, which handles VAT and sales tax; Lattent never sees card details. Cancel any time from your account. 14-day refund, no questions. <a href="legal/security.html">How we keep your data safe</a>.</p>
 </section>
 
 <section class="wrap section" id="faq">
   <div class="sec-head"><h2>Questions</h2></div>
   <div class="faq">
-    <details><summary>How is this different from Origin or GraphPad Prism?</summary><p>Benchfit is built around the measurements materials and chemistry labs actually make (XRD, spectra, band gaps, isotherms, Arrhenius data, tensile tests), with curve fitting, statistics and publication graphs underneath, plus a shape model, Bayesian optimisation and an AI co-scientist. It runs in any browser with nothing to install and costs a fraction of a desktop licence. It does not yet do everything those programs do, such as 3D plots or two-way ANOVA; those are on the roadmap.</p></details>
+    <details><summary>How is this different from Origin or GraphPad Prism?</summary><p>Lattent is built around the measurements materials and chemistry labs actually make (XRD, spectra, band gaps, isotherms, Arrhenius data, tensile tests), with curve fitting, statistics and publication graphs underneath, plus a shape model, Bayesian optimisation and an AI co-scientist. It runs in any browser with nothing to install and costs a fraction of a desktop licence. It does not yet do everything those programs do, such as 3D plots or two-way ANOVA; those are on the roadmap.</p></details>
     <details><summary>Is my data uploaded anywhere?</summary><p>Not unless you choose to. Calculations run in your browser and projects are kept in your browser. If you save a project to the cloud, it is stored in a database where row-level security lets only you, and your lab if you share it, read it. The optional AI chat sends data directly from your browser to the provider you chose, with your own key. Details on the <a href="legal/security.html">security page</a>.</p></details>
-    <details><summary>Is payment secure?</summary><p>Yes. Checkout is run by Lemon Squeezy, a PCI-compliant merchant of record that also handles tax. Benchfit never sees your card. Your plan is activated by a signed message from Lemon Squeezy to our server, never by your browser.</p></details>
+    <details><summary>Is payment secure?</summary><p>Yes. Checkout is run by Lemon Squeezy, a PCI-compliant merchant of record that also handles tax. Lattent never sees your card. Your plan is activated by a signed message from Lemon Squeezy to our server, never by your browser.</p></details>
     <details><summary>How do I know the numbers are right?</summary><p>Every analysis is checked against SciPy and NumPy, the reference scientific Python libraries, on test datasets before each release: parameters, standard errors, p-values, Tukey intervals and Gaussian-process predictions. See the <a href="validation/">validation page</a>.</p></details>
-    <details><summary>I have never used curve-fitting software. Where do I start?</summary><p>Open a <a href="#examples">worked example</a> close to your field, look at what Benchfit reports, then replace the numbers with yours. Or create a table, paste your data and press <b>Suggest an analysis</b>.</p></details>
+    <details><summary>I have never used curve-fitting software. Where do I start?</summary><p>Open a <a href="#examples">worked example</a> close to your field, look at what Lattent reports, then replace the numbers with yours. Or create a table, paste your data and press <b>Suggest an analysis</b>.</p></details>
     <details><summary>Do I need an AI subscription?</summary><p>No. The built-in suggestions need no key. The chat is optional and uses your own Anthropic or OpenAI key, billed by them at their API rates, usually cents per conversation.</p></details>
     <details><summary>Can my lab pay with a purchase order or grant?</summary><p>Yes. Lemon Squeezy issues a proper invoice with your institution's details; for purchase orders, write to us from the licence page.</p></details>
-    <details><summary>Is it suitable for regulated or clinical work?</summary><p>No. Benchfit is research software and is not validated for GLP, 21 CFR Part 11 or diagnostic use.</p></details>
+    <details><summary>Is it suitable for regulated or clinical work?</summary><p>No. Lattent is research software and is not validated for GLP, 21 CFR Part 11 or diagnostic use.</p></details>
   </div>
 </section>
 
-<section class="wrap"><div class="band"><div><h2>Your next figure is one paste away.</h2><p>No account, no installation, nothing uploaded.</p></div><a class="btn big" href="studio/">Open Benchfit Studio</a></div></section>
+<section class="wrap"><div class="band"><div><h2>Your next figure is one paste away.</h2><p>No account, no installation, nothing uploaded.</p></div><a class="btn big" href="studio/">Open Lattent Studio</a></div></section>
 
 <footer data-bf></footer>
 <script src="assets/js/config.js"></script>

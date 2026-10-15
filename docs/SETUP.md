@@ -10,7 +10,7 @@ Everything else is already built and tested.
 ## 1. Supabase (accounts and storage)
 
 1. Sign up at **supabase.com** and create a project:
-   - Name: `benchfit`.
+   - Name: `lattent`.
    - Pick a strong database password and store it in your password manager.
    - Region: the one closest to most users. For a global audience, use `us-east-1`; for Europe, use `eu-central-1`.
 2. Open **Project Settings → API** and copy two values:
@@ -25,24 +25,24 @@ Everything else is already built and tested.
 3. In Supabase, open **Authentication → Emails → SMTP Settings** and enter:
    - host `smtp.resend.com`, port `465`, user `resend`;
    - password: the key from Resend;
-   - sender: `Benchfit <login@your-domain>`.
-4. Optionally, edit the **Magic Link** email template so it says "Sign in to Benchfit".
+   - sender: `Lattent <login@your-domain>`.
+4. Optionally, edit the **Magic Link** email template so it says "Sign in to Lattent".
 
 ## 2. Lemon Squeezy (payments)
 
-1. Sign up at **lemonsqueezy.com** and create a store named **Benchfit**. Complete identity and payout verification; your Indian bank account works for payouts.
+1. Sign up at **lemonsqueezy.com** and create a store named **Lattent**. Complete identity and payout verification; your Indian bank account works for payouts.
 2. Stay in **Test mode** (toggle at the bottom left) for now.
-3. Create a product **Benchfit Pro** with these subscription variants:
+3. Create a product **Lattent Pro** with these subscription variants:
 
    | Variant | Price | Interval |
    |---|---|---|
    | Pro monthly | $4 | monthly |
    | Pro yearly | $29 | yearly |
 
-4. Create a second product **Benchfit Lab**: subscription, $99, yearly.
+4. Create a second product **Lattent Lab**: subscription, $99, yearly.
 5. Do not enable license keys; plans are tied to accounts now.
-6. For each product, set **Confirmation modal → Button link** to `https://siba-p.github.io/benchfit/account/?paid=1`.
-7. For each variant, use **Share** to copy the checkout link, which looks like `https://benchfit.lemonsqueezy.com/buy/…`. Also note the **variant id** (the number in the variant's URL) and your **store id** (**Settings → Stores**).
+6. For each product, set **Confirmation modal → Button link** to `https://siba-p.github.io/lattent/account/?paid=1`.
+7. For each variant, use **Share** to copy the checkout link, which looks like `https://lattent.lemonsqueezy.com/buy/…`. Also note the **variant id** (the number in the variant's URL) and your **store id** (**Settings → Stores**).
 8. Open **Settings → Webhooks → +** and fill in:
    - **Callback URL:** `https://<project-ref>.supabase.co/functions/v1/ls-webhook`
    - **Signing secret:** a long random string; generate one with `openssl rand -hex 32`. Keep it for step 3.
@@ -50,7 +50,7 @@ Everything else is already built and tested.
 
 ## 3. Deploy the backend (one command)
 
-From the `benchfit` folder:
+From the repository folder:
 
 ```bash
 export SUPABASE_ACCESS_TOKEN=sbp_…
@@ -61,9 +61,9 @@ export LEMONSQUEEZY_WEBHOOK_SECRET=…        # the same string as in the webhoo
 export LEMONSQUEEZY_STORE_ID=12345
 export LEMONSQUEEZY_PRO_VARIANTS=111111,222222   # Pro monthly and Pro yearly
 export LEMONSQUEEZY_LAB_VARIANTS=333333
-export CHECKOUT_MONTHLY=https://benchfit.lemonsqueezy.com/buy/…
-export CHECKOUT_YEARLY=https://benchfit.lemonsqueezy.com/buy/…
-export CHECKOUT_LAB=https://benchfit.lemonsqueezy.com/buy/…
+export CHECKOUT_MONTHLY=https://lattent.lemonsqueezy.com/buy/…
+export CHECKOUT_YEARLY=https://lattent.lemonsqueezy.com/buy/…
+export CHECKOUT_LAB=https://lattent.lemonsqueezy.com/buy/…
 export LEMONSQUEEZY_ALLOW_TEST_MODE=true          # only while testing
 bash scripts/setup-backend.sh
 git add assets/js/config.js && git commit -m "Connect accounts and payments" && git push
@@ -77,8 +77,8 @@ The script does the following:
 - writes only the public URL and anon key into the website.
 
 If `config push` is not available, set the auth URLs by hand in **Authentication → URL Configuration**:
-- **Site URL:** `https://siba-p.github.io/benchfit/`
-- **Redirect URLs:** `https://siba-p.github.io/benchfit/**`
+- **Site URL:** `https://siba-p.github.io/lattent/`
+- **Redirect URLs:** `https://siba-p.github.io/lattent/**`
 
 ## 4. Test, then go live
 

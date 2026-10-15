@@ -1,4 +1,4 @@
--- Benchfit cloud: accounts, subscriptions (written only by the payment webhook),
+-- Lattent cloud: accounts, subscriptions (written only by the payment webhook),
 -- cloud projects with quotas, and Lab teams. Every table has row-level security;
 -- browsers use the public anon key and can only reach rows the policies allow.
 

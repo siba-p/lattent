@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploys the Benchfit backend to your Supabase project and writes the public keys
+# Deploys the Lattent backend to your Supabase project and writes the public keys
 # into assets/js/config.js. Run from the repository root:
 #
 #   export SUPABASE_ACCESS_TOKEN=...        # supabase.com → Account → Access tokens

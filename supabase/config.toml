@@ -1,8 +1,8 @@
-project_id = "benchfit"
+project_id = "lattent"
 
 [auth]
-site_url = "https://siba-p.github.io/benchfit/"
-additional_redirect_urls = ["https://siba-p.github.io/benchfit/**", "http://127.0.0.1:8765/**", "http://localhost:8000/**"]
+site_url = "https://siba-p.github.io/lattent/"
+additional_redirect_urls = ["https://siba-p.github.io/lattent/**", "http://127.0.0.1:8765/**", "http://localhost:8000/**"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10

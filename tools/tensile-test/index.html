@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tensile test calculator: Young&#x27;s modulus, yield strength, toughness | Benchfit</title>
+<title>Tensile test calculator: Young&#x27;s modulus, yield strength, toughness | Lattent</title>
 <meta name="description" content="Paste a stress–strain curve to get Young&#x27;s modulus, 0.2% offset yield strength, ultimate tensile strength, elongation at break and toughness, with the modulus region found automatically.">
 <link rel="icon" href="../../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,12 +18,12 @@
 <main class="wrap qt" data-tool="{&quot;kind&quot;: &quot;tensile&quot;, &quot;opts&quot;: {}, &quot;xlabel&quot;: &quot;Strain (%)&quot;, &quot;ylabel&quot;: &quot;Stress (MPa)&quot;, &quot;name&quot;: &quot;Tensile test analysis&quot;, &quot;example&quot;: &quot;tensile&quot;}">
   <nav class="crumbs"><a href="../../tools/">Quick tools</a> ›</nav>
   <h1>Tensile test analysis</h1>
-  <p class="lede">Paste strain (in % or as a fraction) and stress. Benchfit finds the elastic region, applies the 0.2% offset method and reports the mechanical properties with a publication-ready stress–strain figure.</p>
+  <p class="lede">Paste strain (in % or as a fraction) and stress. Lattent finds the elastic region, applies the 0.2% offset method and reports the mechanical properties with a publication-ready stress–strain figure.</p>
   <div class="qt-grid">
     <section class="card qt-in">
       <label class="lbl" for="qt-data">Paste your data: Strain (%), then Stress (MPa) (replicate columns allowed)</label>
       <textarea id="qt-data" spellcheck="false" placeholder="Copy two or more columns from Excel or your instrument export"></textarea>
-      <div class="qt-actions"><button class="btn primary big" id="qt-go">Analyse in Benchfit Studio</button><button class="btn" id="qt-example">See a worked example</button><button class="linkbtn" id="qt-file">Open a CSV or TXT file</button></div>
+      <div class="qt-actions"><button class="btn primary big" id="qt-go">Analyse in Lattent Studio</button><button class="btn" id="qt-example">See a worked example</button><button class="linkbtn" id="qt-file">Open a CSV or TXT file</button></div>
       <p class="hint" id="qt-msg">Free, no sign-up. The analysis runs in your browser; your data is not uploaded.</p>
     </section>
     <aside class="card qt-get"><h2>What you get</h2><ul><li>Young's modulus from the steepest linear loading region</li><li>0.2% offset yield strength (offset adjustable)</li><li>Ultimate tensile strength and elongation at break</li><li>Toughness from the area under the curve</li></ul><p class="eq">σ = E (ε − ε<sub>0</sub> − 0.002)</p></aside>

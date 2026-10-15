@@ -1,4 +1,4 @@
-/* Example projects for Benchfit Studio, one per field. Each returns {tables, items}. */
+/* Example projects for Lattent Studio, one per field. Each returns {tables, items}. */
 (function () {
   'use strict';
   const S = BF.stats;
@@ -77,7 +77,7 @@
 
   SAMPLES.push({
     id: 'isotherm', field: 'Adsorption', title: 'Dye adsorption on a MOF',
-    blurb: 'Let Benchfit compare Langmuir, Freundlich, Sips and others by AICc, and see which isotherm the data support.',
+    blurb: 'Let Lattent compare Langmuir, Freundlich, Sips and others by AICc, and see which isotherm the data support.',
     make() {
       const r = S.rng(21);
       const C = [2, 5, 10, 20, 40, 60, 90, 130, 180, 250, 320];

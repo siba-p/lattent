@@ -1,4 +1,4 @@
-/* Benchfit Studio workspace */
+/* Lattent Studio workspace */
 body.studio { background: var(--bg); }
 .st-top { position: sticky; top: 0; z-index: 40; height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 16px; padding-top: env(safe-area-inset-top, 0px); background: var(--card); border-bottom: 1px solid var(--line); }
 .st-top .logo span { font-size: 16px; }

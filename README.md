@@ -1,6 +1,6 @@
-# Benchfit
+# Lattent
 
-**Benchfit Studio** is a browser workspace for scientific data, in the spirit of GraphPad Prism but for every lab:
+**Lattent Studio** is a browser workspace for scientific data, in the spirit of GraphPad Prism but for every lab:
 - data tables (XY, Column, Multiple variables);
 - nonlinear regression with 35 equations from materials science, polymers, nanomaterials, chemistry and biology, plus user-defined equations and AICc auto-fit;
 - statistics: t tests, ANOVA with Tukey, Kruskal–Wallis, correlation and regression;
@@ -18,7 +18,7 @@ The site is static, hosted on GitHub Pages. The backend runs on Supabase:
 
 Payments go through Lemon Squeezy as merchant of record. **To turn on accounts and payments, follow [docs/SETUP.md](docs/SETUP.md).**
 
-Live site: https://siba-p.github.io/benchfit/
+Live site: https://siba-p.github.io/lattent/
 
 ## Structure
 
@@ -28,7 +28,7 @@ Live site: https://siba-p.github.io/benchfit/
 | `assets/js/models.js` | Equation library, safe expression parser, nonlinear regression and auto-fit |
 | `assets/js/analysis.js` | Statistics, PCA, k-means, Gaussian processes and Bayesian optimisation, peaks, XRD, Tauc, tensile |
 | `assets/js/samples.js` | Example projects, one per field |
-| `assets/js/ml-features.js`, `ml.js`, `assets/models/shape-v1.js` | Benchfit's own specialist models (shape recogniser, scatter model), running in the browser |
+| `assets/js/ml-features.js`, `ml.js`, `assets/models/shape-v1.js` | Lattent's own specialist models (shape recogniser, scatter model), running in the browser |
 | `tests/ml/` | Simulator, training script and checks for the specialist models |
 | `tools/`, `scripts/build_tools.py` | Quick-tool pages for materials and chemistry (generated) |
 | `assets/js/stats.js` | Levenberg–Marquardt fitting, covariance, t, F, χ² and studentized-range distributions, delta method |
@@ -70,7 +70,7 @@ Run this before every release. All checks must print `ok`.
 Account-based plans (docs/SETUP.md) are the main path. Licence keys still work for buyers without an account:
 
 1. Create a store at lemonsqueezy.com and complete identity and payout verification. Lemon Squeezy is the merchant of record, so it collects and remits VAT, GST and US sales tax.
-2. Create one product, **Benchfit Pro**, with three variants:
+2. Create one product, **Lattent Pro**, with three variants:
    - Monthly subscription, $4.
    - Yearly subscription, $29.
    - **Lab** yearly subscription, $99.
@@ -85,4 +85,4 @@ Account-based plans (docs/SETUP.md) are the main path. Licence keys still work f
 
 Licence keys are checked in the browser against Lemon Squeezy's public licence API, so no server is needed. The Pro gate runs on the client, so a determined user could bypass it. That is an accepted trade-off for this audience: there are no servers to run and no customer data to hold.
 
-© Benchfit. All rights reserved.
+© Lattent. All rights reserved.
