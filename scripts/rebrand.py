@@ -21,7 +21,7 @@ SKIP_DIRS = {".git", "node_modules", "img", "models", "candidates"}
 TEXT = (".html", ".js", ".css", ".md", ".py", ".sh", ".toml", ".sql", ".ts", ".mjs", ".json", ".svg")
 mark = open(os.path.join(a.root, a.mark) if not os.path.isabs(a.mark) else a.mark).read().strip()
 inline = mark.replace('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">', '<svg viewBox="0 0 64 64" aria-hidden="true">', 1)
-old_logo = re.compile(r'<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var\(--brand\)"/>.*?</svg>', re.S)
+old_logo = re.compile(r'<svg viewBox="0 0 64 64" aria-hidden="true">(<defs>.*?</defs>)?<rect width="64" height="64" rx="15".*?</svg>', re.S)
 
 changed = 0
 for d, dirs, files in os.walk(a.root):

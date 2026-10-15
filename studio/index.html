@@ -5,18 +5,22 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com https://alexandria.icams.rub.de; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lattent Studio: data analysis for materials and chemistry labs</title>
-<meta name="description" content="A browser workspace for scientific data: curve fitting with 35 equations, statistics, spectra and XRD peak analysis, band gaps, tensile tests, PCA, clustering and Bayesian optimisation, XRD phase identification against 5.8 million DFT structures and generative materials design, with an AI co-scientist.">
+<title>Lattent Studio</title>
+<meta name="description" content="Analyse XRD, spectra, kinetics and mechanical tests, run statistics and Bayesian optimisation, identify phases and generate new materials, all in your browser.">
+<meta property="og:title" content="Lattent Studio"><meta property="og:description" content="Analyse XRD, spectra, kinetics and mechanical tests, identify phases and generate new materials, in your browser."><meta property="og:image" content="https://siba-p.github.io/lattent/assets/img/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090c1b" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/bf.css">
 <link rel="stylesheet" href="../assets/css/studio.css">
 </head>
 <body class="studio">
+<h1 class="sr-only">Lattent Studio</h1>
 <div class="st-top">
   <button class="btn ghost" id="st-menu" aria-label="Show navigator">☰</button>
-  <a class="logo" href="../"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" fill="#151735"/><path d="M11 11L53 53" stroke="#f4a63a" stroke-width="2.6" stroke-linecap="round" stroke-opacity=".55"/><circle cx="11" cy="11" r="4.6" fill="#f4a63a"/><circle cx="11" cy="25" r="3.4" fill="#8b8fb5"/><circle cx="11" cy="39" r="3.4" fill="#8b8fb5"/><circle cx="11" cy="53" r="3.4" fill="#8b8fb5"/><circle cx="25" cy="11" r="3.4" fill="#8b8fb5"/><circle cx="25" cy="25" r="4.6" fill="#f4a63a"/><circle cx="25" cy="39" r="3.4" fill="#8b8fb5"/><circle cx="25" cy="53" r="3.4" fill="#8b8fb5"/><circle cx="39" cy="11" r="3.4" fill="#8b8fb5"/><circle cx="39" cy="25" r="3.4" fill="#8b8fb5"/><circle cx="39" cy="39" r="4.6" fill="#f4a63a"/><circle cx="39" cy="53" r="3.4" fill="#8b8fb5"/><circle cx="53" cy="11" r="3.4" fill="#8b8fb5"/><circle cx="53" cy="25" r="3.4" fill="#8b8fb5"/><circle cx="53" cy="39" r="3.4" fill="#8b8fb5"/><circle cx="53" cy="53" r="4.6" fill="#f4a63a"/></svg><span>Lattent</span><small>Studio</small></a>
+  <a class="logo" href="../"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg><span>Lattent</span><small>Studio</small></a>
   <input id="st-name" aria-label="Project name" value="Untitled project">
   <span class="sp"></span>
   <div class="tb">

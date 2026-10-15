@@ -8,7 +8,7 @@
 
   P.print = {
     bg: '#ffffff', ink: '#111111', muted: '#555555', grid: '#ececec', axis: '#333333',
-    series: ['#2a5bd6', '#eb6834', '#1baf7a', '#7a4fc9', '#d55181'], font: 'Arial, Helvetica, sans-serif', size: 13
+    series: ['#3e4ed8', '#e0712c', '#0d9488', '#8b4fc9', '#d14d7d'], font: 'Arial, Helvetica, sans-serif', size: 13
   };
   P.screen = function () {
     const cs = getComputedStyle(document.documentElement);

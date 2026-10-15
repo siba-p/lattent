@@ -5,14 +5,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com https://api.anthropic.com https://api.openai.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lattent: data analysis for materials and chemistry labs</title>
-<meta name="description" content="Lattent Studio is a browser workspace for materials and chemistry data: XRD crystallite size and phase identification against 5.8 million DFT structures, band gaps, adsorption isotherms, activation energies, tensile tests, curve fitting, statistics, Bayesian optimisation and generative materials design, with an AI co-scientist. Validated against SciPy.">
-<meta property="og:title" content="Lattent: data analysis for materials and chemistry labs">
-<meta property="og:description" content="Curve fitting, statistics, spectra, materials characterisation and machine learning in one workspace, with an AI co-scientist that plans while a validated engine computes.">
-<meta property="og:image" content="assets/img/hero-xrd.webp">
+<title>Lattent: from raw data to the next material</title>
+<meta name="description" content="The analysis bench for materials and chemistry labs: XRD, spectra, curve fitting and statistics, phase identification and generative materials design, in your browser.">
+<meta name="theme-color" content="#0b0e24">
+<meta property="og:title" content="Lattent: from raw data to the next material">
+<meta property="og:description" content="The analysis bench for materials and chemistry labs: validated fitting and statistics, XRD phase identification against 5.8 million computed crystals, and generative design of new compositions.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://siba-p.github.io/lattent/">
+<meta property="og:image" content="https://siba-p.github.io/lattent/assets/img/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/bf.css">
 <link rel="stylesheet" href="assets/css/landing.css">
 </head>
@@ -21,14 +27,14 @@
 
 <section class="l-hero">
   <div class="wrap l-hero-in">
-    <p class="l-kicker">Lattent Studio</p>
-    <h1>Data analysis built for materials and chemistry labs.</h1>
-    <p class="l-lede">XRD, spectra, band gaps, isotherms, kinetics, mechanical tests, statistics and formulation optimisation in one browser workspace, now with phase identification and generative materials design. Our own models suggest the analysis and propose new compositions; a validated engine does the maths.</p>
+    <p class="l-kicker">For materials and chemistry labs</p>
+    <h1>From raw data to the <em>next material.</em></h1>
+    <p class="l-lede">Lattent is the analysis bench for your measurements. Fit and test XRD, spectra and kinetics with an engine checked against SciPy, identify phases against 5.8 million computed crystals, and let generative models suggest what to make next.</p>
     <div class="l-cta">
-      <a class="btn big primary" href="studio/">Open Lattent Studio, free</a>
-      <a class="btn big ghost-light" href="#examples">Try a worked example</a>
+      <a class="btn big primary" href="studio/">Open Lattent Studio</a>
+      <a class="btn big ghost-light" href="#examples">Explore a worked example</a>
     </div>
-    <p class="l-note">Runs in your browser · nothing to install · your data never leaves your computer</p>
+    <p class="l-note">Free to use · Runs in your browser · Your data stays on your computer</p>
     <div class="l-shot">
       <img src="assets/img/hero-xrd.webp" width="1600" height="1000" alt="Lattent Studio fitting the X-ray diffraction pattern of gold nanoparticles, with Scherrer crystallite size and microstrain">
     </div>
@@ -38,17 +44,17 @@
 <section class="l-fields">
   <div class="wrap">
     <p>Built for</p>
-    <ul><li>Nanomaterials</li><li>Catalysis</li><li>Energy materials and batteries</li><li>Polymers and soft matter</li><li>Semiconductors and optics</li><li>Electrochemistry</li><li>Ceramics and metallurgy</li><li>Physical and analytical chemistry</li></ul>
+    <ul><li>Nanomaterials</li><li>Catalysis</li><li>Batteries and energy</li><li>Polymers</li><li>Semiconductors</li><li>Electrochemistry</li><li>Ceramics and alloys</li><li>Physical chemistry</li></ul>
   </div>
 </section>
 
 <section class="wrap l-why">
-  <div class="sec-head center"><h2>Why not just ask ChatGPT or Claude?</h2><p>Language models are excellent at explaining and planning. They are not a reliable way to compute the numbers in your paper.</p></div>
+  <div class="sec-head center"><h2>Why not just ask ChatGPT or Claude?</h2><p>Language models are superb at explaining and planning. They are not a dependable way to produce the numbers in your paper.</p></div>
   <div class="cmp">
     <div class="cmp-col">
       <h3>A chatbot on its own</h3>
       <ul class="x">
-        <li>Writes new code every time, so the same data can give different answers</li>
+        <li>Writes fresh code each time, so the same data can give different answers</li>
         <li>Can state a fitted value it never actually computed</li>
         <li>Leaves no record linking each number to your data and settings</li>
         <li>Figures change style with every prompt</li>
@@ -56,7 +62,7 @@
       </ul>
     </div>
     <div class="cmp-col good">
-      <h3>Lattent Studio</h3>
+      <h3>With Lattent</h3>
       <ul class="ok">
         <li>One engine, checked against SciPy on every release, gives the same answer every time</li>
         <li>The co-scientist proposes analyses; Lattent computes them and shows its working</li>
@@ -72,7 +78,7 @@
   <div class="wrap">
     <div class="gen-head">
       <p class="l-kicker">Discover · new</p>
-      <h2>Generative AI for materials discovery, in your browser.</h2>
+      <h2>Generative AI for materials discovery, <em>in your browser.</em></h2>
       <p>Microsoft’s MatterGen and Google DeepMind’s GNoME showed a new way to find materials: generate candidates, screen them with machine-learned property models, and check them against computed data. Lattent brings that loop to your bench at the level of chemical composition, next to the 5.8 million DFT structures of the open Alexandria database.</p>
     </div>
     <div class="gen-grid">
@@ -169,7 +175,7 @@
 </section>
 
 <section class="wrap section" id="examples">
-  <div class="sec-head"><h2>Start from a worked example</h2><p>Each example opens in Studio with real-looking data and the analysis already run. Change the numbers and watch everything update, or replace them with your own.</p></div>
+  <div class="sec-head"><h2>Start from a worked example</h2><p>Each example opens in Studio with realistic data and the analysis already run. Change the numbers and watch everything update, or replace them with your own.</p></div>
   <div class="ex-cards" id="ex-cards"></div>
 </section>
 
@@ -202,7 +208,7 @@
 </section>
 
 <section class="wrap section" id="pricing">
-  <div class="sec-head"><span class="early-tag">Early-access pricing</span><h2>Free for analysis. Pro when you publish.</h2><p>Every analysis, table and warning is free with no limits. Pro adds what goes into papers and reports, more cloud storage and the AI chat, for less than a coffee a month.</p></div>
+  <div class="sec-head"><span class="early-tag">Early-access pricing</span><h2>Free for analysis. Pro when you publish.</h2><p>Every analysis, table and warning is free, without limits. Pro adds what goes into papers and reports, more cloud storage and the AI chat, for less than a coffee a month.</p></div>
   <div class="pricing">
     <div class="card price">
       <h3>Free</h3>
@@ -212,7 +218,7 @@
       <a class="btn" href="studio/">Open Studio</a>
     </div>
     <div class="card price best">
-      <h3>Pro <span>Most popular</span></h3>
+      <h3>Pro <span>Best value</span></h3>
       <div class="amt">$<span data-price="yearly">29</span><small> / year</small></div>
       <p class="sub">or $<span data-price="monthly">4</span> per month</p>
       <ul><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods, results and legends</li><li>Unlimited cloud projects, 250 MB</li><li>AI co-scientist chat with your Claude or GPT key</li><li>CSV results, reports and project files</li></ul>
@@ -238,7 +244,7 @@
     <details><summary>How do I know the numbers are right?</summary><p>Every analysis is checked against SciPy and NumPy, the reference scientific Python libraries, on test datasets before each release: parameters, standard errors, p-values, Tukey intervals and Gaussian-process predictions. See the <a href="validation/">validation page</a>.</p></details>
     <details><summary>I have never used curve-fitting software. Where do I start?</summary><p>Open a <a href="#examples">worked example</a> close to your field, look at what Lattent reports, then replace the numbers with yours. Or create a table, paste your data and press <b>Suggest an analysis</b>.</p></details>
     <details><summary>Do I need an AI subscription?</summary><p>No. The built-in suggestions need no key. The chat is optional and uses your own Anthropic or OpenAI key, billed by them at their API rates, usually cents per conversation.</p></details>
-    <details><summary>Can my lab pay with a purchase order or grant?</summary><p>Yes. Lemon Squeezy issues a proper invoice with your institution's details; for purchase orders, write to us from the licence page.</p></details>
+    <details><summary>Can my lab pay with a purchase order or grant?</summary><p>Yes. Lemon Squeezy issues a proper invoice with your institution's details; for purchase orders, use the Contact link at the foot of this page.</p></details>
     <details><summary>Does Lattent really generate new materials?</summary><p>It proposes new chemical compositions that its models predict to be stable and close to a target band gap, and tells you which are absent from a database of 5.8 million computed structures. That is a shortlist for a DFT calculation or a synthesis, not a discovery in itself: the generator works at the level of composition, not crystal structure, and composition-only predictions have errors of about 0.09 eV/atom for formation energy and 0.3 eV for the band gap. The methods and test results are on the <a href="validation/#discover">validation page</a>.</p></details>
     <details><summary>Is it suitable for regulated or clinical work?</summary><p>No. Lattent is research software and is not validated for GLP, 21 CFR Part 11 or diagnostic use.</p></details>
   </div>

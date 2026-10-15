@@ -91,12 +91,12 @@
 
   SAMPLES.push({
     id: 'floryfox', field: 'Polymers', title: 'Glass transition vs molecular weight',
-    blurb: 'Flory–Fox fit for polystyrene standards: T_g at infinite chain length and the end-group constant.',
+    blurb: 'Flory–Fox fit for polystyrene standards: the glass transition at infinite chain length and the end-group constant.',
     make() {
       const r = S.rng(2);
       const Mn = [1200, 2100, 3500, 5200, 9000, 17500, 35000, 68000, 120000, 250000];
       return {
-        tables: [{ name: 'Polystyrene Tg', type: 'xy', cols: ['Mₙ (g/mol)', 'T_g (°C)'], rows: Mn.map(m => [String(m), f(100.5 - 1.1e5 / m + 0.8 * r.normal(), 1)]), ylabel: 'T_g (°C)' }],
+        tables: [{ name: 'Polystyrene Tg', type: 'xy', cols: ['Mₙ (g/mol)', 'Tg (°C)'], rows: Mn.map(m => [String(m), f(100.5 - 1.1e5 / m + 0.8 * r.normal(), 1)]), ylabel: 'Tg (°C)' }],
         items: [{ kind: 'nlfit', opts: { model: 'floryfox', logx: true } }]
       };
     }

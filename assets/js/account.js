@@ -25,7 +25,7 @@
   function renderLocal() {
     const k = Pro.kind(), s = Pro.state();
     root.innerHTML = `
-      <section class="card acct"><h2>Plan</h2><div class="status ${Pro.active() ? 'on' : ''}">${k === 'licence' ? '<b>Pro is active</b> on this browser' : k === 'trial' ? `<b>Pro trial</b>: ${Math.ceil(Pro.trialLeft())} days left` : k === 'trial-ended' ? 'Your trial has ended. You are on the free plan.' : 'You are on the <b>free plan</b>.'}</div>
+      <section class="card acct"><h2>Plan</h2><div class="status ${Pro.active() ? 'on' : ''}"><span>${k === 'licence' ? '<b>Pro is active</b> on this browser.' : k === 'trial' ? `<b>Pro trial</b>: ${Math.ceil(Pro.trialLeft())} days left.` : k === 'trial-ended' ? 'Your trial has ended. You are on the free plan.' : 'You are on the <b>free plan</b>. Every analysis is free; Pro adds publication exports and more.'}</span></div>
         ${k === 'free' ? '<button class="btn primary" id="ac-trial">Start 7-day free trial</button>' : ''}</section>
       <section class="card acct"><h2>Plans</h2>${planCards(false)}</section>
       ${licenceBox(s)}`;

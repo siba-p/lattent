@@ -17,9 +17,11 @@ HEAD = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title}</title>
 <meta name="description" content="{desc}">
+<link rel="apple-touch-icon" href="{root}assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090c1b" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="{root}favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{root}assets/css/bf.css">
 <link rel="stylesheet" href="{root}assets/css/tools.css">
 </head>
@@ -131,7 +133,7 @@ for t in TOOLS:
           HEAD.format(title=html.escape(t["title"]), desc=html.escape(t["desc"]), root=root) + body + FOOT.format(root=root, extra=f'<script src="{root}assets/js/tool.js"></script>\n'))
 
 root = "../"
-cards = "".join(f'<a class="card tool-card" href="{root}tools/{t["slug"]}/"><h3>{html.escape(t["short"])}</h3><p>{html.escape(t["desc"].split(". ")[0])}.</p><span class="go">Open →</span></a>' for t in TOOLS)
+cards = "".join(f'<a class="card tool-card" href="{root}tools/{t["slug"]}/"><h3>{html.escape(t["short"])}</h3><p>{html.escape(t["desc"].split(". ")[0].rstrip("."))}.</p><span class="go">Open →</span></a>' for t in TOOLS)
 cards += f'<a class="card tool-card" href="{root}standard-curve/"><h3>Calibration curves</h3><p>Linear, quadratic and 4PL calibration for HPLC, ICP, UV–Vis or ELISA, with unknowns, recovery and LOD/LOQ.</p><span class="go">Open →</span></a>'
 hub = f"""<main class="wrap qt">
   <h1>Quick tools</h1>
@@ -146,7 +148,7 @@ write(os.path.join(ROOT, "tools", "index.html"),
 life = "".join(f'<a class="card tool-card" href="{root}{p}"><h3>{n}</h3><p>{d}</p><span class="go">Open →</span></a>' for p, n, d in LIFE)
 life_page = f"""<main class="wrap qt">
   <h1>Life-science tools</h1>
-  <p class="lede">Lattent focuses on materials and chemistry, and these calculators serve biochemistry and biology assays with the same validated engine.</p>
+  <p class="lede">Lattent is built for materials and chemistry, but the same validated engine serves biochemistry and biology assays too.</p>
   <div class="tools-grid">{life}<a class="card tool-card" href="{root}standard-curve/"><h3>Standard curves (ELISA, BCA)</h3><p>4PL and 5PL calibration with interpolation, recovery and LOD/LOQ.</p><span class="go">Open →</span></a></div>
 </main>
 """
