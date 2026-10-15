@@ -93,3 +93,18 @@ body.landing .top.open .nav { background: var(--card); }
 .ai-teaser-wrap .sec-head { max-width: 760px; }
 .sec-head .l-kicker { font-size: 12.5px; margin-bottom: 10px; }
 .ai-more { margin: 22px 0 0; }
+
+/* What Lattent solves */
+.solve { padding-top: 72px; }
+.solve-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 8px; }
+.solve-card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); min-width: 0; }
+.solve-card span { display: block; font: 600 11.5px Inter, sans-serif; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; }
+.sv-p { padding: 22px 22px 18px; }
+.sv-p span { color: var(--ink-3); }
+.sv-p h3 { font-size: 20px; margin-bottom: 8px; }
+.sv-p p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.6; }
+.sv-s { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 18px 22px 22px; background: linear-gradient(160deg, var(--brand-soft), color-mix(in srgb, var(--accent-soft) 60%, var(--card))); border-top: 1px solid var(--line); }
+.sv-s span { color: var(--brand-ink); margin-bottom: 0; }
+.sv-s p { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; }
+.sv-s a { margin-top: auto; padding-top: 4px; font-weight: 600; font-size: 14px; }
+@media (max-width: 900px) { .solve-grid { grid-template-columns: minmax(0, 1fr); } }

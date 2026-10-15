@@ -42,3 +42,23 @@
 .ct-side p { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.55; }
 @media (max-width: 900px) { .pay-grid, .ct-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .ct-form .fg.two { grid-template-columns: minmax(0, 1fr); } .pr-tbl th, .pr-tbl td { padding: 10px 8px; font-size: 13px; } }
+
+/* support centre */
+.sp-head { text-align: center; }
+.sp-head .sol-lede, .sp-head h1 { margin-inline: auto; }
+.sp-search { display: flex; align-items: center; gap: 10px; max-width: 620px; margin: 4px auto 0; padding: 4px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.sp-search svg { width: 20px; height: 20px; color: var(--ink-3); flex: none; }
+.sp-search input { border: 0; background: none; box-shadow: none; padding: 12px 0; font-size: 16px; }
+.sp-search input:focus { outline: none; box-shadow: none; }
+.sp-search:focus-within { border-color: var(--brand); }
+.sp-start .how { margin-bottom: 20px; }
+.sp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.sp-guide { padding: 20px; display: grid; gap: 4px; }
+.sp-guide h3 { font-size: 17px; margin-bottom: 6px; }
+.sp-qa { border-top: 1px solid var(--line-2); }
+.sp-qa summary { cursor: pointer; padding: 9px 0; font-size: 14.5px; font-weight: 500; color: var(--ink); }
+.sp-qa p { margin: 0 0 10px; color: var(--ink-2); font-size: 14px; line-height: 1.6; }
+.sp-more { margin-top: 6px; font-weight: 600; font-size: 14px; }
+.sp-none { text-align: center; color: var(--ink-2); }
+@media (max-width: 1000px) { .sp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .sp-grid { grid-template-columns: minmax(0, 1fr); } }

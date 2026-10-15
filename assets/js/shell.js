@@ -473,11 +473,11 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         { h: 'By field', wide: true, items: FIELDS },
         { h: 'By team', items: [['pricing/', 'Students and researchers', 'Free, in the browser'], ['pricing/', 'Research groups', 'Shared projects on the Lab plan'], ['#examples', 'Teaching labs', 'Ready-made class examples'], ['life-science/', 'Life-science labs', 'IC50, kinetics, qPCR']] }
       ] },
-    { id: 'ai', label: 'AI', href: 'ai/' },
-    { id: 'pricing', label: 'Pricing', href: 'pricing/' },
     { id: 'resources', label: 'Resources', compact: true, items: [
-      ['#examples', 'Worked examples', 'Ten ready-made projects'], ['tools/', 'Quick tools', 'One-step calculators'], ['validation/', 'Validation', 'How the numbers are checked'],
-      ['changelog/', 'What’s new', 'Release notes'], ['legal/security.html', 'Security and privacy', 'How your data is protected'], ['contact/', 'Contact', 'Sales, invoices, help and ideas']] }
+      ['#examples', 'Worked examples', 'Ten ready-made projects'], ['tools/', 'Quick tools', 'One-step calculators'], ['ai/', 'The AI inside Lattent', 'Fifteen models and a live lab'],
+      ['validation/', 'Validation', 'How the numbers are checked'], ['changelog/', 'What’s new', 'Release notes'], ['legal/security.html', 'Security and privacy', 'How your data is protected']] },
+    { id: 'support', label: 'Support', href: 'support/' },
+    { id: 'pricing', label: 'Pricing', href: 'pricing/' }
   ];
   const href = h => (h === '@contact' ? U.root + 'contact/' : /^https?:/.test(h) ? h : U.root + h);
   const LOGO = '<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg>';
@@ -536,7 +536,7 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         <div><a class="logo" href="${U.root}"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg><span>Lattent</span></a><p>Data analysis and materials discovery for the lab bench. It runs in your browser, and your data stays on your computer unless you save it to the cloud.</p></div>
         <div><h5>Platform</h5><a href="${U.root}studio/">Lattent Studio</a><a href="${U.root}studio/?discover=gen">Discover</a><a href="${U.root}#features">Features</a><a href="${U.root}tools/">Quick tools</a><a href="${U.root}pricing/">Pricing</a><a href="${U.root}ai/">AI and ML</a></div>
         <div><h5>Solutions</h5>${FIELDS.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}<a href="${U.root}life-science/">Life sciences</a></div>
-        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}#faq">FAQ</a><a href="${U.root}contact/">Contact</a></div>
+        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}support/">Support</a><a href="${U.root}contact/">Contact</a></div>
         <div><h5>Company</h5><a href="${U.root}account/">Account</a><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
       </div><p class="foot-note">Built by <a href="${CFG.author.url}">${CFG.author.name}</a>. © ${new Date().getFullYear()} Lattent.</p>`;
     }

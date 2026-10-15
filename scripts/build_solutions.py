@@ -150,6 +150,7 @@ FIELDS = [
 ]
 
 CHANGES = [
+    ("2026-10-16", "Support centre and a clearer home page", ["A Support centre with search, guides by topic, troubleshooting and billing help.", "The home page now opens with the problems Lattent solves and how it works in three steps.", "AI and machine learning moved into the Platform menu; Support joins the navigation."]),
     ("2026-10-16", "Facet, pricing and contact", ["The AI lab partner is now Facet. New: Check reviews the whole project for errors, Read a graph turns a picture of a plot into a table, and Ask accepts figures to interpret and critique.", "A Pricing page with plan comparison, yearly or monthly billing, and prices in US dollars or rupees. Pay by card, PayPal or Apple Pay worldwide, by UPI, cards or net banking in India through Razorpay, or by invoice.", "A Contact page; messages reach the team by email.", "Simpler navigation: Platform and Solutions menus, direct links to AI and Pricing, and a compact Resources menu."]),
     ("2026-10-15", "AI and machine learning", ["Equation discovery: symbolic regression finds a compact formula for XY data and recognises physical laws such as Arrhenius, Langmuir and Flory–Fox.", "AutoML: six kinds of model compared by cross-validation, with input importance, partial dependence, composition descriptors for formula columns and calibrated prediction intervals.", "Calibrated 90% intervals on every formation-energy and band-gap prediction.", "A new page, the periodic table of Lattent’s AI, with a live lab.", "Night mode and an account menu in every header."]),
     ("2026-10-15", "Navigation, Solutions and What’s new", ["A new site navigation with Platform, Solutions and Resources menus.", "A page for each field, from nanomaterials to analytical chemistry, linking straight to the right tool, example or Discover view.", "This release-notes page."]),
@@ -350,12 +351,100 @@ def contact():
     return HEAD.format(title="Contact | Lattent", desc="Contact Lattent about buying Pro, Lab plans and invoices, help with an analysis, or partnerships.", root=root, fonts=FONTS).replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/contact.js"></script>\n</body>')
 
 
+
+GUIDES = [
+    ("Getting started", "studio/", [
+        ("How do I start?", "Open Studio and choose a worked example close to your field, or create a table and paste your data straight from Excel or an instrument export. Then press Analyze, or open Facet for a suggestion."),
+        ("Which table type should I use?", "XY for curves and spectra (one X column, one or more Y columns; columns with the same title are replicates). Column for comparing groups. Multiple variables for compositions, process settings and properties, one row per sample."),
+        ("Do I need an account?", "No. Everything runs in your browser and projects are kept there. An account adds cloud storage, your plan on every computer and Lab sharing."),
+    ]),
+    ("Curve fitting and equations", "tools/curve-fitting/", [
+        ("Which equation should I fit?", "Run Auto-fit: it fits every plausible equation for the shape of your data and ranks them by AICc. Equation discovery can also find a formula that is not in the library."),
+        ("The fit does not converge.", "Check that X and Y are in the right columns and units, try Auto-fit, fix a parameter you know, or start from a simpler model. Very few points cannot support many parameters."),
+        ("Can I type my own equation?", "Yes. Choose User-defined equation and write it with x, any parameter names, + − * / ^ and functions such as exp, ln and sqrt."),
+    ]),
+    ("Statistics", "studio/?example=anova", [
+        ("Which test should I use?", "Facet suggests one from your data: t test or Mann–Whitney for two groups, ANOVA, Welch’s ANOVA or Kruskal–Wallis for more. Lattent checks normality and equal variance for you."),
+        ("Why not several t tests?", "Each extra test raises the chance of a false positive. ANOVA with Tukey or Holm–Šidák post tests corrects for the number of comparisons."),
+    ]),
+    ("XRD, spectra and band gaps", "tools/xrd-crystallite-size/", [
+        ("How is crystallite size calculated?", "Peaks are fitted with pseudo-Voigt profiles on a fitted baseline, instrumental broadening is removed, and the Scherrer and Williamson–Hall equations give size and strain. Sizes above about 100 nm are unreliable with any lab diffractometer."),
+        ("How do I identify the phase?", "After a peak analysis with X as 2θ, press Identify phases and list the elements that may be present. Lattent matches your peaks against every computed structure of those elements."),
+        ("My Tauc fit looks wrong.", "Choose the transition type (direct or indirect) and set the linear region by hand around the steepest part of the absorption edge."),
+    ]),
+    ("Facet and the AI models", "ai/", [
+        ("What can Facet do without an API key?", "Suggest analyses, check your whole project for mistakes, and read data from a picture of a graph. All of this runs offline in your browser."),
+        ("How do I use the chat?", "Open Facet, choose Ask, and add your own Anthropic or OpenAI key; it stays in your browser. You can attach a figure and ask what it shows or what is wrong with it. Analyses it proposes run only after you approve them."),
+        ("How accurate are the models?", "Each model’s accuracy on data it never saw is listed on the AI page and the validation page."),
+    ]),
+    ("Discover: database, phases, new materials", "studio/?discover=search", [
+        ("The database search fails.", "Discover queries the public Alexandria database from your browser. Check your connection, or a network that blocks external sites, and try again; very broad searches can be slow."),
+        ("Are generated materials real discoveries?", "They are candidates: compositions predicted to be stable and close to your target band gap, and absent from the database. Confirm them with a calculation or a synthesis."),
+    ]),
+    ("Figures, reports and export", "studio/", [
+        ("How do I get a figure for my paper?", "Every chart has PNG export. Pro adds 600-dpi PNG and vector SVG without the watermark, plus methods, results and figure-legend text written from your numbers."),
+        ("Can I export my results?", "Yes: results tables as CSV and one-page reports with Pro, and your data tables as CSV on any plan."),
+    ]),
+    ("Projects, cloud and Lab teams", "account/", [
+        ("Where is my project saved?", "In your browser, automatically. Clearing your browser’s site data removes it, so save important work to the cloud (free account: 3 projects) or as a project file."),
+        ("How does Lab sharing work?", "The Lab plan owner invites members from the account page; projects shared with the lab open for every member."),
+    ]),
+    ("Plans and billing", "pricing/", [
+        ("How do I pay?", "By card, PayPal or Apple Pay worldwide, by UPI, cards or net banking in India, or by invoice for institutions. See the pricing page."),
+        ("I paid, but Pro is still locked.", "Sign in with the same email you used to pay; the plan activates within a few seconds of the payment confirmation. If it does not, contact us with your receipt."),
+        ("How do I cancel or get a refund?", "Cancel any time from your account; you keep Pro until the end of the paid period. Refunds within 14 days of a payment, no questions asked."),
+    ]),
+]
+TROUBLE = [
+    ("My pasted data lands in one column.", "Lattent recognises tab, comma and semicolon separators and decimal commas. If the paste still lands in one column, copy the cells directly from Excel rather than from a PDF, or use Paste or import."),
+    ("A chart is blank or the page looks broken.", "Use a recent Chrome, Edge, Firefox or Safari, reload the page, and turn off extensions that block scripts for this site."),
+    ("Studio is slow with a large file.", "Curve fitting and AutoML work best with up to a few thousand points; for long spectra, crop to the region of interest first."),
+    ("I lost my project.", "Projects live in the browser where you made them. If the browser’s data was cleared and the project was not saved to the cloud or as a file, it cannot be recovered."),
+]
+def support():
+    root = "../"
+    a = lambda link: root + link
+    cards = "".join(
+        f'<section class="card sp-guide sp-item" data-q="{esc(g.lower())}"><h3>{esc(g)}</h3>'
+        + "".join(f'<details class="sp-qa sp-item"><summary>{esc(q)}</summary><p>{esc(ans)}</p></details>' for q, ans in qa)
+        + f'<a class="sp-more" href="{a(link)}">Open →</a></section>' for g, link, qa in GUIDES)
+    trouble = "".join(f'<details class="sp-item"><summary>{esc(q)}</summary><p>{esc(ans)}</p></details>' for q, ans in TROUBLE)
+    body = f"""<main>
+<section class="sol-hero sol-hero-hub"><div class="wrap sp-head">
+  <p class="sol-k">Support</p>
+  <h1>How can we help?</h1>
+  <p class="sol-lede">Answers to common questions, guides by topic, and a person to talk to when you need one.</p>
+  <label class="sp-search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13.5 13.5l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><input type="search" id="sp-q" placeholder="Search help: crystallite size, which test, billing…" aria-label="Search help"></label>
+</div></section>
+<section class="wrap section sp-start">
+  <div class="sec-head"><h2>Start in three steps</h2></div>
+  <ol class="how"><li><b>Open Studio</b><span>Choose a worked example or a new table. Nothing to install, no account needed.</span></li><li><b>Paste your data</b><span>Straight from Excel or your instrument. Facet recognises it and suggests the analysis.</span></li><li><b>Read, check, export</b><span>Results with uncertainties, a project check by Facet, and figures with methods text.</span></li></ol>
+  <p><a class="btn primary" href="{root}studio/">Open Studio</a> <a class="btn" href="{root}#examples">Browse worked examples</a></p>
+</section>
+<section class="wrap section"><div class="sec-head"><h2>Guides by topic</h2></div>
+  <div class="sp-grid" id="sp-guides">{cards}</div>
+  <p class="sp-none" id="sp-none" hidden>No answers match. <a href="{root}contact/?topic=support">Ask us directly →</a></p>
+</section>
+<section class="wrap section"><div class="sec-head"><h2>Troubleshooting</h2></div><div class="faq">{trouble}</div></section>
+<section class="wrap section"><div class="sec-head"><h2>Still need help?</h2></div>
+  <div class="pay-grid sp-contact">
+    <div class="card"><h3>Contact support</h3><p>Tell us what you measured, what you expected and what you see. We aim to reply within one working day.</p><a href="{root}contact/?topic=support">Write to support →</a></div>
+    <div class="card"><h3>Billing and invoices</h3><p>Payment links, receipts, invoices, purchase orders and refunds.</p><a href="{root}contact/?topic=sales">Contact billing →</a></div>
+    <div class="card"><h3>Ideas and bugs</h3><p>Missing an equation, a test or an instrument format? Found something wrong? We want to know.</p><a href="{root}contact/?topic=feedback">Send feedback →</a></div>
+  </div>
+</section>
+</main>
+"""
+    return HEAD.format(title="Support | Lattent", desc="Lattent help centre: getting started, guides to fitting, statistics, XRD, AI and Discover, troubleshooting, billing help and contact.", root=root, fonts=FONTS).replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/support.js"></script>\n</body>')
+
+
+write("support/index.html", support())
 write("pricing/index.html", pricing())
 write("contact/index.html", contact())
 
 # sitemap of every public page, for search engines
 BASE = "https://siba-p.github.io/lattent/"
-pages = ["", "studio/", "ai/", "pricing/", "contact/", "tools/", "solutions/", "changelog/", "validation/", "standard-curve/", "life-science/", "dose-response/", "enzyme-kinetics/", "qpcr/",
+pages = ["", "studio/", "ai/", "pricing/", "contact/", "support/", "tools/", "solutions/", "changelog/", "validation/", "standard-curve/", "life-science/", "dose-response/", "enzyme-kinetics/", "qpcr/",
          "legal/terms.html", "legal/privacy.html", "legal/refunds.html", "legal/security.html"]
 pages += [f"solutions/{f['slug']}/" for f in FIELDS]
 pages += sorted(f"tools/{d}/" for d in os.listdir(os.path.join(ROOT, "tools")) if os.path.isdir(os.path.join(ROOT, "tools", d)))
