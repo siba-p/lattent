@@ -3,8 +3,10 @@
   var C = window.BF_CONFIG;
   document.querySelectorAll('[data-price]').forEach(function (el) { el.textContent = C.prices[el.dataset.price]; });
   document.querySelectorAll('[data-buy]').forEach(function (a) {
-    var url = C.checkout[a.dataset.buy];
-    if (!url) { a.textContent = 'Start 7-day free trial'; a.onclick = function (e) { e.preventDefault(); if (BF.pro.kind() === 'free') BF.pro.startTrial(); else BF.ui.upgrade(); }; }
+    a.onclick = function (e) { e.preventDefault(); BF.ui.buy(a.dataset.buy); };
+  });
+  document.querySelectorAll('[data-trial]').forEach(function (a) {
+    a.onclick = function (e) { e.preventDefault(); if (BF.pro.kind() === 'free') BF.pro.startTrial(); else BF.ui.upgrade(); };
   });
   var esc = BF.ui.esc;
   document.getElementById('ex-cards').innerHTML = window.BF_SAMPLES.map(function (s) {

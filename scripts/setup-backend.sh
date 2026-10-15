@@ -37,20 +37,30 @@ $SB secrets set \
   LEMONSQUEEZY_PRO_VARIANTS="$LEMONSQUEEZY_PRO_VARIANTS" \
   LEMONSQUEEZY_LAB_VARIANTS="$LEMONSQUEEZY_LAB_VARIANTS" \
   LEMONSQUEEZY_ALLOW_TEST_MODE="${LEMONSQUEEZY_ALLOW_TEST_MODE:-false}" \
+  RAZORPAY_WEBHOOK_SECRET="${RAZORPAY_WEBHOOK_SECRET:-}" \
+  RAZORPAY_PRO_PLANS="${RAZORPAY_PRO_PLANS:-}" RAZORPAY_LAB_PLANS="${RAZORPAY_LAB_PLANS:-}" \
+  RAZORPAY_PRO_LINKS="${RAZORPAY_PRO_LINKS:-}" RAZORPAY_LAB_LINKS="${RAZORPAY_LAB_LINKS:-}" \
+  RESEND_API_KEY="${RESEND_API_KEY:-}" CONTACT_TO="${CONTACT_TO:-}" CONTACT_FROM="${CONTACT_FROM:-}" \
+  SITE_ORIGIN="${SITE_ORIGIN:-https://siba-p.github.io}" \
   SITE_ORIGINS="${SITE_ORIGINS:-https://siba-p.github.io}"
 
 echo "› Deploying Edge Functions"
 $SB functions deploy ls-webhook --no-verify-jwt
 $SB functions deploy delete-account
+$SB functions deploy rzp-webhook --no-verify-jwt
+$SB functions deploy contact --no-verify-jwt
 
 echo "› Writing public settings to assets/js/config.js"
 node scripts/configure.mjs \
   --supabase-url "https://$SUPABASE_PROJECT_REF.supabase.co" \
   --anon-key "$SUPABASE_ANON_KEY" \
   --store-id "$LEMONSQUEEZY_STORE_ID" \
-  --monthly "${CHECKOUT_MONTHLY:-}" --yearly "${CHECKOUT_YEARLY:-}" --lab "${CHECKOUT_LAB:-}"
+  --monthly "${CHECKOUT_MONTHLY:-}" --yearly "${CHECKOUT_YEARLY:-}" --lab "${CHECKOUT_LAB:-}" \
+  --rzp-monthly "${RAZORPAY_LINK_MONTHLY:-}" --rzp-yearly "${RAZORPAY_LINK_YEARLY:-}" --rzp-lab "${RAZORPAY_LINK_LAB:-}"
 
 echo
 echo "Done. Webhook URL for Lemon Squeezy:"
 echo "  https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/ls-webhook"
+echo "Webhook URL for Razorpay:"
+echo "  https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/rzp-webhook"
 echo "Commit and push assets/js/config.js to publish."

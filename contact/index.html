@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.lemonsqueezy.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="../assets/js/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contact | Lattent</title>
+<meta name="description" content="Contact Lattent about buying Pro, Lab plans and invoices, help with an analysis, or partnerships.">
+<meta property="og:title" content="Contact | Lattent"><meta property="og:description" content="Contact Lattent about buying Pro, Lab plans and invoices, help with an analysis, or partnerships."><meta property="og:image" content="https://siba-p.github.io/lattent/assets/img/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090c1b" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/bf.css">
+<link rel="stylesheet" href="../assets/css/solutions.css">
+<link rel="stylesheet" href="../assets/css/pricing.css">
+</head>
+<body>
+<header data-bf></header>
+<main>
+<section class="sol-hero sol-hero-hub"><div class="wrap">
+  <p class="sol-k">Contact</p>
+  <h1>Talk to us.</h1>
+  <p class="sol-lede">Questions about buying, a Lab plan or an invoice, help with an analysis, or an idea for Lattent: write to us and a person will reply, usually within a day.</p>
+</div></section>
+<section class="wrap section ct-grid">
+  <form class="card ct-form" id="ct-form" novalidate>
+    <div class="fg two"><div><label for="ct-name">Your name</label><input type="text" id="ct-name" autocomplete="name" required maxlength="120"></div>
+      <div><label for="ct-email">Email</label><input type="email" id="ct-email" autocomplete="email" required maxlength="200"></div></div>
+    <div class="fg two"><div><label for="ct-org">Institution or company <span class="opt">optional</span></label><input type="text" id="ct-org" autocomplete="organization" maxlength="200"></div>
+      <div><label for="ct-topic">What is it about?</label><select id="ct-topic"><option value="sales">Buying Pro</option><option value="lab">Lab plan, invoice or purchase order</option><option value="support">Help with an analysis</option><option value="partnership">Partnership or collaboration</option><option value="feedback">Feedback or an idea</option><option value="other">Something else</option></select></div></div>
+    <div class="fg"><label for="ct-msg">Message</label><textarea id="ct-msg" rows="7" required minlength="10" maxlength="5000" placeholder="Tell us a little about your lab and what you need."></textarea></div>
+    <div class="ct-hp" aria-hidden="true"><label>Leave this empty <input type="text" id="ct-web" tabindex="-1" autocomplete="off"></label></div>
+    <div class="ct-actions"><button class="btn primary big" type="submit">Send message</button><p class="hint" id="ct-note">We use your details only to reply. See our <a href="../legal/privacy.html">privacy notice</a>.</p></div>
+    <div id="ct-out" aria-live="polite"></div>
+  </form>
+  <aside class="ct-side">
+    <div class="card"><h3>Buying and invoices</h3><p>Payment links in dollars or rupees, invoices and purchase orders for labs and departments.</p></div>
+    <div class="card"><h3>Help with Lattent</h3><p>Stuck on an analysis? Tell us what you measured and what you expected; screenshots welcome by reply.</p></div>
+    <div class="card"><h3>Collaborate</h3><p>Instrument makers, core facilities and research groups: we are keen to build workflows together.</p></div>
+    <p class="hint">Found a security problem? Ask for a private channel first and do not include details in the message.</p>
+  </aside>
+</section>
+</main>
+<footer data-bf></footer>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/stats.js"></script>
+<script src="../assets/js/plot.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/contact.js"></script>
+</body>
+</html>

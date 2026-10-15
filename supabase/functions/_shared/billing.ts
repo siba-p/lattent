@@ -33,7 +33,7 @@ export interface BillingStore {
   recordEvent(id: string, name: string, payload: unknown): Promise<boolean>;
   userExists(id: string): Promise<boolean>;
   findUserIdByEmail(email: string): Promise<string | null>;
-  getSubscription(id: string): Promise<{ ls_updated_at: string | null } | null>;
+  getSubscription(id: string): Promise<{ ls_updated_at: string | null; email?: string; user_id?: string | null } | null>;
   upsertSubscription(row: SubscriptionRow): Promise<void>;
   markRefunded(orderId: string): Promise<number>;
   ensureLabTeam(subscriptionId: string): Promise<void>;

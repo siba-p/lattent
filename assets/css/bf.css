@@ -79,6 +79,11 @@ h3, h4 { font-weight: 600; letter-spacing: -0.01em; }
 @media (prefers-reduced-motion: reduce) { .mm-panel { animation: none; } }
 .mm-in { max-width: 1240px; margin: 0 auto; padding: 26px 24px 30px; display: grid; grid-template-columns: 290px repeat(3, minmax(0, 1fr)); gap: 24px; }
 #mm-platform .mm-in { grid-template-columns: 260px repeat(4, minmax(0, 1fr)); gap: 18px; }
+@media (min-width: 961px) {
+  .nav-group.compact { position: relative; }
+  .mm-panel.compact { left: 0; right: auto; top: calc(100% + 12px); width: 300px; border: 1px solid var(--line); border-radius: 14px; }
+  .mm-panel.compact .mm-in { display: block; padding: 8px; max-width: none; }
+}
 .mm-feat { display: flex; flex-direction: column; gap: 8px; padding: 22px; border-radius: 14px; color: #eef0fb !important; text-decoration: none !important; background: radial-gradient(320px 200px at 100% 0%, rgba(86,100,230,.55), transparent 70%), radial-gradient(240px 160px at 0% 100%, rgba(240,140,62,.16), transparent 70%), var(--night); min-height: 210px; }
 .mm-feat .mm-k { font: 600 11px Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #f6b27a; }
 .mm-feat b { font: 600 19px/1.25 var(--display); letter-spacing: -0.02em; }
@@ -368,3 +373,12 @@ table.t tr.dim td { color: var(--ink-3); }
 }
 
 @media (max-width: 860px) { .open-studio { display: none !important; } }
+
+/* payment choice in the buy dialog */
+.pay-opts { display: grid; gap: 10px; margin: 16px 0 12px; }
+.pay-opt { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); text-align: left; cursor: pointer; font: inherit; color: var(--ink); }
+.pay-opt:hover { border-color: var(--brand); background: var(--brand-soft); }
+.pay-opt b { display: block; font-size: 15px; }
+.pay-opt small { display: block; color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
+.pay-opt i { font-style: normal; font: 700 18px var(--display); color: var(--brand-ink); white-space: nowrap; }
+.plan-btn { font: inherit; cursor: pointer; text-align: left; }

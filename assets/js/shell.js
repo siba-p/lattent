@@ -169,25 +169,58 @@
     U.upgrade(what);
   };
 
+  /* ---------- buying: Lemon Squeezy (worldwide, USD), Razorpay (India, INR), or an enquiry ---------- */
+  const PLAN_NAME = { monthly: 'Pro monthly', yearly: 'Pro yearly', lab: 'Lab plan' };
+  U.payOptions = function (plan) {
+    const o = [], P = CFG.prices;
+    if (CFG.checkout && CFG.checkout[plan]) o.push({ id: 'ls', name: 'Card, PayPal or Apple Pay', sub: 'Worldwide, in US dollars · secure checkout by Lemon Squeezy', price: '$' + P[plan] });
+    if (CFG.razorpay && CFG.razorpay[plan]) o.push({ id: 'rzp', name: 'UPI, cards or net banking', sub: 'India, in rupees · secure checkout by Razorpay', price: '₹' + P.inr[plan].toLocaleString('en-IN') });
+    return o;
+  };
+  U.paymentsLive = () => ['monthly', 'yearly', 'lab'].some(p => U.payOptions(p).length);
+  function goPay(plan, id) {
+    if (id === 'ls') {
+      /* with accounts on, sign in first so the plan is attached to the account */
+      if (CFG.supabase && CFG.supabase.url) location.href = U.root + 'account/?buy=' + plan;
+      else location.href = CFG.checkout[plan];
+    } else location.href = CFG.razorpay[plan];
+  }
+  U.buy = function (plan) {
+    const opts = U.payOptions(plan), name = PLAN_NAME[plan] || 'Pro';
+    if (opts.length === 1) return goPay(plan, opts[0].id);
+    if (!opts.length) {
+      const k = Pro.kind();
+      U.modal(`<p class="m-kicker">${U.esc(name)}</p><h2>Online checkout opens shortly</h2>
+        <p>We are finishing the payment set-up. Tell us what you need and we will send you a secure payment link or an invoice for your institution, usually within a day.</p>
+        <div class="m-actions"><a class="btn primary" href="${U.root}contact/?topic=${plan === 'lab' ? 'lab' : 'sales'}&plan=${plan}">Request a payment link or invoice</a>
+        ${k === 'free' ? '<button class="btn" data-trial>Try Pro free for 7 days</button>' : ''}</div>`);
+      const t = $('[data-trial]'); if (t) t.onclick = () => { if (Pro.startTrial()) U.closeModal(); };
+      return;
+    }
+    const m = U.modal(`<p class="m-kicker">${U.esc(name)}</p><h2>How would you like to pay?</h2>
+      <div class="pay-opts">${opts.map(o => `<button class="pay-opt" data-pay="${o.id}"><span><b>${o.name}</b><small>${o.sub}</small></span><i>${o.price}</i></button>`).join('')}</div>
+      <p class="m-note">Card details go only to the payment provider, never to Lattent. Use the same email as your Lattent account so your plan activates automatically.</p>`);
+    m.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => goPay(plan, b.dataset.pay));
+  };
   U.upgrade = function (what) {
     const k = Pro.kind();
     const p = CFG.prices;
-    const plan = (id, label, price, per, best) => `<a class="plan-btn${best ? ' best' : ''}" href="${U.root}account/?buy=${id}"><b>${label}</b><span>$${price}<small>/${per}</small></span></a>`;
-    const live = CFG.checkout && (CFG.checkout.monthly || CFG.checkout.yearly || CFG.checkout.lab);
-    U.modal(`
+    const plan = (id, label, price, per, best) => `<button class="plan-btn${best ? ' best' : ''}" data-plan="${id}"><b>${label}</b><span>$${price}<small>/${per}</small></span></button>`;
+    const m = U.modal(`
       <p class="m-kicker">Lattent Pro${CFG.earlyAccess ? ' · early-access price' : ''}</p>
       <h2>${what ? U.esc(what) + ' is a Pro feature' : 'Publication-ready output, in one click'}</h2>
       <ul class="m-list">
         <li>Figures as vector SVG and 600-dpi PNG, without the watermark</li>
         <li>Auto-written methods, results and figure legend, ready to paste into a paper</li>
         <li>Cloud storage for your projects, results as CSV and reports</li>
-        <li>AI co-scientist chat with your own Claude or GPT key</li>
+        <li>Facet, the AI lab partner, with your own Claude or GPT key</li>
       </ul>
-      ${live ? `<div class="m-plans">${plan('yearly', 'Yearly', p.yearly, 'year', true)}${plan('monthly', 'Monthly', p.monthly, 'month')}${plan('lab', 'Lab, 10 people', p.lab, 'year')}</div>` : '<p class="m-note">Paid plans open shortly. Meanwhile, try every Pro feature free.</p>'}
+      <div class="m-plans">${plan('yearly', 'Yearly', p.yearly, 'year', true)}${plan('monthly', 'Monthly', p.monthly, 'month')}${plan('lab', 'Lab, 10 people', p.lab, 'year')}</div>
       <div class="m-actions">
-        ${k === 'free' ? '<button class="btn primary" data-trial>Start free 7-day trial</button>' : k === 'trial-ended' ? '<span class="m-note">Your trial has ended.</span>' : ''}
-        <a class="btn ghost" href="${U.root}account/">Sign in or manage plan</a>
+        ${k === 'free' ? '<button class="btn" data-trial>Try free for 7 days</button>' : k === 'trial-ended' ? '<span class="m-note">Your trial has ended.</span>' : ''}
+        <a class="btn ghost" href="${U.root}pricing/">Compare plans</a>
       </div>`);
+    m.querySelectorAll('[data-plan]').forEach(b => b.onclick = () => U.buy(b.dataset.plan));
     const t = $('[data-trial]');
     if (t) t.onclick = () => { if (Pro.startTrial()) U.closeModal(); };
   };
@@ -401,7 +434,7 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         <div class="am-head"><span class="avatar lg" aria-hidden="true">${U.esc(ini)}</span><div><b>${U.esc(s.email)}</b><span class="am-plan ${pk}">${plan}</span></div></div>
         <a role="menuitem" href="${U.root}account/">Account and billing</a>
         <a role="menuitem" href="${U.root}studio/?cloud=1">Cloud projects</a>
-        ${free ? `<a role="menuitem" class="am-up" href="${U.root}#pricing">Upgrade to Pro</a>` : ''}
+        ${free ? `<a role="menuitem" class="am-up" href="${U.root}pricing/">Upgrade to Pro</a>` : ''}
         <a role="menuitem" class="am-out" href="${U.root}account/?signout=1">Sign out</a></div>`);
   };
 
@@ -431,43 +464,39 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
       cols: [
         { h: 'Analyse', items: [['#characterise', 'Spectra and diffraction', 'Peak fits, XRD sizes, band gaps'], ['#fit', 'Curve fitting', '35 equations, ranked by AICc'], ['#compare', 'Statistics', 'Tests with the checks built in'], ['tools/tensile-test/', 'Mechanical tests', 'Modulus, yield, toughness']] },
         { h: 'Discover', items: [['studio/?discover=search', 'Materials database', '5.8 million computed crystals'], ['studio/?discover=phase', 'Phase identification', 'Match XRD peaks to structures'], ['studio/?discover=gen', 'Generative design', 'Propose new compositions'], ['#optimise', 'Bayesian optimisation', 'Choose the next experiments']] },
-        { h: 'AI and ML', items: [['ai/', 'The AI inside Lattent', 'Fifteen models, each with its accuracy'], ['studio/?example=floryfox&run=symreg', 'Equation discovery', 'Symbolic regression finds the formula'], ['studio/?example=perovskite', 'AutoML predictions', 'Best model, importance, intervals'], ['#co-scientist', 'AI co-scientist', 'Suggests, explains, never invents']] },
+        { h: 'AI and ML', items: [['#facet', 'Facet, the AI lab partner', 'Suggests, checks, reads graphs'], ['studio/?example=floryfox&run=symreg', 'Equation discovery', 'Symbolic regression finds the formula'], ['studio/?example=perovskite', 'AutoML predictions', 'Best model, importance, intervals'], ['ai/', 'All fifteen models', 'Each with its measured accuracy']] },
         { h: 'Work together', items: [['#publish', 'Figures and write-ups', '600-dpi figures and methods text'], ['account/', 'Cloud and Lab teams', 'Sync and share with your group'], ['#organise', 'Data tables', 'XY, column and multi-variable']] }
       ] },
     { id: 'solutions', label: 'Solutions',
       feature: { kicker: 'Worked example', title: 'Identify the phases in your XRD', text: 'Fit the peaks of a gold-nanoparticle pattern, then match them against every computed gold structure.', href: 'studio/?example=xrd', cta: 'Open the example' },
       cols: [
         { h: 'By field', wide: true, items: FIELDS },
-        { h: 'By team', items: [['#pricing', 'Students and researchers', 'Free, in the browser'], ['#pricing', 'Research groups', 'Shared projects on the Lab plan'], ['#examples', 'Teaching labs', 'Ready-made class examples'], ['life-science/', 'Life-science labs', 'IC50, kinetics, qPCR']] }
+        { h: 'By team', items: [['pricing/', 'Students and researchers', 'Free, in the browser'], ['pricing/', 'Research groups', 'Shared projects on the Lab plan'], ['#examples', 'Teaching labs', 'Ready-made class examples'], ['life-science/', 'Life-science labs', 'IC50, kinetics, qPCR']] }
       ] },
-    { id: 'resources', label: 'Resources',
-      feature: { kicker: 'Validation', title: 'Checked against SciPy before every release', text: 'Parameters, errors and p-values agree with the reference Python libraries.', href: 'validation/', cta: 'See the results' },
-      cols: [
-        { h: 'Learn', items: [['#examples', 'Worked examples', 'Ten ready-made projects'], ['tools/', 'Quick tools', 'One-step calculators'], ['#faq', 'FAQ', 'Common questions']] },
-        { h: 'Trust', items: [['validation/', 'Validation', 'How the numbers are checked'], ['legal/security.html', 'Security', 'How your data is protected'], ['legal/privacy.html', 'Privacy', 'What we store, and what we never do']] },
-        { h: 'Updates', items: [['changelog/', 'What’s new', 'Release notes'], ['@contact', 'Contact', 'Questions and feedback']] }
-      ] },
-    { id: 'pricing', label: 'Pricing', href: '#pricing' }
+    { id: 'ai', label: 'AI', href: 'ai/' },
+    { id: 'pricing', label: 'Pricing', href: 'pricing/' },
+    { id: 'resources', label: 'Resources', compact: true, items: [
+      ['#examples', 'Worked examples', 'Ten ready-made projects'], ['tools/', 'Quick tools', 'One-step calculators'], ['validation/', 'Validation', 'How the numbers are checked'],
+      ['changelog/', 'What’s new', 'Release notes'], ['legal/security.html', 'Security and privacy', 'How your data is protected'], ['contact/', 'Contact', 'Sales, invoices, help and ideas']] }
   ];
-  const href = h => (h === '@contact' ? U.contact.href : /^https?:/.test(h) ? h : U.root + h);
+  const href = h => (h === '@contact' ? U.root + 'contact/' : /^https?:/.test(h) ? h : U.root + h);
   const LOGO = '<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg>';
   function chrome() {
     const h = $('header[data-bf]');
     const path = location.pathname;
-    /* until a support address is configured, questions go to the public issue tracker */
-    U.contact = CFG.support ? { href: 'mailto:' + CFG.support, ext: false } : { href: 'https://github.com/siba-p/lattent/issues', ext: true };
+    U.contact = { href: U.root + 'contact/', ext: false };
     if (h) {
       h.className = 'top';
       const item = ([u, t, d]) => `<a class="mm-item" href="${href(u)}"${u === '@contact' && U.contact.ext ? ' target="_blank" rel="noopener"' : ''}><b>${t}</b><span>${d}</span></a>`;
-      const panel = m => `<div class="mm-panel" id="mm-${m.id}" role="region" aria-label="${m.label}" hidden><div class="mm-in">
+      const panel = m => m.compact ? `<div class="mm-panel compact" id="mm-${m.id}" role="region" aria-label="${m.label}" hidden><div class="mm-in"><div class="mm-list">${m.items.map(item).join('')}</div></div></div>` : `<div class="mm-panel" id="mm-${m.id}" role="region" aria-label="${m.label}" hidden><div class="mm-in">
           <a class="mm-feat" href="${href(m.feature.href)}"><span class="mm-k">${m.feature.kicker}</span><b>${m.feature.title}</b><span>${m.feature.text}</span><i>${m.feature.cta} →</i></a>
           ${m.cols.map(c => `<div class="mm-col${c.wide ? ' wide' : ''}"><h6>${c.h}</h6><div class="mm-list">${c.items.map(item).join('')}</div></div>`).join('')}
         </div></div>`;
       h.innerHTML = `<div class="top-in">
         <a class="logo" href="${U.root}" aria-label="Lattent home">${LOGO}<span>Lattent</span></a>
         <nav class="nav" aria-label="Site">${MENU.map(m => m.href
-          ? `<a class="nav-top" href="${href(m.href)}">${m.label}</a>`
-          : `<div class="nav-group"><button class="nav-top" aria-expanded="false" aria-controls="mm-${m.id}">${m.label}<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${panel(m)}</div>`).join('')}
+          ? `<a class="nav-top${path.includes('/' + m.href) ? ' cur' : ''}" href="${href(m.href)}"${path.includes('/' + m.href) ? ' aria-current="page"' : ''}>${m.label}</a>`
+          : `<div class="nav-group${m.compact ? ' compact' : ''}"><button class="nav-top" aria-expanded="false" aria-controls="mm-${m.id}">${m.label}<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${panel(m)}</div>`).join('')}
           <div class="nav-m-theme"><span>Theme</span><div class="seg-t">${THEMES.map(([k, n]) => `<button data-theme-opt="${k}" role="menuitemradio">${ICON[k]}<span>${n}</span></button>`).join('')}</div></div>
           <div class="nav-m-acts">${U.session() ? `<a class="btn" href="${U.root}account/">Your account</a>` : `<a class="btn" href="${U.root}account/">Sign in</a>`}<a class="btn primary" href="${U.root}studio/">Open Studio</a></div></nav>
         <div class="top-r"><a class="pro-chip" href="${U.root}account/" id="pro-chip" hidden></a><span class="slot-theme"></span><span class="slot-acct"></span><a class="btn primary small open-studio" href="${U.root}studio/">Open Studio</a>
@@ -505,9 +534,9 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
       f.className = 'foot';
       f.innerHTML = `<div class="foot-in">
         <div><a class="logo" href="${U.root}"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg><span>Lattent</span></a><p>Data analysis and materials discovery for the lab bench. It runs in your browser, and your data stays on your computer unless you save it to the cloud.</p></div>
-        <div><h5>Platform</h5><a href="${U.root}studio/">Lattent Studio</a><a href="${U.root}studio/?discover=gen">Discover</a><a href="${U.root}#features">Features</a><a href="${U.root}tools/">Quick tools</a><a href="${U.root}#pricing">Pricing</a></div>
+        <div><h5>Platform</h5><a href="${U.root}studio/">Lattent Studio</a><a href="${U.root}studio/?discover=gen">Discover</a><a href="${U.root}#features">Features</a><a href="${U.root}tools/">Quick tools</a><a href="${U.root}pricing/">Pricing</a><a href="${U.root}ai/">AI and ML</a></div>
         <div><h5>Solutions</h5>${FIELDS.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}<a href="${U.root}life-science/">Life sciences</a></div>
-        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}#faq">FAQ</a><a href="${U.contact.href}"${U.contact.ext ? ' target="_blank" rel="noopener"' : ''}>Contact</a></div>
+        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}#faq">FAQ</a><a href="${U.root}contact/">Contact</a></div>
         <div><h5>Company</h5><a href="${U.root}account/">Account</a><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
       </div><p class="foot-note">Built by <a href="${CFG.author.url}">${CFG.author.name}</a>. © ${new Date().getFullYear()} Lattent.</p>`;
     }

@@ -1,4 +1,4 @@
-/* Lattent Studio: data tables → analyses → graphs → write-up, with an AI co-scientist. */
+/* Lattent Studio: data tables → analyses → graphs → write-up, with Facet, the AI lab partner. */
 (function () {
   'use strict';
   const { stats: S, models: M, analysis: A, plot: P, ui: U, pro: Pro } = BF;
@@ -1152,7 +1152,7 @@
   }
   let lastRendered = null;
 
-  /* ================= co-scientist ================= */
+  /* ================= Facet: the AI lab partner ================= */
   function advise(t) {
     const out = [];
     if (t.type === 'xy') {
@@ -1236,7 +1236,7 @@
   function renderAdvisor(t) {
     t = t || (cur && (cur.type === 'table' ? table(cur.id) : cur.type === 'item' && item(cur.id) ? table(item(cur.id).tableId) : null));
     const box = $('#co-advisor');
-    if (!t) { box.innerHTML = cur && cur.type === 'discover' ? '<p class="hint">Suggestions follow your data tables. In Discover, ask Claude or GPT in the other tab, or open a table.</p>' : '<p class="hint">Open a table to get suggestions.</p>'; return; }
+    if (!t) { box.innerHTML = cur && cur.type === 'discover' ? '<p class="hint">Suggestions follow your data tables. In Discover, ask Facet in the Ask tab, or open a table.</p>' : '<p class="hint">Open a table to get suggestions.</p>'; return; }
     const list = advise(t);
     box.innerHTML = `<p class="hint">Suggestions for <b>${esc(t.name)}</b>.</p>` + list.map((s, i) => (s.shape ? `<div class="sug ai">${shapeLine(s.shape)}<p class="hint" style="margin:6px 0 0">Lattent's shape model was trained on ${(BF.ml.metrics().train_samples / 1000).toFixed(0)},000 simulated lab datasets and runs in your browser.</p></div>` : `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind || s.disc ? `<button class="btn small primary" data-run="${i}">${s.disc ? 'Open' : 'Run'}</button>` : ''}</div>`)).join('');
     $$('[data-run]', box).forEach(b => b.onclick = () => { const s = list[+b.dataset.run]; if (s.disc) BF.discover.open(s.disc, s.ctx); else addItem(t.id, s.kind, s.opts); });
@@ -1256,7 +1256,9 @@
   function systemPrompt() {
     const cat = Object.entries(K).map(([id, k]) => `- ${id} (${k.types.join(',')} tables): ${k.label}. ${k.desc} Default options: ${JSON.stringify(k.defaults(proj.tables[0] || blankTable('xy')))}`).join('\n');
     const eqs = M.library.map(m => `${m.id}: ${m.name} [${m.field}] ${m.eq}`).join('\n');
-    return `You are the co-scientist inside Lattent Studio, a data-analysis workspace for materials, chemistry, polymers, nanomaterials, physics and biology. You help scientists choose and interpret analyses. You never compute numbers yourself: every number must come from Lattent's validated engine. To run an analysis, include one fenced block:
+    return `You are Facet, the AI lab partner inside Lattent Studio, a data-analysis workspace for materials, chemistry, polymers, nanomaterials, physics and biology. You help scientists choose and interpret analyses. You never compute fitted numbers yourself: every result must come from Lattent's validated engine.
+When the user attaches a figure (a plot, spectrum, diffractogram, micrograph or screenshot): say what it shows (axes, units, scales, trends, features), then list concrete errors or weaknesses, such as missing or wrong units, unlabelled axes, truncated or misleading scales, missing error bars or sample sizes, overfitting, extrapolation, unphysical values, or peaks that are mis-assigned. If digitising helps, give approximate data in one fenced block \`\`\`csv with a header row (X first); the user can add it as a table and Lattent will analyse it properly. State that values read from an image are approximate.
+To run an analysis, include one fenced block:
 \`\`\`lattent
 {"actions":[{"table":"<table id>","kind":"<analysis id>","opts":{...}}]}
 \`\`\`
@@ -1272,11 +1274,18 @@ custom: user-defined (opts.model="custom", opts.expr="A*exp(-k*x)+c")
 PROJECT:
 ${projectSummary()}`;
   }
-  async function askLLM(q) {
+  let attached = null;   // {type, data (base64), name, url (data URL)}
+  async function askLLM(q, img) {
     const cfg = AI.get();
     if (!cfg.key) throw new Error('Add your Anthropic or OpenAI API key in the fields above first.');
-    chat.push({ role: 'user', content: q });
-    const msgs = chat.slice(-12);
+    chat.push({ role: 'user', content: q, image: img || null });
+    /* only the latest image is sent, to keep requests small */
+    const last = chat.map((m, i) => (m.image ? i : -1)).filter(i => i >= 0).pop();
+    const msgs = chat.slice(-12).map(m => {
+      const isImg = m.image && chat.indexOf(m) === last;
+      if (cfg.provider === 'openai') return { role: m.role, content: isImg ? [{ type: 'text', text: m.content }, { type: 'image_url', image_url: { url: m.image.url } }] : m.content };
+      return { role: m.role, content: isImg ? [{ type: 'image', source: { type: 'base64', media_type: m.image.type, data: m.image.data } }, { type: 'text', text: m.content }] : m.content };
+    });
     let text;
     if (cfg.provider === 'openai') {
       const r = await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.key }, body: JSON.stringify({ model: cfg.model || 'gpt-5', messages: [{ role: 'system', content: systemPrompt() }].concat(msgs) }) });
@@ -1293,26 +1302,40 @@ ${projectSummary()}`;
   function renderChat() {
     const log = $('#co-log');
     log.innerHTML = chat.map((m, mi) => {
-      if (m.role === 'user') return `<div class="msg u">${esc(m.content)}</div>`;
-      const acts = [];
-      const body = m.content.replace(/```(?:lattent|benchfit)\s*([\s\S]*?)```/g, (_, js) => { try { const j = JSON.parse(js); (j.actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore malformed */ } return ''; });
-      return `<div class="msg a">${esc(body.trim()).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}${acts.map((a, i) => (K[a.kind] && table(a.table) ? `<div class="act"><span>${esc(K[a.kind].label)} on ${esc(table(a.table).name)}</span><button class="btn small primary" data-act="${mi}:${i}">Run</button></div>` : '')).join('')}</div>`;
-    }).join('') || '<p class="hint">Ask in plain language, for example: “Which isotherm fits best and what is the maximum capacity?” or “Plan my next five blend experiments to maximise toughness.”</p>';
+      if (m.role === 'user') return `<div class="msg u">${m.image ? `<img class="msg-img" src="${m.image.url}" alt="Attached figure">` : ''}${esc(m.content)}</div>`;
+      const acts = [], csvs = [];
+      let body = m.content.replace(/```(?:lattent|benchfit)\s*([\s\S]*?)```/g, (_, js) => { try { const j = JSON.parse(js); (j.actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore malformed */ } return ''; });
+      body = body.replace(/```csv\s*([\s\S]*?)```/g, (_, c) => { csvs.push(c.trim()); return '\n[data table below]\n'; });
+      return `<div class="msg a">${esc(body.trim()).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}${acts.map((a, i) => (K[a.kind] && table(a.table) ? `<div class="act"><span>${esc(K[a.kind].label)} on ${esc(table(a.table).name)}</span><button class="btn small primary" data-act="${mi}:${i}">Run</button></div>` : '')).join('')}${csvs.map((c, i) => `<div class="act"><span>Data read from the figure (${c.split('\n').length - 1} rows, approximate)</span><button class="btn small primary" data-csv="${mi}:${i}">Add as table</button></div>`).join('')}</div>`;
+    }).join('') || '<p class="hint">Ask in plain language, for example: “Which isotherm fits best and what is the maximum capacity?”, or attach a figure and ask “What is wrong with this graph?”</p>';
     $$('[data-act]', log).forEach(b => b.onclick = () => {
       const [mi, i] = b.dataset.act.split(':').map(Number);
       const acts = []; chat[mi].content.replace(/```(?:lattent|benchfit)\s*([\s\S]*?)```/g, (_, js) => { try { (JSON.parse(js).actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore */ } });
       const a = acts[i]; if (a && K[a.kind] && table(a.table)) addItem(a.table, a.kind, a.opts || {});
+    });
+    $$('[data-csv]', log).forEach(b => b.onclick = () => {
+      const [mi, i] = b.dataset.csv.split(':').map(Number);
+      const csvs = []; chat[mi].content.replace(/```csv\s*([\s\S]*?)```/g, (_, c) => { csvs.push(c.trim()); });
+      const g = U.parseGrid(csvs[i] || '');
+      if (!g.rows.length) { U.toast('No usable data in that block.'); return; }
+      addTableFromData('Data read by Facet', g.header || ['X', 'Y'], g.raw.map(r => r.map(String)));
     });
     log.scrollTop = log.scrollHeight;
   }
   function wireCoscientist() {
     $('#co-close').onclick = () => document.body.classList.remove('co-open');
     $('#st-co').onclick = () => { document.body.classList.toggle('co-open'); renderAdvisor(); };
+    const PANES = { 'co-tab-advisor': '#co-advisor', 'co-tab-check': '#co-check', 'co-tab-graph': '#co-graph', 'co-tab-chat': '#co-chat' };
     $$('.co-tabs button').forEach(b => b.onclick = () => {
       $$('.co-tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
-      $('#co-advisor').hidden = b.id !== 'co-tab-advisor'; $('#co-chat').hidden = b.id !== 'co-tab-chat';
-      if (b.id === 'co-tab-advisor') renderAdvisor(); else { renderChat(); syncAiCfg(); }
+      Object.entries(PANES).forEach(([id, sel2]) => { $(sel2).hidden = id !== b.id; });
+      if (b.id === 'co-tab-advisor') renderAdvisor(); else if (b.id === 'co-tab-check') renderCheck(); else if (b.id === 'co-tab-graph') renderGraphTab(); else { renderChat(); syncAiCfg(); }
     });
+    const showAtt = () => { const a = $('#co-att'); a.hidden = !attached; a.innerHTML = attached ? `<img src="${attached.url}" alt=""><span>${esc(attached.name)}</span><button type="button" aria-label="Remove figure">×</button>` : ''; if (attached) a.querySelector('button').onclick = () => { attached = null; showAtt(); }; };
+    const takeImage = f => readImage(f).then(img => { attached = img; showAtt(); if (!$('#co-q').value.trim()) $('#co-q').value = 'What does this figure show, and is anything wrong with it?'; }).catch(e => U.toast(e.message));
+    $('#co-attach').onclick = () => $('#co-img').click();
+    $('#co-img').onchange = e => { if (e.target.files[0]) takeImage(e.target.files[0]); e.target.value = ''; };
+    $('#co-q').addEventListener('paste', e => { const it = [...(e.clipboardData || {}).items || []].find(x => x.type.startsWith('image/')); if (it) { e.preventDefault(); takeImage(it.getAsFile()); } });
     const cfg = AI.get();
     $('#ai-provider').value = cfg.provider; $('#ai-model').value = cfg.model; $('#ai-key').value = cfg.key ? '••••••••' + cfg.key.slice(-4) : '';
     const saveCfg = () => { const c = AI.get(); c.provider = $('#ai-provider').value; c.model = $('#ai-model').value.trim(); const k = $('#ai-key').value.trim(); if (k && !k.startsWith('••')) c.key = k; AI.set(c); syncAiCfg(); };
@@ -1322,14 +1345,205 @@ ${projectSummary()}`;
     $('#co-form').onsubmit = e => {
       e.preventDefault();
       const q = $('#co-q').value.trim(); if (!q) return;
-      Pro.require('The AI co-scientist chat', async () => {
+      Pro.require('The Facet chat', async () => {
+        const img = attached; attached = null; showAtt();
         $('#co-q').value = ''; renderChat();
-        $('#co-log').insertAdjacentHTML('beforeend', `<div class="msg u">${esc(q)}</div><div class="msg a thinking">Thinking…</div>`);
-        try { await askLLM(q); } catch (err) { chat.push({ role: 'assistant', content: 'Error: ' + err.message }); }
+        $('#co-log').insertAdjacentHTML('beforeend', `<div class="msg u">${img ? `<img class="msg-img" src="${img.url}" alt="">` : ''}${esc(q)}</div><div class="msg a thinking">${img ? 'Looking at your figure…' : 'Thinking…'}</div>`);
+        try { await askLLM(q, img); } catch (err) { chat.push({ role: 'assistant', content: 'Error: ' + err.message }); }
         renderChat();
       });
     };
   }
+  /* read an image file, downscaled to at most 1600 px, as base64 for the vision models */
+  function readImage(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\//.test(file.type)) return reject(new Error('Choose a PNG, JPEG or WebP image.'));
+      if (file.size > 15e6) return reject(new Error('That image is larger than 15 MB.'));
+      const fr = new FileReader();
+      fr.onload = () => {
+        const im = new Image();
+        im.onload = () => {
+          const sc = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+          c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
+          const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+          const url = c.toDataURL('image/png');
+          resolve({ type: 'image/png', data: url.split(',')[1], url, name: file.name || 'pasted image', canvas: c });
+        };
+        im.onerror = () => reject(new Error('That file could not be read as an image.'));
+        im.src = fr.result;
+      };
+      fr.onerror = () => reject(new Error('That file could not be read.'));
+      fr.readAsDataURL(file);
+    });
+  }
+  function addTableFromData(name, cols, rows) {
+    if (!proj) proj = { name: 'Untitled project', tables: [], items: [] };
+    const t = Object.assign(blankTable('xy', name), { cols, rows, v: 1, id: uid('t') });
+    proj.tables.push(t); save(); select('table', t.id);
+    U.toast('Added “' + name + '” with ' + rows.length + ' rows.', 'ok');
+    return t;
+  }
+
+  /* ---------- Check: an offline reviewer of the whole project ---------- */
+  const UNIT = /\(.+\)|\[.+\]|\/\s*\S+$|absorbance|\ba\.?\s?u\.?|counts|intensity|fraction|ratio|%|normali[sz]ed|relative|efficiency|coverage|transmittance|reflectance|\bod\b|cycle|\bph\b/i;
+  function critique() {
+    const out = [];
+    const add = (sev, where, msg, go) => out.push({ sev, where, msg, go });
+    proj.tables.forEach(t => {
+      if (t.type === 'xy' && t.rows.length) {
+        const nameX = t.cols[0] || '';
+        if (!UNIT.test(nameX) && !/sample|run|index|id/i.test(nameX)) add('info', t.name, `The X column “${nameX || 'X'}” has no unit. Add one, for example “Temperature (K)”, so figures and methods text are complete.`, ['table', t.id]);
+        if (!UNIT.test(t.ylabel || t.cols[1] || '')) add('info', t.name, 'The Y axis has no unit. Set the Y-axis title with its unit.', ['table', t.id]);
+        const d = xyData(t), s0 = d.series[0];
+        if (s0 && s0.means.length < 5) add('warn', t.name, `Only ${s0.means.length} distinct X values: fits with three or more parameters will be poorly determined.`, ['table', t.id]);
+      }
+    });
+    proj.items.forEach(it => {
+      const t = table(it.tableId); if (!t) return;
+      const k = K[it.kind], where = `${k.label}: ${t.name}`, go = ['item', it.id];
+      let res; try { res = compute(it); } catch (e) { res = { error: e.message }; }
+      if (!res || res.pending) return;
+      if (res.error) { add('error', where, 'This analysis does not run on the current data: ' + res.error, go); return; }
+      if (it.kind === 'nlfit') res.fits.forEach(f => {
+        if (f.r.error) { add('error', where, `${f.s.name}: ${f.r.error}`, go); return; }
+        const fr = f.r.fit, np = fr.p.length - fr.fixed.filter(Boolean).length, n = f.s.xs.length;
+        if (n < np + 3) add('warn', where, `${f.s.name}: ${n} points for ${np} free parameters leaves almost no degrees of freedom; confidence intervals will be very wide.`, go);
+        (f.r.warn || []).forEach(w => add('warn', where, `${f.s.name}: ${w}`, go));
+        if (fr.r2 < 0.9) add('warn', where, `${f.s.name}: R² = ${fr.r2.toFixed(3)}; the model misses much of the variation. Try Auto-fit or equation discovery.`, go);
+        if (it.opts.weight !== '1/y2' && BF.ml && BF.ml.ready()) { const nz = BF.ml.noise(f.s.xs, f.s.ys); if (nz && nz.recommend === '1/y2') add('info', where, `${f.s.name}: scatter grows with the signal; 1/Y² weighting is likely more appropriate.`, go); }
+      });
+      if (it.kind === 'autofit' && res.list && res.list.length > 1) {
+        const a0 = res.list[0], a1 = res.list[1], aic = x => (x.fit && x.fit.fit ? x.fit.fit.aicc : x.aicc);
+        if (isFinite(aic(a0)) && isFinite(aic(a1)) && aic(a1) - aic(a0) < 2) add('info', where, `The two best models are within 2 AICc units: the data cannot distinguish ${esc((a0.model || a0.fit.model).name)} from ${esc((a1.model || a1.fit.model).name)}. Report both, or collect more points where they differ.`, go);
+      }
+      if (it.kind === 'ttest' || it.kind === 'anova') {
+        const g = colData(t);
+        const nonNormal = g.filter(x => { const q = A.normality(x.v); return !q.error && q.p < 0.05; }).map(x => x.name);
+        const sds = g.map(x => S.sd(x.v)).filter(isFinite), ratio = Math.max(...sds) / Math.min(...sds);
+        const parametric = it.kind === 'anova' ? it.opts.test !== 'kw' : !['mw'].includes(it.opts.test);
+        if (parametric && nonNormal.length) add('warn', where, `${nonNormal.join(', ')} ${nonNormal.length > 1 ? 'depart' : 'departs'} from normality (p < 0.05); a rank-based test (${it.kind === 'anova' ? 'Kruskal–Wallis' : 'Mann–Whitney'}) is safer.`, go);
+        if (ratio > 2 && (it.kind === 'anova' ? it.opts.test === 'ordinary' : it.opts.test === 'student')) add('warn', where, `Group SDs differ ${ratio.toFixed(1)}-fold; use Welch’s ${it.kind === 'anova' ? 'ANOVA' : 't test'}, which does not assume equal variances.`, go);
+        if (g.some(x => x.v.length < 3)) add('warn', where, 'Some groups have fewer than three values; tests have very little power.', go);
+      }
+      if (it.kind === 'anova' && proj.items.filter(i => i.tableId === it.tableId && i.kind === 'ttest').length > 1) add('info', where, 'Several t tests on the same table inflate false positives; the ANOVA post tests already correct for multiple comparisons.', go);
+      if (it.kind === 'peaks' && res.pf) {
+        if (res.pf.r2 < 0.98) add('warn', where, `Peak fit R² = ${res.pf.r2.toFixed(3)}: try a higher baseline order, a pseudo-Voigt shape or a lower prominence threshold.`, go);
+        if (res.xr && res.xr.rows.some(r => r.size > 100)) add('info', where, 'Some Scherrer sizes exceed 100 nm, where instrumental broadening dominates and the estimate is unreliable.', go);
+      }
+      if (it.kind === 'tauc' && res.r && res.r.r2 < 0.98) add('warn', where, `The linear region of the Tauc plot has R² = ${res.r.r2.toFixed(3)}; set the region by hand around the steepest part of the edge.`, go);
+      if (it.kind === 'symreg' && res.r && res.r.best && res.r.best.preferred) add('info', where, 'A generic equation fits slightly better than the recognised law; check the physics before choosing.', go);
+      if (it.kind === 'automl' && res.best) {
+        if (res.n < 20) add('warn', where, `AutoML trained on ${res.n} samples; the cross-validated R² is itself uncertain. Add data before trusting predictions.`, go);
+        if (res.best.r2 < 0.5) add('warn', where, `The best model explains ${Math.max(0, res.best.r2 * 100).toFixed(0)}% of held-out variation; predictions are rough.`, go);
+        const ex = (res.preds || []).filter(q => q.extrapolating).length;
+        if (ex) add('warn', where, `${ex} prediction${ex > 1 ? 's are' : ' is'} outside the training range; treat ${ex > 1 ? 'them' : 'it'} with caution.`, go);
+      }
+    });
+    return out;
+  }
+  function renderCheck() {
+    const box = $('#co-check');
+    if (!proj || !proj.tables.length) { box.innerHTML = '<p class="hint">Add data and analyses, then Facet will review them.</p>'; return; }
+    const list = critique(), n = { error: 0, warn: 0, info: 0 }; list.forEach(x => n[x.sev]++);
+    const icon = { error: '!', warn: '!', info: 'i' };
+    box.innerHTML = `<div class="chk-sum ${list.length ? '' : 'ok'}">${list.length ? `<b>${list.length} point${list.length > 1 ? 's' : ''} to review</b> · ${n.error} error${n.error === 1 ? '' : 's'}, ${n.warn} warning${n.warn === 1 ? '' : 's'}, ${n.info} suggestion${n.info === 1 ? '' : 's'}` : '<b>No problems found.</b> Facet checked units, sample sizes, fit quality, model choice and test assumptions across the project.'}</div>
+      ${list.map((x, i) => `<div class="chk ${x.sev}"><span class="ic">${icon[x.sev]}</span><div><small>${esc(x.where)}</small><p>${x.msg}</p>${x.go ? `<button class="linkbtn" data-go="${i}">Open</button>` : ''}</div></div>`).join('')}
+      <p class="hint">The review runs offline with Lattent’s own rules; for a figure from elsewhere, use Read a graph or Ask.</p>`;
+    $$('[data-go]', box).forEach(b => b.onclick = () => { const g = list[+b.dataset.go].go; select(g[0], g[1]); });
+  }
+
+  /* ---------- Read a graph: digitise a plot image into a table ---------- */
+  function renderGraphTab() {
+    const box = $('#co-graph');
+    box.innerHTML = `<div class="gr-drop" id="gr-drop" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V9m4 11V5m4 15v-8m4 8V8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <b>Drop a picture of a graph</b><span>or click to choose, or paste a screenshot. A plot from a paper, a spectrum, an instrument screen.</span></div>
+      <input type="file" id="gr-file" accept="image/*" hidden>
+      <ol class="gr-steps"><li>Click two known points on the X axis and type their values.</li><li>Do the same on the Y axis.</li><li>Click the curve or the markers you want.</li><li>Facet traces them and adds the data as a table.</li></ol>
+      <p class="hint">Runs entirely in your browser. To have the figure interpreted or checked for errors, attach it in the Ask tab.</p>`;
+    const drop = $('#gr-drop', box), file = $('#gr-file', box);
+    const take = f => readImage(f).then(digitizer).catch(e => U.toast(e.message));
+    drop.onclick = () => file.click();
+    drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } };
+    file.onchange = e => { if (e.target.files[0]) take(e.target.files[0]); e.target.value = ''; };
+    drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+    drop.ondragleave = () => drop.classList.remove('over');
+    drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) take(f); };
+    drop.onpaste = e => { const it = [...(e.clipboardData || {}).items || []].find(x => x.type.startsWith('image/')); if (it) take(it.getAsFile()); };
+  }
+  function digitizer(img) {
+    const m = U.modal(`<p class="m-kicker">Facet · Read a graph</p><h2 id="dg-title">Click the first point on the X axis</h2>
+      <div class="dg-wrap"><canvas id="dg-c" aria-label="Graph image; click to place calibration points"></canvas></div>
+      <div class="dg-bar" id="dg-bar"></div>`);
+    m.querySelector('.modal-box').classList.add('xwide');
+    const cv = $('#dg-c', m), g = cv.getContext('2d'), W = img.canvas.width, H = img.canvas.height;
+    cv.width = W; cv.height = H;
+    const base = img.canvas.getContext('2d').getImageData(0, 0, W, H);
+    const st = { cal: [], vals: [], logx: false, logy: false, color: null, tol: 60, pts: [] };
+    const STEPS = ['Click the first point on the X axis', 'Click a second point on the X axis, far from the first', 'Click the first point on the Y axis', 'Click a second point on the Y axis', 'Click on the curve or markers to trace'];
+    const toPx = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+    const draw = () => {
+      g.putImageData(base, 0, 0);
+      st.cal.forEach(([x, y], i) => { g.strokeStyle = i < 2 ? '#3e4ed8' : '#e0712c'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 7, 0, 7); g.stroke(); g.fillStyle = g.strokeStyle; g.font = '600 13px Inter, sans-serif'; g.fillText((i < 2 ? 'x' : 'y') + (i % 2 + 1), x + 9, y - 9); });
+      g.fillStyle = '#e0712c'; st.pts.forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill(); });
+    };
+    const bar = $('#dg-bar', m);
+    const askValue = i => {
+      bar.innerHTML = `<label>${i < 2 ? 'X' : 'Y'} value at this point <input type="number" step="any" id="dg-v" autofocus></label><button class="btn primary small" id="dg-ok">Set</button>${i === 1 || i === 3 ? `<label class="check"><input type="checkbox" id="dg-log"> logarithmic ${i < 2 ? 'X' : 'Y'} axis</label>` : ''}`;
+      const ok = () => { const v = parseFloat($('#dg-v', m).value); if (!isFinite(v)) { U.toast('Type the axis value at that point.'); return; } st.vals[i] = v; const lg = $('#dg-log', m); if (lg) st[i < 2 ? 'logx' : 'logy'] = lg.checked; step(); };
+      $('#dg-ok', m).onclick = ok; $('#dg-v', m).onkeydown = e => { if (e.key === 'Enter') ok(); }; setTimeout(() => $('#dg-v', m).focus(), 30);
+    };
+    const step = () => { const i = st.cal.length; $('#dg-title', m).textContent = STEPS[Math.min(i, 4)]; bar.innerHTML = i < 4 ? '<span class="hint">Zoom in your browser for precision if needed.</span>' : '<span class="hint">Click a curve or its markers.</span>'; draw(); };
+    const lin = (a, b, va, vb, log) => { const f = log ? Math.log10 : v => v; const A0 = f(va), B0 = f(vb); return p => { const v = A0 + (p - a) * (B0 - A0) / (b - a); return log ? Math.pow(10, v) : v; }; };
+    const trace = () => {
+      const [x1, x2, y1, y2] = st.cal, d = base.data, c = st.color, tol2 = st.tol * st.tol;
+      const fx = lin(x1[0], x2[0], st.vals[0], st.vals[1], st.logx), fy = lin(y1[1], y2[1], st.vals[2], st.vals[3], st.logy);
+      /* follow the curve from the clicked point: in each pixel column take the run of matching
+         pixels nearest the previous one, so axes, text and other curves are not picked up */
+      const runs = px => {
+        const out = []; let start = -1;
+        for (let py = 0; py <= H; py++) {
+          let hit = false;
+          if (py < H) { const o = (py * W + px) * 4; const dr = d[o] - c[0], dg2 = d[o + 1] - c[1], db = d[o + 2] - c[2]; hit = dr * dr + dg2 * dg2 + db * db < tol2; }
+          if (hit && start < 0) start = py;
+          if (!hit && start >= 0) { if (py - start < H * 0.25) out.push((start + py - 1) / 2); start = -1; }
+        }
+        return out;
+      };
+      const jump = H * 0.08, cols = [];
+      const walk = (from, dir) => {
+        let prev = st.seed[1], miss = 0;
+        for (let px = from; px >= 0 && px < W; px += dir) {
+          const r = runs(px);
+          if (!r.length) { if (++miss > W * 0.04) break; continue; }
+          const best = r.reduce((a, b) => (Math.abs(b - prev) < Math.abs(a - prev) ? b : a));
+          if (Math.abs(best - prev) > jump) { if (++miss > W * 0.04) break; continue; }
+          miss = 0; prev = best; cols.push([px, best]);
+        }
+      };
+      walk(Math.round(st.seed[0]), 1); walk(Math.round(st.seed[0]) - 1, -1);
+      cols.sort((a, b) => a[0] - b[0]);
+      const want = Math.min(80, cols.length), stepN = cols.length / Math.max(1, want);
+      st.pts = Array.from({ length: want }, (_, k) => cols[Math.floor(k * stepN)]);
+      draw();
+      const data = st.pts.map(([px, py]) => [fx(px), fy(py)]);
+      bar.innerHTML = `<span><b>${data.length} points</b> traced${data.length ? `, X ${U.fmt(Math.min(...data.map(q => q[0])))} to ${U.fmt(Math.max(...data.map(q => q[0])))}` : ''}.</span>
+        <label>Colour tolerance <input type="range" id="dg-tol" min="15" max="140" value="${st.tol}"></label>
+        <button class="btn small" id="dg-again">Pick another colour</button><button class="btn primary small" id="dg-add"${data.length ? '' : ' disabled'}>Add as a table</button>`;
+      $('#dg-tol', m).oninput = e => { st.tol = +e.target.value; trace(); };
+      $('#dg-again', m).onclick = () => { st.color = null; st.pts = []; step(); };
+      $('#dg-add', m).onclick = () => { U.closeModal(); addTableFromData('Read from ' + img.name.replace(/\.[a-z]+$/i, ''), ['X', 'Y'], data.sort((a, b) => a[0] - b[0]).map(r => r.map(v => String(Number(v.toPrecision(5)))))); };
+    };
+    cv.onclick = e => {
+      const p = toPx(e);
+      if (st.cal.length < 4) { st.cal.push(p); draw(); askValue(st.cal.length - 1); return; }
+      const o = (Math.round(p[1]) * W + Math.round(p[0])) * 4;
+      st.color = [base.data[o], base.data[o + 1], base.data[o + 2]]; st.seed = p;
+      if (st.color[0] > 235 && st.color[1] > 235 && st.color[2] > 235) { U.toast('That is background; click on the curve itself.'); st.color = null; return; }
+      trace();
+    };
+    step();
+  }
+
   function syncAiCfg() { const c = AI.get(); $('#ai-state').textContent = c.key ? 'Connected with your ' + (c.provider === 'openai' ? 'OpenAI' : 'Anthropic') + ' key (stored only in this browser).' : 'Add your own API key; requests go straight from your browser to the provider.'; }
 
   /* ================= start screen ================= */

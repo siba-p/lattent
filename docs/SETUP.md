@@ -1,9 +1,11 @@
 # Turning on accounts, cloud storage and payments
 
-This takes about 40 minutes. You need three accounts:
-- **Supabase**, for sign-in and the database. It is free.
-- **Lemon Squeezy**, for payments. It is free, and takes a fee per sale.
-- **Resend**, to send sign-in emails. It is free up to 3,000 emails a month.
+This takes about an hour. You need:
+- **Supabase**, for sign-in, the database and the contact form. It is free.
+- **Payments: one or both of**
+  - **Lemon Squeezy**, for customers worldwide: cards, PayPal, Apple Pay. It is the merchant of record, so it handles VAT and sales tax. Fee per sale.
+  - **Razorpay**, for customers in India: UPI, RuPay and other cards, net banking. GST invoices. Fee per sale.
+- **Resend**, to send sign-in emails and forward contact-form messages to you. It is free up to 3,000 emails a month.
 
 Everything else is already built and tested.
 
@@ -48,6 +50,21 @@ Everything else is already built and tested.
    - **Signing secret:** a long random string; generate one with `openssl rand -hex 32`. Keep it for step 3.
    - **Events:** `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_resumed`, `subscription_expired`, `subscription_paused`, `subscription_unpaused` and `order_refunded`.
 
+## 2b. Razorpay (payments in India, optional)
+
+1. Sign up at **razorpay.com**, complete KYC, and stay in **Test mode** first.
+2. Recurring plans: **Subscriptions → Plans → Create plan** for Pro monthly (₹299/month), Pro yearly (₹1,999/year) and Lab (₹6,999/year). Note each **plan id** (`plan_…`). Create a **subscription link** for each plan and copy the link.
+3. Or, for one-time yearly purchases (handy for UPI), create **Payment Links** for Pro yearly and Lab. Note each link id (`plink_…`). A one-time purchase gives twelve months.
+4. **Settings → Webhooks → Add new webhook**:
+   - URL: `https://<project-ref>.supabase.co/functions/v1/rzp-webhook`
+   - Secret: a long random string (`openssl rand -hex 32`).
+   - Events: `subscription.activated`, `subscription.charged`, `subscription.cancelled`, `subscription.completed`, `subscription.halted`, `subscription.paused`, `subscription.resumed`, `payment_link.paid`, `refund.processed`.
+5. Ask buyers to use the same email as their Lattent account; plans are matched by email.
+
+## 2c. Contact form
+
+Messages from the contact page are stored in your database (no one else can read them) and emailed to you through Resend, with the sender as Reply-To. Your address is a server secret and never appears on the website.
+
 ## 3. Deploy the backend (one command)
 
 From the repository folder:
@@ -65,6 +82,19 @@ export CHECKOUT_MONTHLY=https://lattent.lemonsqueezy.com/buy/…
 export CHECKOUT_YEARLY=https://lattent.lemonsqueezy.com/buy/…
 export CHECKOUT_LAB=https://lattent.lemonsqueezy.com/buy/…
 export LEMONSQUEEZY_ALLOW_TEST_MODE=true          # only while testing
+# Razorpay (optional)
+export RAZORPAY_WEBHOOK_SECRET=…
+export RAZORPAY_PRO_PLANS=plan_…,plan_…          # Pro monthly and yearly plan ids
+export RAZORPAY_LAB_PLANS=plan_…
+export RAZORPAY_PRO_LINKS=plink_…                # one-time payment links, if used
+export RAZORPAY_LAB_LINKS=plink_…
+export RAZORPAY_LINK_MONTHLY=https://rzp.io/…    # the links buyers click
+export RAZORPAY_LINK_YEARLY=https://rzp.io/…
+export RAZORPAY_LINK_LAB=https://rzp.io/…
+# Contact form
+export RESEND_API_KEY=re_…
+export CONTACT_TO=you@example.com                # where enquiries arrive (kept secret)
+export CONTACT_FROM='Lattent <hello@your-domain>'
 bash scripts/setup-backend.sh
 git add assets/js/config.js && git commit -m "Connect accounts and payments" && git push
 ```

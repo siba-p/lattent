@@ -150,6 +150,7 @@ FIELDS = [
 ]
 
 CHANGES = [
+    ("2026-10-16", "Facet, pricing and contact", ["The AI lab partner is now Facet. New: Check reviews the whole project for errors, Read a graph turns a picture of a plot into a table, and Ask accepts figures to interpret and critique.", "A Pricing page with plan comparison, yearly or monthly billing, and prices in US dollars or rupees. Pay by card, PayPal or Apple Pay worldwide, by UPI, cards or net banking in India through Razorpay, or by invoice.", "A Contact page; messages reach the team by email.", "Simpler navigation: Platform and Solutions menus, direct links to AI and Pricing, and a compact Resources menu."]),
     ("2026-10-15", "AI and machine learning", ["Equation discovery: symbolic regression finds a compact formula for XY data and recognises physical laws such as Arrhenius, Langmuir and Flory–Fox.", "AutoML: six kinds of model compared by cross-validation, with input importance, partial dependence, composition descriptors for formula columns and calibrated prediction intervals.", "Calibrated 90% intervals on every formation-energy and band-gap prediction.", "A new page, the periodic table of Lattent’s AI, with a live lab.", "Night mode and an account menu in every header."]),
     ("2026-10-15", "Navigation, Solutions and What’s new", ["A new site navigation with Platform, Solutions and Resources menus.", "A page for each field, from nanomaterials to analytical chemistry, linking straight to the right tool, example or Discover view.", "This release-notes page."]),
     ("2026-10-15", "New identity", ["A new mark: an L of lattice points that doubles as the axes of a plot, with a copper point for the discovery.", "An indigo-and-copper palette, checked for colour-blind safety and contrast, with Space Grotesk headings.", "A custom 404 page, social previews and home-screen icons."]),
@@ -217,8 +218,8 @@ def hub():
 <section class="wrap section"><div class="sol-grid">{cards}</div></section>
 <section class="wrap section sol-teams"><div class="sec-head"><h2>For every kind of team</h2></div>
   <div class="sol-team-grid">
-    <div class="card"><h3>Students and researchers</h3><p>Every analysis is free and runs in your browser, with no account. Pro adds publication exports and the AI chat for a few dollars a month.</p><a href="{root}#pricing">See pricing →</a></div>
-    <div class="card"><h3>Research groups</h3><p>The Lab plan gives up to ten people shared cloud projects, one invoice, and the same validated engine on every computer.</p><a href="{root}#pricing">Lab plan →</a></div>
+    <div class="card"><h3>Students and researchers</h3><p>Every analysis is free and runs in your browser, with no account. Pro adds publication exports and the AI chat for a few dollars a month.</p><a href="{root}pricing/">See pricing →</a></div>
+    <div class="card"><h3>Research groups</h3><p>The Lab plan gives up to ten people shared cloud projects, one invoice, and the same validated engine on every computer.</p><a href="{root}pricing/">Lab plan →</a></div>
     <div class="card"><h3>Teaching labs</h3><p>Ten worked examples open with realistic data and the analysis already run, ready for a practical class.</p><a href="{root}#examples">Worked examples →</a></div>
   </div></section>
 </main>
@@ -246,9 +247,115 @@ for f in FIELDS:
     write(f"solutions/{f['slug']}/index.html", field_page(f))
 write("solutions/index.html", hub())
 write("changelog/index.html", changelog())
+
+CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+COMPARE = [
+    ("Analysis", None),
+    ("Every analysis, test and warning in Studio", (1, 1, 1)),
+    ("Quick tools and worked examples", (1, 1, 1)),
+    ("Discover: database, phase identification, generative design", (1, 1, 1)),
+    ("AI: equation discovery, AutoML, shape recognition", (1, 1, 1)),
+    ("Live graphs and the PNG figure", (1, 1, 1)),
+    ("Publishing", None),
+    ("600-dpi PNG and vector SVG, no watermark", (0, 1, 1)),
+    ("Auto-written methods, results and figure legend", (0, 1, 1)),
+    ("Results as CSV, reports and project files", (0, 1, 1)),
+    ("Facet chat with your own Claude or GPT key", (0, 1, 1)),
+    ("Cloud and team", None),
+    ("Cloud projects", ("3 projects", "Unlimited, 250 MB", "Unlimited, shared")),
+    ("People", ("1", "1", "Up to 10")),
+    ("Shared lab projects and one invoice", (0, 0, 1)),
+]
+def pricing():
+    root = "../"
+    rows = ""
+    for name, v in COMPARE:
+        if v is None:
+            rows += f'<tr class="grp"><th colspan="4">{esc(name)}</th></tr>'
+            continue
+        cell = lambda x: f'<td class="yes" aria-label="Included">{CHECK}</td>' if x == 1 else ('<td class="no" aria-label="Not included">–</td>' if x == 0 else f"<td>{esc(str(x))}</td>")
+        rows += f"<tr><th>{esc(name)}</th>{''.join(cell(x) for x in v)}</tr>"
+    body = f"""<main>
+<section class="sol-hero sol-hero-hub"><div class="wrap pr-head">
+  <p class="sol-k">Pricing</p>
+  <h1>Free for analysis. Pro when you publish.</h1>
+  <p class="sol-lede">Every analysis, model and warning is free, without limits. Pro adds what goes into papers and reports. Early-access prices, locked in for as long as you stay subscribed.</p>
+  <div class="pr-toggles"><div class="seg-pr" role="radiogroup" aria-label="Billing"><button data-bill="yearly" aria-pressed="true">Yearly <span>save 40%</span></button><button data-bill="monthly" aria-pressed="false">Monthly</button></div>
+  <div class="seg-pr" role="radiogroup" aria-label="Currency"><button data-cur="usd" aria-pressed="true">US$</button><button data-cur="inr" aria-pressed="false">₹ INR</button></div></div>
+</div></section>
+<section class="wrap section pr-plans">
+  <div class="pricing">
+    <div class="card price"><h3>Free</h3><div class="amt" data-amt="free">$0</div><p class="sub">for everyone, forever</p>
+      <ul><li>All analyses, tools and examples</li><li>Discover and the AI models</li><li>Live graphs and PNG figures</li><li>3 cloud projects with a free account</li></ul>
+      <a class="btn" href="{root}studio/">Open Studio</a></div>
+    <div class="card price best"><h3>Pro <span>Best value</span></h3><div class="amt" data-amt="pro">$29<small> / year</small></div><p class="sub" data-sub="pro">about $2.42 a month</p>
+      <ul><li>Everything in Free</li><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods and results</li><li>Unlimited cloud projects, 250 MB</li><li>Facet chat with your own AI key</li></ul>
+      <button class="btn primary" data-buy-pro>Get Pro</button><button class="pr-trial" data-trial>or try Pro free for 7 days</button></div>
+    <div class="card price"><h3>Lab</h3><div class="amt" data-amt="lab">$99<small> / year</small></div><p class="sub">up to 10 people, one invoice</p>
+      <ul><li>Everything in Pro for the group</li><li>Shared lab projects</li><li>Invite and remove members</li><li>Invoice or purchase order</li></ul>
+      <button class="btn" data-buy="lab">Get Lab</button><a class="pr-trial" href="{root}contact/?topic=lab">Talk to us about a department licence</a></div>
+  </div>
+</section>
+<section class="wrap section"><div class="sec-head"><h2>Compare plans</h2></div>
+  <div class="tbl-wrap pr-tbl"><table><thead><tr><th></th><th>Free</th><th>Pro</th><th>Lab</th></tr></thead><tbody>{rows}</tbody></table></div></section>
+<section class="wrap section"><div class="sec-head"><h2>Pay your way, securely</h2><p>Checkout is run by established payment providers. Lattent never sees or stores your card details.</p></div>
+  <div class="pay-grid">
+    <div class="card"><h3>Worldwide</h3><p class="pay-m">Cards · PayPal · Apple Pay · Google Pay</p><p>In US dollars, through Lemon Squeezy, our merchant of record. Sales tax and VAT are calculated and handled at checkout.</p></div>
+    <div class="card"><h3>India</h3><p class="pay-m">UPI · RuPay, Visa, Mastercard · net banking</p><p>In rupees, through Razorpay, with a GST invoice for your institution.</p></div>
+    <div class="card"><h3>Institutions</h3><p class="pay-m">Invoice · purchase order · bank transfer</p><p>For Lab plans and department licences, we issue a proper invoice for grant or department funds.</p><a href="{root}contact/?topic=lab">Request an invoice →</a></div>
+  </div>
+  <ul class="pr-trust"><li>{CHECK}PCI-DSS-compliant payment providers</li><li>{CHECK}Plans activate from signed, verified payment events only</li><li>{CHECK}Cancel any time from your account</li><li>{CHECK}14-day refund, no questions asked</li></ul>
+</section>
+<section class="wrap section"><div class="sec-head"><h2>Questions about pricing</h2></div><div class="faq">
+  <details><summary>Is the free plan really free?</summary><p>Yes. Every analysis, every AI model and Discover are free with no time limit. Pro adds publication exports, auto-written text, more cloud storage and the Facet chat.</p></details>
+  <details><summary>Can my lab or department pay by invoice?</summary><p>Yes. Choose Lab, or <a href="{root}contact/?topic=lab">write to us</a> with your institution’s details, and we will send an invoice or accept a purchase order.</p></details>
+  <details><summary>Do prices include tax?</summary><p>Taxes are calculated at checkout where they apply, and you receive a tax invoice.</p></details>
+  <details><summary>What happens if I cancel?</summary><p>You keep Pro until the end of the period you paid for, then return to the free plan. Your projects stay yours, and you can export them at any time.</p></details>
+  <details><summary>Will the early-access price go up?</summary><p>New subscribers may pay more later; your price stays the same while your subscription continues.</p></details>
+</div></section>
+<section class="wrap"><div class="band"><div><h2>Questions before you buy?</h2><p>We usually reply within a day.</p></div><a class="btn big" href="{root}contact/?topic=sales">Contact us</a></div></section>
+</main>
+"""
+    return HEAD.format(title="Pricing | Lattent", desc="Lattent is free for analysis. Pro adds publication exports, auto-written methods and cloud storage from $4 a month or ₹299; Lab covers ten people. Cards, PayPal, UPI or invoice.", root=root, fonts=FONTS).replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/pricing.js"></script>\n</body>')
+
+
+def contact():
+    root = "../"
+    body = f"""<main>
+<section class="sol-hero sol-hero-hub"><div class="wrap">
+  <p class="sol-k">Contact</p>
+  <h1>Talk to us.</h1>
+  <p class="sol-lede">Questions about buying, a Lab plan or an invoice, help with an analysis, or an idea for Lattent: write to us and a person will reply, usually within a day.</p>
+</div></section>
+<section class="wrap section ct-grid">
+  <form class="card ct-form" id="ct-form" novalidate>
+    <div class="fg two"><div><label for="ct-name">Your name</label><input type="text" id="ct-name" autocomplete="name" required maxlength="120"></div>
+      <div><label for="ct-email">Email</label><input type="email" id="ct-email" autocomplete="email" required maxlength="200"></div></div>
+    <div class="fg two"><div><label for="ct-org">Institution or company <span class="opt">optional</span></label><input type="text" id="ct-org" autocomplete="organization" maxlength="200"></div>
+      <div><label for="ct-topic">What is it about?</label><select id="ct-topic"><option value="sales">Buying Pro</option><option value="lab">Lab plan, invoice or purchase order</option><option value="support">Help with an analysis</option><option value="partnership">Partnership or collaboration</option><option value="feedback">Feedback or an idea</option><option value="other">Something else</option></select></div></div>
+    <div class="fg"><label for="ct-msg">Message</label><textarea id="ct-msg" rows="7" required minlength="10" maxlength="5000" placeholder="Tell us a little about your lab and what you need."></textarea></div>
+    <div class="ct-hp" aria-hidden="true"><label>Leave this empty <input type="text" id="ct-web" tabindex="-1" autocomplete="off"></label></div>
+    <div class="ct-actions"><button class="btn primary big" type="submit">Send message</button><p class="hint" id="ct-note">We use your details only to reply. See our <a href="{root}legal/privacy.html">privacy notice</a>.</p></div>
+    <div id="ct-out" aria-live="polite"></div>
+  </form>
+  <aside class="ct-side">
+    <div class="card"><h3>Buying and invoices</h3><p>Payment links in dollars or rupees, invoices and purchase orders for labs and departments.</p></div>
+    <div class="card"><h3>Help with Lattent</h3><p>Stuck on an analysis? Tell us what you measured and what you expected; screenshots welcome by reply.</p></div>
+    <div class="card"><h3>Collaborate</h3><p>Instrument makers, core facilities and research groups: we are keen to build workflows together.</p></div>
+    <p class="hint">Found a security problem? Ask for a private channel first and do not include details in the message.</p>
+  </aside>
+</section>
+</main>
+"""
+    return HEAD.format(title="Contact | Lattent", desc="Contact Lattent about buying Pro, Lab plans and invoices, help with an analysis, or partnerships.", root=root, fonts=FONTS).replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/contact.js"></script>\n</body>')
+
+
+write("pricing/index.html", pricing())
+write("contact/index.html", contact())
+
 # sitemap of every public page, for search engines
 BASE = "https://siba-p.github.io/lattent/"
-pages = ["", "studio/", "ai/", "tools/", "solutions/", "changelog/", "validation/", "standard-curve/", "life-science/", "dose-response/", "enzyme-kinetics/", "qpcr/",
+pages = ["", "studio/", "ai/", "pricing/", "contact/", "tools/", "solutions/", "changelog/", "validation/", "standard-curve/", "life-science/", "dose-response/", "enzyme-kinetics/", "qpcr/",
          "legal/terms.html", "legal/privacy.html", "legal/refunds.html", "legal/security.html"]
 pages += [f"solutions/{f['slug']}/" for f in FIELDS]
 pages += sorted(f"tools/{d}/" for d in os.listdir(os.path.join(ROOT, "tools")) if os.path.isdir(os.path.join(ROOT, "tools", d)))

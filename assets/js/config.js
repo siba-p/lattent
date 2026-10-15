@@ -10,7 +10,11 @@ window.BF_CONFIG = {
   /* Numeric store id from Lemon Squeezy → Settings → Stores. Licence keys issued by
      any other store are refused. */
   storeId: null,
-  prices: { monthly: 4, yearly: 29, lab: 99 },
+  /* Razorpay (India: UPI, RuPay and other cards, net banking, wallets). Paste a subscription
+     link or a payment link for each plan from the Razorpay dashboard. */
+  razorpay: { monthly: '', yearly: '', lab: '' },
+  /* USD prices for Lemon Squeezy; INR prices for Razorpay */
+  prices: { monthly: 4, yearly: 29, lab: 99, inr: { monthly: 299, yearly: 1999, lab: 6999 } },
   earlyAccess: true,
   trialDays: 7,
   support: '',

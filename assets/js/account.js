@@ -10,15 +10,15 @@
   const mb = b => (b / 1048576).toFixed(b < 1048576 ? 2 : 1) + ' MB';
   const PLAN = { free: 'Free', pro: 'Pro', lab: 'Lab', 'lab-member': 'Lab member', anonymous: 'Free' };
   const p = CFG.prices;
-  const live = CFG.checkout && (CFG.checkout.monthly || CFG.checkout.yearly || CFG.checkout.lab);
+  const live = U.paymentsLive();
 
   function planCards(signedIn) {
-    if (!live) return '<p class="m-note">Paid plans open shortly. Meanwhile, the 7-day trial unlocks everything.</p>';
+    if (!live) return `<p class="m-note">Online checkout opens shortly. Meanwhile the 7-day trial unlocks everything, and we can send a payment link or an invoice on request.</p><p><a class="btn" href="${U.root}contact/?topic=sales">Request a payment link or invoice</a> <a class="btn ghost" href="${U.root}pricing/">Compare plans</a></p>`;
     const card = (id, title, price, per, sub, best) => `<div class="pcard${best ? ' best' : ''}"><b>${title}</b><div class="amt">$${price}<small>/${per}</small></div><p>${sub}</p>
       <button class="btn ${best ? 'primary' : ''}" data-buy="${id}">${signedIn ? 'Continue to secure checkout' : 'Sign in to buy'}</button></div>`;
     return `${CFG.earlyAccess ? '<p class="early">Early-access pricing while Lattent is new.</p>' : ''}
       <div class="pcards">${card('yearly', 'Pro yearly', p.yearly, 'year', 'Best value: about $' + (p.yearly / 12).toFixed(2) + ' a month', true)}${card('monthly', 'Pro monthly', p.monthly, 'month', 'Cancel any time')}${card('lab', 'Lab', p.lab, 'year', 'Up to 10 people, shared projects')}</div>
-      <p class="hint">Payments are processed by Lemon Squeezy, our merchant of record, over a secure checkout. Lattent never sees your card details. Sales tax and VAT are included where they apply. 14-day refund, no questions asked.</p>`;
+      <p class="hint">Payments are processed over a secure checkout by Lemon Squeezy (worldwide) or Razorpay (India). Lattent never sees your card details. Sales tax and VAT are included where they apply. 14-day refund, no questions asked.</p>`;
   }
 
   /* ---------- cloud disabled: licence keys and trial only ---------- */
@@ -117,7 +117,7 @@
       C.deleteAccount().then(() => { U.toast('Your account has been deleted.'); render(); })
         .catch(e => { $('#del-msg').innerHTML = esc(e.message) + (e.portal ? ` <a href="${esc(e.portal)}" target="_blank" rel="noopener">Manage billing</a>` : ''); });
     };
-    document.querySelectorAll('[data-buy]').forEach(bn => bn.onclick = () => startCheckout(bn.dataset.buy));
+    document.querySelectorAll('[data-buy]').forEach(bn => bn.onclick = () => (CFG.checkout && CFG.checkout[bn.dataset.buy] && !CFG.razorpay[bn.dataset.buy] ? startCheckout(bn.dataset.buy) : U.buy(bn.dataset.buy)));
     wireLicence();
     if (team) wireTeam(team);
     if (pending && plan === 'free') { try { sessionStorage.removeItem('bf.buy'); } catch (x) { /* ignore */ } startCheckout(pending); }

@@ -15,12 +15,14 @@ const q = s => JSON.stringify(String(s || '')).replace(/"/g, "'");
 const url = args['supabase-url'] || '';
 if (url && !/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(url)) throw new Error('Supabase URL should look like https://abcd.supabase.co');
 for (const k of ['monthly', 'yearly', 'lab']) if (args[k] && !/^https:\/\/[\w.-]+\.lemonsqueezy\.com\//.test(args[k])) throw new Error(`--${k} must be a Lemon Squeezy checkout link`);
+for (const k of ['rzp-monthly', 'rzp-yearly', 'rzp-lab']) if (args[k] && !/^https:\/\/(rzp\.io|razorpay\.me|pages\.razorpay\.com|[\w.-]*razorpay\.com)\//.test(args[k])) throw new Error(`--${k} must be a Razorpay link`);
 if (args['anon-key'] && /service_role/.test(Buffer.from((args['anon-key'].split('.')[1] || ''), 'base64').toString())) {
   throw new Error('That is the service-role key. Use the anon (public) key; the service-role key must never be published.');
 }
 
 src = src.replace(/supabase: \{[^}]*\}/, `supabase: { url: ${q(url)}, anonKey: ${q(args['anon-key'])} }`);
 src = src.replace(/checkout: \{[^}]*\}/, `checkout: { monthly: ${q(args.monthly)}, yearly: ${q(args.yearly)}, lab: ${q(args.lab)} }`);
+if (['rzp-monthly', 'rzp-yearly', 'rzp-lab'].some(k => k in args)) src = src.replace(/razorpay: \{[^}]*\}/, `razorpay: { monthly: ${q(args['rzp-monthly'])}, yearly: ${q(args['rzp-yearly'])}, lab: ${q(args['rzp-lab'])} }`);
 if (args['store-id']) src = src.replace(/storeId: [^,\n]*/, `storeId: ${Number(args['store-id'])}`);
 if (args.support) src = src.replace(/support: '[^']*'/, `support: ${q(args.support)}`);
 writeFileSync(file, src);

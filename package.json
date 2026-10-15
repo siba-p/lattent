@@ -3,7 +3,7 @@
   "private": true,
   "description": "Lattent: browser workspace for scientific data analysis",
   "scripts": {
-    "test:db": "node tests/db/rls.test.mjs && node tests/db/billing.test.mjs",
+    "test:db": "node --experimental-strip-types tests/db/rls.test.mjs && node --experimental-strip-types tests/db/billing.test.mjs && node --experimental-strip-types tests/db/razorpay.test.mjs",
     "test:engines": "node tests/run-engines.js out.json && node tests/run-studio.js studio.json"
   },
   "devDependencies": {

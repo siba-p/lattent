@@ -27,3 +27,4 @@ jobs:
       - run: npm ci
       - run: node --experimental-strip-types tests/db/rls.test.mjs
       - run: node --experimental-strip-types tests/db/billing.test.mjs
+      - run: node --experimental-strip-types tests/db/razorpay.test.mjs

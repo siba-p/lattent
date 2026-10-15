@@ -7,7 +7,7 @@
 - spectra and materials analyses: multi-peak fitting, XRD Scherrer and Williamson–Hall, Tauc band gap, tensile tests;
 - PCA, clustering, and Gaussian-process Bayesian optimisation for materials discovery;
 - **Discover**: live search of 5.8 million DFT structures (Alexandria, via OPTIMADE) with a 3D viewer and simulated XRD; XRD phase identification; and generative design of new compositions with Lattent's own masked-diffusion model and property networks;
-- an AI co-scientist (built-in suggestions, plus Claude or GPT chat with the user's own key) that plans analyses while the validated engine computes them.
+- Facet, the AI lab partner: built-in suggestions, an offline reviewer that checks the whole project for errors, a graph reader that turns a picture of a plot into data, and Claude or GPT chat (with figures) on the user's own key; the validated engine does the computing.
 
 Quick calculators cover routine bench assays: dose–response, standard curves, enzyme kinetics and qPCR.
 
@@ -25,7 +25,7 @@ Live site: https://siba-p.github.io/lattent/
 
 | Path | What it holds |
 |---|---|
-| `studio/`, `assets/js/studio.js` | The Studio workspace: tables, analysis catalogue, results, co-scientist |
+| `studio/`, `assets/js/studio.js` | The Studio workspace: tables, analysis catalogue, results, Facet |
 | `assets/js/models.js` | Equation library, safe expression parser, nonlinear regression and auto-fit |
 | `assets/js/analysis.js` | Statistics, PCA, k-means, Gaussian processes and Bayesian optimisation, peaks, XRD, Tauc, tensile |
 | `assets/js/samples.js` | Example projects, one per field |
@@ -56,7 +56,7 @@ It is a static site with no build step. To serve it locally, run `python3 -m htt
 
 ## Specialist models
 
-The co-scientist's suggestions and shape-guided auto-fit use two small neural networks trained on simulated lab data. The training set covers 13 families of behaviour, with realistic ranges, spacings, replicates, outliers and noise. To retrain:
+Facet's suggestions and shape-guided auto-fit use two small neural networks trained on simulated lab data. The training set covers 13 families of behaviour, with realistic ranges, spacings, replicates, outliers and noise. To retrain:
 
 ```bash
 for k in 1 2 3 4; do node tests/ml/simulate.js 1300 $((k*7919)) /tmp/ml/train$k.json & done
