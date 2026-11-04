@@ -69,6 +69,12 @@ await send(dupEv, undefined, 'evt_dup'); r = await send(dupEv, undefined, 'evt_d
 ok(r.body === 'duplicate', 'a replayed delivery (same event id) is ignored');
 r = await send(subEv('subscription.halted', { id: 'sub_A', email: 'priya@iitd.ac.in', status: 'halted', at: clock - 5000 }));
 ok(r.body.includes('stale') && await ent('priya@iitd.ac.in') === 'pro', 'an older, out-of-order event cannot downgrade');
+await send(subEv('subscription.pending', { id: 'sub_A', status: 'pending' }));
+ok(await ent('priya@iitd.ac.in') === 'pro', 'a failed charge that Razorpay is still retrying keeps Pro');
+await send(subEv('subscription.halted', { id: 'sub_A', status: 'halted' }));
+ok(await ent('priya@iitd.ac.in') === 'free', 'a halted subscription (all retries failed) loses Pro');
+await send(subEv('subscription.resumed', { id: 'sub_A', status: 'active' }));
+ok(await ent('priya@iitd.ac.in') === 'pro', 'paying again after a halt restores Pro');
 await send(subEv('subscription.cancelled', { id: 'sub_A', status: 'cancelled' }));
 ok(await ent('priya@iitd.ac.in') === 'pro', 'cancelled keeps Pro until the paid period ends');
 await send(subEv('subscription.completed', { id: 'sub_A', status: 'completed' }));

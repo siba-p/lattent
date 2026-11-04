@@ -586,6 +586,11 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
       const g = document.createElement('script'); g.src = U.root + 'assets/js/guide.js'; g.defer = true; g.dataset.guide = '1'; document.body.appendChild(g);
     }
     const f = $('footer[data-bf]');
+    const founders = () => {
+      const fs = (CFG.founders || []).map(p => (p.url ? `<a href="${U.esc(p.url)}">${U.esc(p.name)}</a>` : U.esc(p.name)));
+      if (!fs.length) return '';
+      return 'Founded by ' + (fs.length > 1 ? fs.slice(0, -1).join(', ') + ' and ' + fs[fs.length - 1] : fs[0]) + (CFG.foundersNote ? ', ' + U.esc(CFG.foundersNote) : '') + '. ';
+    };
     if (f) {
       f.className = 'foot';
       f.innerHTML = `<div class="foot-in">
@@ -594,7 +599,7 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         <div><h5>Solutions</h5>${FIELDS.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}<a href="${U.root}life-science/">Life sciences</a></div>
         <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}support/">Support</a><a href="${U.root}contact/">Contact</a><a href="#cite" data-cite>Cite Lattent</a></div>
         <div><h5>Company</h5><a href="${U.root}account/">Account</a><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
-      </div><p class="foot-note">Built by <a href="${CFG.author.url}">${CFG.author.name}</a>. © ${new Date().getFullYear()} Lattent.</p>`;
+      </div><p class="foot-note">${founders()}© ${new Date().getFullYear()} Lattent.</p>`;
     }
     proChip();
   }

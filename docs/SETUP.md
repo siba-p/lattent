@@ -41,7 +41,7 @@ Everything else is already built and tested.
    | Pro monthly | $4 | monthly |
    | Pro yearly | $29 | yearly |
 
-4. Create a second product **Lattent Lab**: subscription, $99, yearly.
+4. Create a second product **Lattent Lab**: subscription, $299, yearly.
 5. Do not enable license keys; plans are tied to accounts now.
 6. For each product, set **Confirmation modal → Button link** to `https://siba-p.github.io/lattent/account/?paid=1`.
 7. For each variant, use **Share** to copy the checkout link, which looks like `https://lattent.lemonsqueezy.com/buy/…`. Also note the **variant id** (the number in the variant's URL) and your **store id** (**Settings → Stores**).
@@ -53,12 +53,13 @@ Everything else is already built and tested.
 ## 2b. Razorpay (payments in India, optional)
 
 1. Sign up at **razorpay.com**, complete KYC, and stay in **Test mode** first.
-2. Recurring plans: **Subscriptions → Plans → Create plan** for Pro monthly (₹299/month), Pro yearly (₹1,999/year) and Lab (₹6,999/year). Note each **plan id** (`plan_…`). Create a **subscription link** for each plan and copy the link.
+2. Recurring plans: **Subscriptions → Plans → Create plan** for Pro monthly (₹299/month), Pro yearly (₹1,999/year) and Lab (₹19,999/year). Note each **plan id** (`plan_…`). Create a **subscription link** for each plan and copy the link.
 3. Or, for one-time yearly purchases (handy for UPI), create **Payment Links** for Pro yearly and Lab. Note each link id (`plink_…`). A one-time purchase gives twelve months.
 4. **Settings → Webhooks → Add new webhook**:
    - URL: `https://<project-ref>.supabase.co/functions/v1/rzp-webhook`
    - Secret: a long random string (`openssl rand -hex 32`).
-   - Events: `subscription.activated`, `subscription.charged`, `subscription.cancelled`, `subscription.completed`, `subscription.halted`, `subscription.paused`, `subscription.resumed`, `payment_link.paid`, `refund.processed`.
+   - Events: `subscription.activated`, `subscription.charged`, `subscription.pending`, `subscription.halted`, `subscription.cancelled`, `subscription.completed`, `subscription.paused`, `subscription.resumed`, `payment_link.paid`, `refund.processed`.
+   - `pending` (a charge failed and Razorpay is retrying) keeps Pro and shows a warning; `halted` (every retry failed) removes Pro until the customer pays again.
 5. Ask buyers to use the same email as their Lattent account; plans are matched by email.
 
 ## 2c. Contact form

@@ -14,10 +14,10 @@ Quick calculators cover routine bench assays: dose–response, standard curves, 
 The analysis is free. Pro adds publication exports, auto-written methods and results, CSV and report export, project files, more cloud storage and the AI chat.
 
 The site is static, hosted on GitHub Pages. The backend runs on Supabase:
-- Postgres with row-level security, holding cloud projects, Lab teams and subscriptions.
-- Two Edge Functions: one for the Lemon Squeezy webhook, one for account deletion.
+- Postgres with row-level security, holding cloud projects, Lab teams, subscriptions and contact enquiries.
+- Four Edge Functions: `ls-webhook` (Lemon Squeezy), `rzp-webhook` (Razorpay), `contact` (contact form, forwarded through Resend) and `delete-account`.
 
-Payments go through Lemon Squeezy as merchant of record. **To turn on accounts and payments, follow [docs/SETUP.md](docs/SETUP.md).**
+Payments go through Lemon Squeezy (worldwide, US dollars, merchant of record) and Razorpay (India, rupees). **To turn on accounts and payments, follow [docs/SETUP.md](docs/SETUP.md).**
 
 Live site: https://siba-p.github.io/lattent/
 
@@ -48,8 +48,8 @@ Live site: https://siba-p.github.io/lattent/
 | `dose.js`, `stdcurve.js`, `kinetics.js`, `qpcr.js` | The tool pages |
 | `assets/js/cloud.js`, `account.js` | Sign-in, plan, cloud projects, Lab teams, checkout, account deletion |
 | `supabase/migrations/` | Database schema, row-level security policies, quotas, team functions |
-| `supabase/functions/` | `ls-webhook` (signed Lemon Squeezy events) and `delete-account` |
-| `scripts/` | One-command backend deployment and site configuration |
+| `supabase/functions/` | `ls-webhook` and `rzp-webhook` (signed payment events), `contact` and `delete-account`; shared, unit-tested logic in `_shared/` |
+| `scripts/` | One-command backend deployment, site configuration, page generators, rebranding and `set-domain.py` for moving to a custom domain |
 | `tests/` | Validation against SciPy; database security and webhook tests (`npm run test:db`) |
 
 It is a static site with no build step. To serve it locally, run `python3 -m http.server` and open http://localhost:8000.
@@ -93,19 +93,23 @@ Data credits:
 ```bash
 node tests/run-engines.js /tmp/bf.json && python tests/check_scipy.py /tmp/bf.json      # calculators
 node tests/run-studio.js /tmp/st.json && python tests/check_studio.py /tmp/st.json      # Studio engine
+node tests/ml/check.js && node tests/ml/check_learn.js                                  # specialist models, AutoML
+node tests/gen/check.js tests/gen/props_parity.json && node tests/gen/check_xtal.js --offline
+node tests/formats/check.js && node tests/bench/nist.js --check                         # file import, NIST StRD
+npm ci && npm run test:db                                                               # database security, both payment webhooks
 ```
 
-Run this before every release. All checks must print `ok`.
+Node 22.6 or later is needed (the database tests load TypeScript directly), plus Python with NumPy and SciPy. GitHub Actions runs all of these on every push; run them before every release. Every check must pass.
 
-## Turning on payments (licence-key fallback)
+## Licence keys (legacy, optional)
 
-Account-based plans (docs/SETUP.md) are the main path. Licence keys still work for buyers without an account:
+Plans are tied to accounts (docs/SETUP.md), and that is the path to use: do **not** enable licence keys on the account-based products. The browser still accepts Lemon Squeezy licence keys, which is useful only if you ever sell without accounts. In that case:
 
 1. Create a store at lemonsqueezy.com and complete identity and payout verification. Lemon Squeezy is the merchant of record, so it collects and remits VAT, GST and US sales tax.
 2. Create one product, **Lattent Pro**, with three variants:
    - Monthly subscription, $4.
    - Yearly subscription, $29.
-   - **Lab** yearly subscription, $99.
+   - **Lab** yearly subscription, $299.
 3. On each variant, enable **License keys**. Set the activation limit to 3 for Pro and 10 for Lab, and set the key length to match the subscription.
 4. Copy each variant's checkout link (Share → Checkout link) and the numeric store id (Settings → Stores) into `assets/js/config.js`:
    ```js

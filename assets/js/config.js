@@ -14,10 +14,12 @@ window.BF_CONFIG = {
      link or a payment link for each plan from the Razorpay dashboard. */
   razorpay: { monthly: '', yearly: '', lab: '' },
   /* USD prices for Lemon Squeezy; INR prices for Razorpay */
-  prices: { monthly: 4, yearly: 29, lab: 99, inr: { monthly: 299, yearly: 1999, lab: 6999 } },
+  prices: { monthly: 4, yearly: 29, lab: 299, inr: { monthly: 299, yearly: 1999, lab: 19999 } },
   earlyAccess: true,
   trialDays: 7,
-  support: '',
+  support: 'sibasankarpanigrahy08@gmail.com',
   site: 'siba-p.github.io/lattent',
-  author: { name: 'Sibasankar Panigrahy, PhD', url: 'https://siba-p.github.io/' }
+  /* shown in the site footer; url is optional */
+  founders: [{ name: 'Sibasankar Panigrahy', url: 'https://siba-p.github.io/' }, { name: 'Satyendra Rajput', url: '' }],
+  foundersNote: 'both PhDs from IIT Delhi'
 };

@@ -290,7 +290,7 @@ def pricing():
     <div class="card price best"><h3>Pro <span>Best value</span></h3><div class="amt" data-amt="pro">$29<small> / year</small></div><p class="sub" data-sub="pro">about $2.42 a month</p>
       <ul><li>Everything in Free</li><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods and results</li><li>Unlimited cloud projects, 250 MB</li><li>Facet chat with your own AI key</li></ul>
       <button class="btn primary" data-buy-pro>Get Pro</button><button class="pr-trial" data-trial>or try Pro free for 7 days</button></div>
-    <div class="card price"><h3>Lab</h3><div class="amt" data-amt="lab">$99<small> / year</small></div><p class="sub">up to 10 people, one invoice</p>
+    <div class="card price"><h3>Lab</h3><div class="amt" data-amt="lab">$299<small> / year</small></div><p class="sub">up to 10 people, one invoice</p>
       <ul><li>Everything in Pro for the group</li><li>Shared lab projects</li><li>Invite and remove members</li><li>Invoice or purchase order</li></ul>
       <button class="btn" data-buy="lab">Get Lab</button><a class="pr-trial" href="{root}contact/?topic=lab">Talk to us about a department licence</a></div>
   </div>

@@ -13,8 +13,10 @@ export interface RazorpayConfig {
 
 const MAX_BODY = 512 * 1024;
 const iso = (unix: unknown) => (typeof unix === 'number' && unix > 0 ? new Date(unix * 1000).toISOString() : null);
+/* 'pending' means Razorpay is still retrying a failed charge, so access continues (past_due).
+   'halted' means every retry failed: access stops (unpaid) until the customer pays again. */
 const STATUS: Record<string, string> = {
-  created: 'pending', authenticated: 'active', active: 'active', pending: 'past_due', halted: 'past_due',
+  created: 'pending', authenticated: 'active', active: 'active', pending: 'past_due', halted: 'unpaid',
   paused: 'paused', resumed: 'active', cancelled: 'cancelled', completed: 'expired', expired: 'expired'
 };
 

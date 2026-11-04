@@ -80,11 +80,13 @@
     try { [ent, subs, team, projects] = await Promise.all([C.entitlement(), C.subscriptions(), C.team(), C.list()]); }
     catch (e) { root.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
     const plan = ent ? ent.plan : 'free';
-    const liveSub = subs.find(s => ['on_trial', 'active', 'past_due', 'paused', 'unpaid'].includes(s.status) || (s.status === 'cancelled' && s.ends_at && Date.parse(s.ends_at) > Date.now()));
+    const liveSub = subs.find(s => ['on_trial', 'active', 'past_due', 'paused', 'unpaid'].includes(s.status) || (['cancelled', 'prepaid'].includes(s.status) && s.ends_at && Date.parse(s.ends_at) > Date.now()));
     const subLine = s => {
       if (!s) return '';
       if (s.status === 'cancelled') return `Cancelled: access until ${day(s.ends_at)}.`;
+      if (s.status === 'prepaid') return `Paid until ${day(s.ends_at)}.`;
       if (s.status === 'past_due') return '<span class="flag">Payment failed</span> We are retrying; please update your card.';
+      if (s.status === 'unpaid') return '<span class="flag">Payment failed</span> Pro is paused until the payment goes through; update your payment method below.';
       if (s.status === 'paused') return 'Paused.';
       return 'Renews on ' + day(s.renews_at) + '.';
     };

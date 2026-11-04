@@ -36,8 +36,8 @@
   </ul>
   <h2>Payments</h2>
   <ul>
-    <li>Card payments are handled entirely by Lemon Squeezy, a PCI-DSS compliant merchant of record. Lattent never sees or stores card numbers.</li>
-    <li>Plans change only through webhooks signed with a shared secret (HMAC-SHA256, compared in constant time). Unsigned, replayed or out-of-order events are rejected, so a plan cannot be granted from the browser.</li>
+    <li>Payments are handled entirely by PCI-DSS compliant providers: Lemon Squeezy, our merchant of record for US-dollar purchases, and Razorpay for rupee payments (UPI, cards, net banking). Lattent never sees or stores card numbers or bank details.</li>
+    <li>Plans change only through webhooks from either provider, signed with a shared secret (HMAC-SHA256, compared in constant time). Unsigned, replayed or out-of-order events are rejected, so a plan cannot be granted from the browser.</li>
     <li>Refunds and expired subscriptions remove access automatically.</li>
   </ul>
   <h2>The website</h2>
