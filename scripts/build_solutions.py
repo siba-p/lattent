@@ -50,6 +50,9 @@ T = {
     "tens": ("tools/tensile-test/", "Tensile-test tool"),
     "peak": ("tools/peak-fitting/", "Peak-fitting tool"),
     "fit": ("tools/curve-fitting/", "Curve-fitting tool"),
+    "tafel": ("tools/tafel-slope/", "Tafel-slope tool"),
+    "avrami": ("tools/avrami-crystallization/", "Avrami tool"),
+    "adk": ("tools/adsorption-kinetics/", "Adsorption-kinetics tool"),
     "cal": ("standard-curve/", "Calibration tool"),
     "phase": ("studio/?discover=phase", "Identify phases"),
     "db": ("studio/?discover=search", "Search the database"),
@@ -119,7 +122,7 @@ FIELDS = [
          lede="Fit Tafel slopes, ionic conductivities and sensor calibrations, resolve overlapping peaks and compare electrodes with statistics that check their own assumptions.",
          cta=ex("arrhenius", "Open the conductivity example"), img=("table.webp", "An XY table of ionic conductivity against temperature with replicate columns"),
          flows=[
-             ("Tafel analysis", "Fit overpotential against log current density to get the Tafel slope with its confidence interval.", ["Tafel slope per decade", "Residual checks"], T["fit"]),
+             ("Tafel analysis", "Fit overpotential against log current density to get the Tafel slope with its confidence interval.", ["Tafel slope per decade", "Residual checks"], T["tafel"]),
              ("Conductivity and activation energy", "Arrhenius or VFT fits of σ(T) with replicate columns recognised automatically.", ["Eₐ in kJ/mol and eV", "Confidence bands on the graph"], T["arr"]),
              ("Sensor calibration", "Linear, quadratic and 4PL calibration with unknowns read off with confidence intervals, recovery, LOD and LOQ.", ["Detection and quantitation limits", "Back-calculated recovery"], T["cal"]),
              ("Compare electrodes", "t tests and ANOVA with post tests, after normality and equal-variance checks.", ["The right test, suggested", "Significance on the graph"], ex("anova", "Comparison example")),
@@ -131,7 +134,7 @@ FIELDS = [
          cta=ex("alloys", "Open the alloy-dataset example"), img=("discover-xtal.webp", "Rutile TiO2 in Lattent's 3D structure viewer with lattice parameters and computed properties"),
          flows=[
              ("Strength and grain size", "Fit yield strength against grain size with Hall–Petch, and read strength and ductility from tensile curves.", ["σ₀ and the Hall–Petch coefficient", "Tensile properties"], T["fit"]),
-             ("Transformation kinetics", "Fit the transformed fraction over time with Avrami (JMAK) kinetics.", ["Avrami exponent n", "Half-time t½"], T["fit"]),
+             ("Transformation kinetics", "Fit the transformed fraction over time with Avrami (JMAK) kinetics.", ["Avrami exponent n", "Half-time t½"], T["avrami"]),
              ("Phases and structures", "Identify phases from XRD, then open any structure in 3D with its conventional cell, simulated pattern and CIF.", ["Ranked phases", "Structures and CIF files"], T["phase"]),
              ("Property datasets", "Principal component analysis, k-means clustering, correlation and regression across composition and property tables.", ["Families of similar alloys", "Which properties move together"], ex("alloys", "Alloy-dataset example")),
          ],
@@ -150,6 +153,7 @@ FIELDS = [
 ]
 
 CHANGES = [
+    ("2026-11-04", "Share by link, offline Studio and three new tools", ["Share a copy of any project as a link. The data is packed inside the link itself and never uploaded; whoever opens it gets their own copy of the tables, analyses and graphs.", "Install Lattent as an app from your browser. Studio keeps working without an internet connection, for example on an instrument computer.", "New quick tools: adsorption kinetics (pseudo-first and pseudo-second order, fitted directly and compared by AICc), Tafel slope with exchange current density, and Avrami crystallisation kinetics, each with a worked example.", "Opening an example after a reload now replaces the previous example instead of adding to it."]),
     ("2026-10-16", "Lab files, explained candidates and a NIST benchmark", ["Drop instrument files anywhere in Studio: CSV, TXT, XY, JCAMP-DX (including compressed), PANalytical XRDML, Rigaku RAS, Bruker UXD, Thermo SPC and CIF. A CIF becomes a simulated diffraction pattern. Files are read in your browser and never uploaded.", "Every generated material now has a Why? panel: how often the generator proposed it, its oxidation states, the predicted formation energy and band gap with intervals, and an estimate of its distance from the convex hull built from Alexandria's stable phases of the same system.", "A technical note on the Validation page: on the 52 NIST StRD nonlinear-regression fits Lattent reaches four or more correct digits in 51, against 45 for SciPy's curve_fit with default settings. The fitter uses improved damping and scouting restarts and is faster than before.", "Data privacy is now spelled out on the home page, and a Cite Lattent button gives BibTeX and APA references."]),
     ("2026-10-15", "Report agent and help guide", ["Autonomous scientific reports: Facet plans the analyses, runs them, checks them and writes the report (methods, results, figures, quality checks, limitations, next steps), offline. With your AI key it drafts the summary and discussion and reviews supplied figures.", "A Lattent guide on every page answers questions from the help articles and links to the right tool.", "Facet AI is a visible menu again."]),
     ("2026-10-15", "Support centre and a clearer home page", ["A Support centre with search, guides by topic, troubleshooting and billing help.", "The home page now opens with the problems Lattent solves and how it works in three steps.", "AI and machine learning moved into the Platform menu; Support joins the navigation."]),
@@ -479,3 +483,7 @@ pages += sorted(f"tools/{d}/" for d in os.listdir(os.path.join(ROOT, "tools")) i
 write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
       + "".join(f"  <url><loc>{BASE}{p}</loc><lastmod>{CHANGES[0][0]}</lastmod></url>\n" for p in pages) + "</urlset>\n")
 print(f"{len(FIELDS)} field pages, hub, changelog and sitemap ({len(pages)} URLs) written")
+
+# search and sharing metadata for the pages just written
+import runpy
+runpy.run_path(os.path.join(ROOT, "scripts", "seo.py"), run_name="__main__")

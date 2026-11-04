@@ -1,0 +1,17 @@
+{
+  "name": "Lattent Studio",
+  "short_name": "Lattent",
+  "description": "Data analysis for materials and chemistry: curve fitting, statistics, XRD and spectra. Runs on your computer and keeps working offline.",
+  "id": "./studio/",
+  "start_url": "./studio/",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090c1b",
+  "theme_color": "#0c1031",
+  "categories": ["education", "productivity", "utilities"],
+  "icons": [
+    { "src": "assets/img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/img/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

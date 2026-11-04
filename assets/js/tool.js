@@ -16,7 +16,7 @@
     const ncol = Math.max(...rows.map(r => r.length));
     const cols = g.header && g.header.length >= 2 ? g.header.slice(0, ncol) : [cfg.xlabel].concat(Array.from({ length: ncol - 1 }, () => cfg.ylabel));
     while (cols.length < ncol) cols.push(cfg.ylabel);
-    const payload = { name: cfg.name, table: { name: cfg.name, type: 'xy', cols, rows: rows.map(r => r.map(String)), ylabel: cfg.ylabel }, items: [{ kind: cfg.kind, opts: cfg.opts || {} }], at: Date.now() };
+    const payload = { name: cfg.name, table: { name: cfg.name, type: 'xy', cols, rows: rows.map(r => r.map(String)), ylabel: cfg.ylabel }, items: cfg.items || [{ kind: cfg.kind, opts: cfg.opts || {} }], at: Date.now() };
     try { localStorage.setItem('bf.studio.import', JSON.stringify(payload)); } catch (e) { msg.textContent = 'Your browser blocked local storage, so the data cannot be passed to Studio.'; return; }
     location.href = U.root + 'studio/?import=1';
   };

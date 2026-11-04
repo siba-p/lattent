@@ -1,5 +1,17 @@
 # Lattent
 
+**Data analysis for materials and chemistry, in your browser.** Curve fitting with honest uncertainties, statistics, XRD and spectra, phase identification against 5.8 million computed crystals, and generative design. The numbers are checked against SciPy and the NIST reference datasets on every release, and your data never leaves your computer.
+
+**[Open Lattent Studio →](https://siba-p.github.io/lattent/studio/)** · [Quick tools](https://siba-p.github.io/lattent/tools/) · [Validation](https://siba-p.github.io/lattent/validation/) · [What's new](https://siba-p.github.io/lattent/changelog/)
+
+[![validate](https://github.com/siba-p/lattent/actions/workflows/validate.yml/badge.svg)](https://github.com/siba-p/lattent/actions/workflows/validate.yml)
+
+![Lattent Studio fitting an XRD pattern](assets/img/hero-xrd.webp)
+
+Free to use, no installation: open it, paste your data, and share a copy of any project as a link. It can also be installed from the browser as an app that keeps working offline. Built by Sibasankar Panigrahy and Satyendra Rajput (PhD, IIT Delhi). If you use Lattent in published work, please cite it ([CITATION.cff](CITATION.cff)).
+
+## What it does
+
 **Lattent Studio** is a browser workspace for scientific data, in the spirit of GraphPad Prism but for every lab:
 - data tables (XY, Column, Multiple variables);
 - nonlinear regression with 35 equations from materials science, polymers, nanomaterials, chemistry and biology, plus user-defined equations and AICc auto-fit;
@@ -37,6 +49,7 @@ Live site: https://siba-p.github.io/lattent/
 | `assets/js/learn.js`, `learn-worker.js` | Equation discovery (symbolic regression) and AutoML with permutation importance and conformal intervals |
 | `ai/`, `assets/js/ai.js` | The AI page: periodic table of Lattent's models and a live lab |
 | `assets/js/theme.js` | Applies the saved light or dark theme before the page paints |
+| `sw.js`, `manifest.webmanifest` | Installable app; Studio works offline (network first, so updates always arrive when online) |
 | `assets/js/discover.js` | Studio's Discover views: database, phase identification, generation, 3D viewer |
 | `tests/gen/` | Featurisation, training scripts, bundling and checks for the generative models |
 | `tools/`, `scripts/build_tools.py` | Quick-tool pages for materials and chemistry (generated) |
@@ -49,8 +62,8 @@ Live site: https://siba-p.github.io/lattent/
 | `assets/js/cloud.js`, `account.js` | Sign-in, plan, cloud projects, Lab teams, checkout, account deletion |
 | `supabase/migrations/` | Database schema, row-level security policies, quotas, team functions |
 | `supabase/functions/` | `ls-webhook` and `rzp-webhook` (signed payment events), `contact` and `delete-account`; shared, unit-tested logic in `_shared/` |
-| `scripts/` | One-command backend deployment, site configuration, page generators, rebranding and `set-domain.py` for moving to a custom domain |
-| `tests/` | Validation against SciPy; database security and webhook tests (`npm run test:db`) |
+| `scripts/` | One-command backend deployment, site configuration, page generators (`build_tools.py`, `build_solutions.py`, which also run `seo.py` for canonical URLs, social cards and structured data), app icons, rebranding and `set-domain.py` for moving to a custom domain |
+| `tests/` | Validation against SciPy; share-link format; database security and webhook tests (`npm run test:db`) |
 
 It is a static site with no build step. To serve it locally, run `python3 -m http.server` and open http://localhost:8000.
 
@@ -96,6 +109,7 @@ node tests/run-studio.js /tmp/st.json && python tests/check_studio.py /tmp/st.js
 node tests/ml/check.js && node tests/ml/check_learn.js                                  # specialist models, AutoML
 node tests/gen/check.js tests/gen/props_parity.json && node tests/gen/check_xtal.js --offline
 node tests/formats/check.js && node tests/bench/nist.js --check                         # file import, NIST StRD
+node tests/share/check.js                                                               # share-link format
 npm ci && npm run test:db                                                               # database security, both payment webhooks
 ```
 

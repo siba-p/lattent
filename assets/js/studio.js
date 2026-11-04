@@ -44,6 +44,8 @@
       id: /^a\w{1,20}$/.test(i.id) ? i.id : uid('a'), tableId: i.tableId, kind: i.kind, opts: cleanOpts(i.opts), name: i.name ? str(i.name, 200) : undefined
     }));
     const out = { name: str(p.name, 200) || 'Untitled project', tables, items };
+    /* an untouched example stays disposable after a reload, so the next example or import replaces it */
+    if (p.sample === true) out.sample = true;
     if (p.cloud && typeof p.cloud === 'object' && /^[0-9a-f-]{36}$/i.test(p.cloud.id || '')) out.cloud = { id: p.cloud.id, version: +p.cloud.version || 1, teamId: /^[0-9a-f-]{36}$/i.test(p.cloud.teamId || '') ? p.cloud.teamId : null, savedAt: +p.cloud.savedAt || 0 };
     return out;
   }
@@ -1791,11 +1793,87 @@ ${projectSummary()}`;
       inp.click();
     };
     $('#st-menu').onclick = () => document.body.classList.toggle('nav-open');
+    $('#st-share').onclick = () => shareDialog();
     $('#st-cloud').onclick = () => cloudDialog();
     let rw; window.addEventListener('resize', () => { clearTimeout(rw); rw = setTimeout(() => { if (cur && cur.type === 'item') runItem(item(cur.id)); }, 200); });
     document.addEventListener('bf:pro', () => { if (cur && cur.type === 'item') runItem(item(cur.id)); });
   }
 
+
+  /* ================= share by link ================= */
+  /* The project travels inside the link's #fragment, which browsers never send to a server:
+     whoever opens the link gets their own copy, and Lattent never receives the data. */
+  const SHARE_MAX = 60000, UNPACKED_MAX = 20 * 1024 * 1024;
+  const b64u = bytes => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const unb64u = str => { const s = atob(str.replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; };
+  const pipe = async (bytes, stream) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
+  async function packShare(p) {
+    const raw = new TextEncoder().encode(JSON.stringify({ app: 'lattent-studio', version: 1, project: { name: p.name, tables: p.tables, items: p.items } }));
+    if (window.CompressionStream) { try { return 'z.' + b64u(await pipe(raw, new CompressionStream('deflate-raw'))); } catch (e) { /* send it uncompressed */ } }
+    return 'j.' + b64u(raw);
+  }
+  async function unpackShare(code) {
+    if (code.length > 4 * SHARE_MAX) throw new Error('too long');
+    let bytes = unb64u(code.slice(2));
+    if (code.startsWith('z.')) bytes = await pipe(bytes, new DecompressionStream('deflate-raw'));
+    else if (!code.startsWith('j.')) throw new Error('unknown format');
+    if (bytes.length > UNPACKED_MAX) throw new Error('too large');
+    const j = JSON.parse(new TextDecoder().decode(bytes));
+    const pj = j && ['lattent-studio', 'benchfit-studio'].includes(j.app) ? sanitize(j.project) : null;
+    if (!pj || !pj.tables.length) throw new Error('empty');
+    delete pj.cloud;
+    return pj;
+  }
+  async function shareDialog() {
+    if (!proj || !proj.tables.length) { U.toast('Add a table first, then share the project.'); return; }
+    const url = location.origin + location.pathname + '#share=' + await packShare(proj);
+    if (url.length > SHARE_MAX) {
+      U.modal(`<p class="m-kicker">Share</p><h2>This project is too large for a link</h2>
+        <p>A link can carry about ${Math.round(SHARE_MAX / 1000)} kB, and this project needs ${Math.round(url.length / 1000)} kB. Share a smaller copy (for example one table), or use cloud projects to share it with your lab.</p>
+        <div class="m-actions"><button class="btn" data-cl>Cloud projects</button></div>`).querySelector('[data-cl]').onclick = () => cloudDialog();
+      return;
+    }
+    const m = U.modal(`<p class="m-kicker">Share</p><h2>Share a copy of “${esc(proj.name || 'Untitled project')}”</h2>
+      <p>Whoever opens the link gets their own copy of the tables, analyses and graph settings, ready to check or build on. The data is packed inside the link itself and is never uploaded to Lattent, but anyone with the link, and the app you send it through, can read it.</p>
+      <div class="share-row"><input type="text" readonly id="sh-url" value="${esc(url)}" aria-label="Share link"><button class="btn primary" id="sh-copy">Copy link</button></div>
+      <p class="m-note">${(url.length / 1000).toFixed(1)} kB. Changes you make later are not in this link; share again to send them.</p>`);
+    const inp = $('#sh-url', m); inp.onfocus = () => inp.select();
+    $('#sh-copy', m).onclick = async e => {
+      try { await navigator.clipboard.writeText(url); } catch (err) { inp.focus(); inp.select(); document.execCommand && document.execCommand('copy'); }
+      e.target.textContent = 'Copied';
+      setTimeout(() => { e.target.textContent = 'Copy link'; }, 1500);
+    };
+  }
+  async function openShareLink(code) {
+    history.replaceState(null, '', location.pathname + location.search);
+    let pj;
+    try { pj = await unpackShare(code); } catch (e) {
+      U.toast('This share link is incomplete or damaged. Ask for it to be sent again, as one unbroken link.');
+      if (!proj.tables.length) startScreen(false);
+      return;
+    }
+    const take = () => {
+      proj = Object.assign(pj, { sample: false }); cache = {}; cur = null; save(); U.closeModal();
+      const first = proj.items[0];
+      select(first ? 'item' : 'table', first ? first.id : proj.tables[0].id);
+      U.toast('Opened your copy of “' + pj.name + '”.', 'ok');
+    };
+    if (!proj || !proj.tables.length || proj.sample) return take();
+    const m = U.modal(`<p class="m-kicker">Shared project</p><h2>Open “${esc(pj.name)}”?</h2>
+      <p>Someone shared ${pj.tables.length === 1 ? 'a table' : pj.tables.length + ' tables'} with you. You also have “${esc(proj.name || 'Untitled project')}” open in this browser.</p>
+      <div class="menu-list"><button data-s="add">Add the shared tables to my current project</button><button data-s="replace" class="danger">Replace my current project with the shared one</button><button data-s="no">Do not open it</button></div>`);
+    m.querySelector('.menu-list').onclick = e => {
+      const c = e.target.dataset.s; if (!c) return;
+      if (c === 'no') return U.closeModal();
+      if (c === 'replace') return take();
+      const ids = {};
+      pj.tables.forEach(t => { ids[t.id] = uid('t'); proj.tables.push(Object.assign(t, { id: ids[t.id] })); });
+      pj.items.forEach(it => proj.items.push(Object.assign(it, { id: uid('a'), tableId: ids[it.tableId] })));
+      cache = {}; save(); U.closeModal();
+      select('table', ids[pj.tables[0].id]);
+      U.toast('Added the shared tables to your project.', 'ok');
+    };
+  }
 
   /* ================= cloud storage ================= */
   const CL = BF.cloud || { enabled: false };
@@ -1912,7 +1990,11 @@ ${projectSummary()}`;
   const q = new URLSearchParams(location.search);
   let imported = null;
   if (q.get('import')) { try { imported = JSON.parse(localStorage.getItem('bf.studio.import') || 'null'); localStorage.removeItem('bf.studio.import'); } catch (e) { imported = null; } }
-  if (imported && imported.table && Date.now() - (imported.at || 0) < 10 * 60e3) {
+  const shared = (location.hash.match(/^#share=([zj]\.[\w-]+)$/) || [])[1];
+  if (shared) {
+    if (!proj) proj = { name: 'Untitled project', tables: [], items: [] };
+    render(); openShareLink(shared);
+  } else if (imported && imported.table && Date.now() - (imported.at || 0) < 10 * 60e3) {
     const clean = sanitize({ name: imported.name, tables: [Object.assign({ id: 'timport', type: 'xy' }, imported.table)], items: (imported.items || []).map((it, i) => ({ id: 'aimport' + i, tableId: 'timport', kind: it.kind, opts: it.opts })) });
     if (clean && clean.tables.length) {
       if (!proj || proj.sample || !proj.tables.length) proj = { name: clean.name, tables: [], items: [] };
@@ -1932,6 +2014,8 @@ ${projectSummary()}`;
   else if (BF.discover.views[q.get('discover')]) { if (!proj) proj = { name: 'Untitled project', tables: [], items: [] }; select('discover', q.get('discover')); }
   else if (proj) render();
   else { proj = { name: 'Untitled project', tables: [], items: [] }; render(); startScreen(false); }
+  /* a share link pasted into the address bar while Studio is open changes only the #fragment */
+  window.addEventListener('hashchange', () => { const c = (location.hash.match(/^#share=([zj]\.[\w-]+)$/) || [])[1]; if (c) openShareLink(c); });
   /* charts read the palette when drawn, so redraw the current view when the theme changes */
   document.addEventListener('bf:theme', () => { if (proj) render(); });
   if (q.get('cloud')) { history.replaceState(null, '', location.pathname); setTimeout(() => cloudDialog(), 300); }

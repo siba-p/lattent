@@ -10,6 +10,7 @@ Afterwards:
   2. Run scripts/setup-backend.sh again so Supabase accepts sign-in links for the new domain
      and the Edge Functions accept requests from it.
   3. Update the Lemon Squeezy confirmation-button links and both webhook settings if needed.
+  4. Add the domain to Google Search Console and Bing Webmaster Tools and submit sitemap.xml.
 
 Browsers keep saved work per site, so drafts stored at the old address do not move: tell
 existing users to download their projects first, or do this before launch.
@@ -57,6 +58,8 @@ for d, dirs, files in os.walk(a.root):
 
 if not a.dry_run:
     open(os.path.join(a.root, "CNAME"), "w").write(domain + "\n")
-print(("Would update" if a.dry_run else "Updated") + f" {len(changed)} files for https://{domain}/" + ("" if a.dry_run else " and wrote CNAME"))
+    # search engines read robots.txt only at the root of a host, which a custom domain provides
+    open(os.path.join(a.root, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\nDisallow: /account/\n\nSitemap: https://{domain}/sitemap.xml\n")
+print(("Would update" if a.dry_run else "Updated") + f" {len(changed)} files for https://{domain}/" + ("" if a.dry_run else ", wrote CNAME and robots.txt"))
 for c in sorted(changed):
     print("  " + c)

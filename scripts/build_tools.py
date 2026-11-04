@@ -98,6 +98,30 @@ TOOLS = [
          gets=["The data shape recognised in your browser by Lattent's own model", "All matching equations fitted and ranked by AICc and Akaike weight", "Confidence intervals, residuals and runs test for the chosen model", "Your own equation if none of the 35 fit"],
          eq="AICc = n ln(SS/n) + 2k + 2k(k+1)/(n − k − 1)",
          faq=[("What does the shape model do?", "It reads the pattern of your data (saturating, sigmoidal, thermally activated, a spectrum and so on) and narrows 35 equations to the plausible ones, so spurious models do not win by chance."), ("Can I type my own equation?", "Yes, in Studio: choose User-defined equation and type, for example, A*exp(-k*x) + c.")]),
+    dict(slug="adsorption-kinetics", short="Adsorption kinetics (PFO, PSO)", example="adskinetics",
+         title="Adsorption kinetics calculator: pseudo-first and pseudo-second order | Lattent",
+         desc="Fit pseudo-first-order and pseudo-second-order adsorption kinetics to qt versus time by nonlinear regression. Get qe, k1, k2 and the initial rate with confidence intervals, and compare the models by AICc.",
+         h1="Adsorption kinetics: pseudo-first and pseudo-second order", lede="Paste uptake against time (qₜ in mg/g, t in minutes). Lattent fits the Lagergren pseudo-first-order and the Ho–McKay pseudo-second-order models directly, without linearising, so you get honest uncertainties and a fair comparison.",
+         xlabel="Time (min)", ylabel="qₜ (mg/g)", kind="nlfit", opts=dict(model="pso"), items=[dict(kind="nlfit", opts=dict(model="pso")), dict(kind="nlfit", opts=dict(model="pfo"))],
+         gets=["Equilibrium uptake qₑ and rate constants k₁ and k₂ with 95% confidence intervals", "The initial adsorption rate h = k₂qₑ²", "AICc for each model, so you can say which one the data support", "Residual plots that show systematic misfit"],
+         eq="q<sub>t</sub> = q<sub>e</sub>(1 − e<sup>−k₁t</sup>),&nbsp;&nbsp; q<sub>t</sub> = k₂q<sub>e</sub>²t / (1 + k₂q<sub>e</sub>t)",
+         faq=[("Why not use the linear t/qₜ plot?", "The linearised pseudo-second-order plot gives a high R² for almost any saturating data, because t appears on both axes. Fitting the equation itself avoids that bias and gives uncertainties you can report."), ("Which model fits better?", "Compare AICc, not R². The model with the lower AICc is better supported; a difference of more than about 2 is meaningful. A better pseudo-second-order fit does not by itself prove chemisorption."), ("What are the units of k?", "k₁ is in 1/min when time is in minutes. k₂ is in g/(mg·min) when qₜ is in mg/g.")]),
+    dict(slug="tafel-slope", short="Tafel slope", example="tafel",
+         title="Tafel slope calculator: exchange current density from polarisation data | Lattent",
+         desc="Calculate the Tafel slope (mV/dec) and exchange current density from the Tafel region of an LSV or polarisation curve, with confidence intervals. For HER, OER, ORR and corrosion studies.",
+         h1="Tafel slope and exchange current density", lede="Paste current density against overpotential from the linear Tafel region of your polarisation curve. Lattent fits η = a + b·log₁₀|j| and reports the Tafel slope in mV per decade and the exchange current density, each with a confidence interval.",
+         xlabel="|j| (mA/cm²)", ylabel="|η| (mV)", kind="nlfit", opts=dict(model="tafel", logx=True),
+         gets=["Tafel slope b in mV/dec with a 95% confidence interval", "Exchange current density j₀ from the intercept", "Residuals that show where the Tafel region ends", "A log-scale figure ready for the paper"],
+         eq="η = a + b log<sub>10</sub>|j|,&nbsp;&nbsp; j<sub>0</sub> = 10<sup>−a/b</sup>",
+         faq=[("Which part of the curve should I paste?", "Only the straight part on a log scale: beyond the first few tens of millivolts, where the back reaction still matters, and before mass transport bends the curve. Correct for iR drop first."), ("What do common HER Tafel slopes mean?", "At 25 °C, about 120, 40 and 30 mV/dec are classically linked to the Volmer, Heyrovsky and Tafel steps being rate-determining. Real catalysts often fall in between."), ("Cathodic currents are negative. Is that a problem?", "Use magnitudes: paste |j| and |η|. The log needs positive current densities.")]),
+    dict(slug="avrami-crystallization", short="Avrami crystallisation kinetics", example="avrami",
+         title="Avrami analysis: JMAK crystallisation kinetics from DSC | Lattent",
+         desc="Fit the Avrami (JMAK) equation to isothermal DSC crystallinity data. Get the Avrami exponent n, half-time t½ and rate constant k with confidence intervals, without the double-log plot.",
+         h1="Avrami (JMAK) crystallisation kinetics", lede="Paste relative crystallinity against time from an isothermal DSC run. Lattent fits the Avrami equation directly and reports the exponent n, the half-time of crystallisation and the rate constant, each with a confidence interval.",
+         xlabel="Time (min)", ylabel="Relative crystallinity X (%)", kind="nlfit", opts=dict(model="avrami"),
+         gets=["Avrami exponent n with a 95% confidence interval", "Half-time of crystallisation t½", "Rate constant k = ln2 / t½ⁿ", "A fit you can compare across temperatures"],
+         eq="X(t) = 1 − exp(−k t<sup>n</sup>),&nbsp;&nbsp; t<sub>½</sub> = (ln2 / k)<sup>1/n</sup>",
+         faq=[("What data do I need?", "Relative crystallinity X(t) from the integrated exotherm of an isothermal run, in % or as a fraction. Measure time from the start of crystallisation, after any induction time."), ("What does the exponent n mean?", "n combines how nuclei form (all at once or continuously) and how crystals grow (in one, two or three dimensions). Values from about 2 to 4 are typical for polymers, and non-integer values are common."), ("Why not the ln(−ln(1−X)) plot?", "The double-log plot magnifies the noise at very low and very high crystallinity, so it is usually cut to the middle range. A direct fit uses every point.")]),
 ]
 
 LIFE = [("dose-response/", "Dose–response and IC50", "IC50 and EC50 with confidence intervals, 96-well plate import and potency comparison."),
@@ -114,7 +138,10 @@ def write(path, text):
 for t in TOOLS:
     root = "../../"
     opts = {("lambda" if k == "lambda_" else k): v for k, v in t["opts"].items()}
-    cfg = json.dumps(dict(kind=t["kind"], opts=opts, xlabel=t["xlabel"], ylabel=t["ylabel"], name=t["short"], example=t["example"]), ensure_ascii=False)
+    cfg = dict(kind=t["kind"], opts=opts, xlabel=t["xlabel"], ylabel=t["ylabel"], name=t["short"], example=t["example"])
+    if "items" in t:
+        cfg["items"] = t["items"]
+    cfg = json.dumps(cfg, ensure_ascii=False)
     others = "".join(f'<a href="{root}tools/{o["slug"]}/">{html.escape(o["short"])}</a>' for o in TOOLS if o is not t)
     body = f"""<main class="wrap qt" data-tool="{html.escape(cfg)}">
   <nav class="crumbs"><a href="{root}tools/">Quick tools</a> ›</nav>
@@ -159,3 +186,7 @@ life_page = f"""<main class="wrap qt">
 write(os.path.join(ROOT, "life-science", "index.html"),
       HEAD.format(title="Life-science tools: IC50, enzyme kinetics, qPCR | Lattent", desc="Dose–response IC50, enzyme kinetics, qPCR ΔΔCt and ELISA standard curves, validated against SciPy.", root=root) + life_page + FOOT.format(root=root, extra=""))
 print("built", len(TOOLS), "tool pages, tools hub, life-science hub")
+
+# search and sharing metadata for the pages just written
+import runpy
+runpy.run_path(os.path.join(ROOT, "scripts", "seo.py"), run_name="__main__")

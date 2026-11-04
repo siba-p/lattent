@@ -488,10 +488,16 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
   /* ---------- chrome ---------- */
   const here = document.currentScript && document.currentScript.src;
   U.root = here ? here.replace(/assets\/js\/shell\.js.*$/, '') : '/';
+  /* installable app whose Studio works offline (sw.js); browsers allow plain http only on localhost */
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register(U.root + 'sw.js').catch(() => { /* offline support is optional */ }));
+  }
   const tools = [
     ['tools/xrd-crystallite-size/', 'XRD crystallite size'], ['tools/band-gap-tauc/', 'Band gap (Tauc)'],
     ['tools/activation-energy-arrhenius/', 'Activation energy'], ['tools/adsorption-isotherms/', 'Adsorption isotherms'],
-    ['tools/tensile-test/', 'Tensile test'], ['tools/peak-fitting/', 'Peak fitting'], ['standard-curve/', 'Calibration curves']
+    ['tools/adsorption-kinetics/', 'Adsorption kinetics'], ['tools/tafel-slope/', 'Tafel slope'],
+    ['tools/avrami-crystallization/', 'Avrami kinetics'], ['tools/tensile-test/', 'Tensile test'],
+    ['tools/peak-fitting/', 'Peak fitting'], ['standard-curve/', 'Calibration curves']
   ];
   /* Site navigation: three mega menus in the manner of scientific-software sites, plus Pricing.
      Item: [href (relative to the site root, or absolute), title, one-line description]. */

@@ -103,6 +103,50 @@
   });
 
   SAMPLES.push({
+    id: 'adskinetics', field: 'Adsorption', title: 'Adsorption kinetics of a dye on biochar',
+    blurb: 'Fit pseudo-first- and pseudo-second-order kinetics without linearising, and compare them by AICc.',
+    make() {
+      const r = S.rng(31);
+      const t = [0, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240];
+      const pso = x => 48 * 48 * 0.0042 * x / (1 + 48 * 0.0042 * x);
+      const rows = t.map(x => [String(x)].concat([0, 1].map(() => f(Math.max(0, pso(x) * (1 + 0.03 * r.normal())), 2))));
+      return {
+        tables: [{ name: 'Tetracycline on biochar, 25 °C', type: 'xy', cols: ['Time (min)', 'qₜ (mg/g)', 'qₜ (mg/g)'], rows, ylabel: 'qₜ (mg/g)' }],
+        items: [{ kind: 'nlfit', opts: { model: 'pso' } }, { kind: 'nlfit', opts: { model: 'pfo' } }]
+      };
+    }
+  });
+
+  SAMPLES.push({
+    id: 'tafel', field: 'Electrochemistry', title: 'Tafel slope of an HER catalyst',
+    blurb: 'Fit the Tafel region of a polarisation curve for the Tafel slope and the exchange current density.',
+    make() {
+      const r = S.rng(47);
+      const i = [0.5, 0.8, 1.2, 1.8, 2.7, 4, 6, 9, 13, 20];
+      const rows = i.map(x => [String(x)].concat([0, 1].map(() => f(182 + 61 * Math.log10(x) + 1.2 * r.normal(), 1))));
+      return {
+        tables: [{ name: 'MoS₂ in 0.5 M H₂SO₄, iR-corrected', type: 'xy', cols: ['|j| (mA/cm²)', '|η| (mV)', '|η| (mV)'], rows, ylabel: 'Overpotential |η| (mV)' }],
+        items: [{ kind: 'nlfit', opts: { model: 'tafel', logx: true } }]
+      };
+    }
+  });
+
+  SAMPLES.push({
+    id: 'avrami', field: 'Polymers', title: 'Isothermal crystallisation of PLA (Avrami)',
+    blurb: 'Fit the Avrami (JMAK) equation to DSC crystallinity for the exponent n, the half-time and the rate constant.',
+    make() {
+      const r = S.rng(59);
+      const t = [0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 17, 20];
+      const X = x => 100 * (1 - Math.exp(-Math.LN2 * Math.pow(x / 6.4, 2.6)));
+      const rows = t.map(x => [String(x)].concat([0, 1].map(() => f(Math.min(100, Math.max(0, X(x) + 1.2 * r.normal())), 1))));
+      return {
+        tables: [{ name: 'PLA at 110 °C (DSC)', type: 'xy', cols: ['Time (min)', 'Relative crystallinity X (%)', 'Relative crystallinity X (%)'], rows, ylabel: 'Relative crystallinity X (%)' }],
+        items: [{ kind: 'nlfit', opts: { model: 'avrami' } }]
+      };
+    }
+  });
+
+  SAMPLES.push({
     id: 'anova', field: 'Statistics', title: 'Compare catalyst batches',
     blurb: 'One-way ANOVA with Tukey post tests, assumption checks and significance stars on the graph.',
     make() {
