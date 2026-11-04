@@ -1,5 +1,5 @@
 /* The periodic table of Lattent's AI, its detail card and the live lab */
-.ai-hero .wrap { padding-block: 64px 56px; max-width: 1240px; }
+.ai-hero .wrap { padding-block: 64px 56px; }
 .ai-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 14px; }
 .ai-cat { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--ink-2); }
 .ai-cat::before { content: ''; width: 11px; height: 11px; border-radius: 3px; background: var(--cat); }
@@ -51,7 +51,7 @@
 .lab-chart svg { display: block; width: 100%; height: auto; }
 .ai-p4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
 /* home-page teaser */
-.ai-teaser-wrap .ai-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.ai-teaser-wrap .ai-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @media (max-width: 1000px) { .ai-layout { grid-template-columns: minmax(0, 1fr); } #ai-detail { position: static; } .ai-p4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
 @media (max-width: 720px) { .ai-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; } .ai-tile { min-height: 96px; padding: 24px 9px 9px; } .ai-s { font-size: 26px; } .ai-m { display: none; } .lab-body { grid-template-columns: minmax(0, 1fr); } .lab-in textarea { min-height: 170px; } .lab-bars div { grid-template-columns: 110px minmax(0, 1fr) 48px; } }
 @media (max-width: 480px) { .ai-p4 { grid-template-columns: minmax(0, 1fr) !important; } }
