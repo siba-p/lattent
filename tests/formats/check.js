@@ -2,7 +2,8 @@
    Usage: node tests/formats/check.js */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const R = path.join(__dirname, '..', '..');
-const ctx = { console, Math, TextDecoder, DataView, ArrayBuffer, Float32Array, Uint8Array }; ctx.window = ctx; ctx.globalThis = ctx; vm.createContext(ctx);
+const zlib = require('zlib');
+const ctx = { console, Math, TextDecoder, DataView, ArrayBuffer, Float32Array, Uint8Array, Blob, DecompressionStream }; ctx.window = ctx; ctx.globalThis = ctx; vm.createContext(ctx);
 for (const f of ['assets/js/chem.js', 'assets/js/crystal.js', 'assets/js/formats.js']) vm.runInContext(fs.readFileSync(path.join(R, f), 'utf8'), ctx);
 const { formats: F, xtal: X } = ctx.BF;
 let pass = 0, fail = 0;
@@ -93,5 +94,60 @@ ok(h && Math.abs(h.e - want) < 1e-6 && h.parts.length === 3, 'quaternary Cu2ZnSn
 /* unsupported vendor binaries explain what to do */
 let msg = ''; try { F.parse('scan.raw', new ArrayBuffer(8)); } catch (e) { msg = e.message; }
 ok(/Export the scan as \.xy/.test(msg), 'binary .raw files get clear export instructions');
-console.log(`\n${pass} passed, ${fail} failed`);
-process.exit(fail ? 1 : 0);
+
+/* Excel workbooks: a zip of XML parts, built here the way Excel lays them out */
+function zip(files, opts = {}) {
+  const local = [], central = []; let off = 0;
+  Object.entries(files).forEach(([name, text]) => {
+    const raw = Buffer.from(text), stored = opts.stored && opts.stored.includes(name), data = stored ? raw : zlib.deflateRawSync(raw);
+    const nm = Buffer.from(name), crc = zlib.crc32 ? zlib.crc32(raw) : 0;
+    const h = Buffer.alloc(30); h.writeUInt32LE(0x04034b50, 0); h.writeUInt16LE(20, 4); h.writeUInt16LE(opts.encrypted ? 1 : 0, 6); h.writeUInt16LE(stored ? 0 : 8, 8);
+    h.writeUInt32LE(crc, 14); h.writeUInt32LE(data.length, 18); h.writeUInt32LE(raw.length, 22); h.writeUInt16LE(nm.length, 26);
+    const c = Buffer.alloc(46); c.writeUInt32LE(0x02014b50, 0); c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6); c.writeUInt16LE(opts.encrypted ? 1 : 0, 8); c.writeUInt16LE(stored ? 0 : 8, 10);
+    c.writeUInt32LE(crc, 16); c.writeUInt32LE(data.length, 20); c.writeUInt32LE(raw.length, 24); c.writeUInt16LE(nm.length, 28); c.writeUInt32LE(off, 42);
+    local.push(h, nm, data); central.push(c, nm); off += 30 + nm.length + data.length;
+  });
+  const cd = Buffer.concat(central), e = Buffer.alloc(22);
+  e.writeUInt32LE(0x06054b50, 0); e.writeUInt16LE(central.length / 2, 8); e.writeUInt16LE(central.length / 2, 10); e.writeUInt32LE(cd.length, 12); e.writeUInt32LE(off, 16);
+  return Buffer.concat(local.concat([cd, e]));
+}
+const NS = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+const book = sheets => ({
+  '[Content_Types].xml': '<?xml version="1.0"?><Types/>',
+  '_rels/.rels': '<Relationships><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+  'xl/workbook.xml': `<x:workbook ${NS.replace('xmlns=', 'xmlns:x=')}><x:sheets>${sheets.map((s, i) => `<x:sheet name="${s.name}" sheetId="${i + 1}"${s.hidden ? ' state="hidden"' : ''} r:id="rId${i + 1}"/>`).join('')}</x:sheets></x:workbook>`,
+  'xl/_rels/workbook.xml.rels': `<Relationships>${sheets.map((s, i) => `<Relationship Id="rId${i + 1}" Type="…/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('')}<Relationship Id="rId99" Type="…/sharedStrings" Target="sharedStrings.xml"/></Relationships>`,
+  'xl/sharedStrings.xml': `<sst ${NS}><si><t>Temperature</t></si><si><r><t>Conductivity</t></r><r><rPr><b/></rPr><t xml:space="preserve"> σ</t></r><rPh><t>ignored</t></rPh></si><si><t>K</t></si><si><t>S/cm</t></si><si><t>Run 4 &amp; 5, pellet</t></si><si><t>sample</t></si></sst>`,
+  ...Object.fromEntries(sheets.map((s, i) => [`xl/worksheets/sheet${i + 1}.xml`, `<worksheet ${NS}><sheetData>${s.xml}</sheetData></worksheet>`]))
+});
+const xrow = (r, cells) => `<row r="${r}">${cells}</row>`;
+const sheet1 = xrow(1, '<c r="A1" t="s"><v>4</v></c>') + xrow(3, '<c r="A3" t="s"><v>0</v></c><c r="B3" t="s"><v>1</v></c><c r="C3" t="inlineStr"><is><t>note</t></is></c>') + xrow(4, '<c r="A4" t="s"><v>2</v></c><c r="B4" t="s"><v>3</v></c>')
+  + xrow(5, '<c r="A5"><v>300</v></c><c r="B5"><v>1.0000000000000002E-5</v></c><c r="C5" t="inlineStr"><is><t>fresh</t></is></c>')
+  + xrow(6, '<c r="A6"><v>350</v></c><c r="B6" t="e"><v>#DIV/0!</v></c>')
+  + xrow(7, '<c><v>400</v></c><c><f>B5*11</f><v>1.1E-4</v></c>') + xrow(8, '<c r="A8"><v>450</v></c><c r="B8"><v>2.3E-4</v></c><c r="D8" t="b"><v>1</v></c>');
+const hidden = xrow(1, '<c r="A1"><v>1</v></c><c r="B1"><v>2</v></c>') + xrow(2, '<c r="A2"><v>3</v></c><c r="B2"><v>4</v></c>');
+const sheet3 = xrow(1, '<c r="A1" t="s"><v>5</v></c><c r="B1" t="inlineStr"><is><t>Eg (eV)</t></is></c>') + xrow(2, '<c r="A2"><v>1</v></c><c r="B2"><v>3.21</v></c>') + xrow(3, '<c r="A3"><v>2</v></c><c r="B3"><v>3.18</v></c>');
+const notes = xrow(1, '<c r="A1" t="inlineStr"><is><t>Measured on the new furnace</t></is></c>');
+
+(async () => {
+  r = await F.parse('pellets.xlsx', zip(book([{ name: 'Conductivity', xml: sheet1 }, { name: 'Old', hidden: true, xml: hidden }, { name: 'Band gap', xml: sheet3 }, { name: 'Notes', xml: notes }]), { stored: ['xl/worksheets/sheet3.xml'] }));
+  const [s1, s3] = r.sheets || [];
+  ok(r.kind === 'book' && r.sheets.length === 2 && s1.name === 'pellets – Conductivity' && s3.name === 'pellets – Band gap', 'Excel: visible sheets with numbers become tables; hidden and text-only sheets are skipped');
+  ok(s1.cols.join('|') === 'Temperature (K)|Conductivity σ (S/cm)', 'Excel: a two-row header joins names and units; rich-text runs join, phonetic hints are dropped');
+  ok(s1.rows.map(q => q.join(',')).join(';') === '300,0.00001;350,;400,0.00011;450,0.00023', 'Excel: numbers at 15 digits, cached formula values, error cells blank, text and flag columns dropped');
+  ok(s3.cols.join('|') === 'sample|Eg (eV)' && s3.rows.length === 2 && s3.rows[1][1] === '3.18', 'Excel: shared, inline and uncompressed parts all read');
+  r = await F.parse('one.xlsx', zip(book([{ name: 'Sheet1', xml: sheet3 }])));
+  ok(r.sheets.length === 1 && r.sheets[0].name === 'one', 'Excel: a single sheet takes the file name');
+  r = await F.parse('export.xls', Buffer.from('Wavelength\tAbs\n400\t0.51\n410\t0.49\n'));
+  ok(r.kind === 'xy' && r.rows.length === 2 && r.cols[1] === 'Abs', 'tab-separated text saved as .xls by an instrument is read as text');
+  const err = async (name, data) => { try { await F.parse(name, data); return ''; } catch (e) { return e.message; } };
+  const ole = new Uint8Array(512); ole.set([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]);
+  ok(/older \.xls workbook/.test(await err('old.xls', ole.buffer)), 'old binary .xls gets Save As instructions');
+  ok(/password-protected/.test(await err('locked.xlsx', zip(book([{ name: 'S', xml: sheet3 }]), { encrypted: true }))), 'password-protected workbooks are explained');
+  const bomb = book([{ name: 'S', xml: sheet3 }]); bomb['xl/worksheets/sheet1.xml'] = ' '.repeat(61e6);
+  ok(/too large/.test(await err('bomb.xlsx', zip(bomb))), 'a part that unpacks past 60 MB is refused (zip bomb)');
+  ok(/not a readable/.test(await err('broken.xlsx', Buffer.from('PK\u0003\u0004 truncated'))), 'a damaged zip gets a clear message');
+
+  console.log(`\n${pass} passed, ${fail} failed`);
+  process.exit(fail ? 1 : 0);
+})();

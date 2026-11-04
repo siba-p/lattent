@@ -1,8 +1,9 @@
 /* Lab file formats → Lattent tables. Each reader returns
    { kind: 'xy', name, cols, rows, ylabel, meta } or { kind: 'structure', name, structure, meta }.
    Readers: delimited text (.csv .txt .dat .xy .asc .tsv .prn), JCAMP-DX (.jdx .dx, AFFN and
-   ASDF-compressed), PANalytical .xrdml, Rigaku .ras, Bruker .uxd, Thermo/Galactic .spc and
-   crystallographic .cif (expanded by its symmetry operations). Works in browsers and Node. */
+   ASDF-compressed), PANalytical .xrdml, Rigaku .ras, Bruker .uxd, Thermo/Galactic .spc,
+   crystallographic .cif (expanded by its symmetry operations) and Excel .xlsx workbooks, which
+   return { kind: 'book', name, sheets: [xy tables] }. Works in browsers and Node. */
 (function (root) {
   'use strict';
   const F = {};
@@ -230,16 +231,146 @@
     return { kind: 'structure', name: base(name), structure: { lattice: L, positions: pos, species: sp, occ }, meta: { format: 'CIF', spacegroup: sgNum, formula, ops: ops.length, cell: { a, b, c, alpha: al, beta: be, gamma: ga } } };
   };
 
-  const EXT = { csv: 'text', txt: 'text', dat: 'text', xy: 'text', xye: 'text', asc: 'text', tsv: 'text', prn: 'text', jdx: 'jcamp', dx: 'jcamp', jcamp: 'jcamp', xrdml: 'xrdml', ras: 'ras', uxd: 'uxd', spc: 'spc', cif: 'cif' };
+  /* ---------- Excel workbooks (.xlsx, .xlsm): a zip of XML parts ---------- */
+  const XLSX_MAX = 60e6;                       // bytes unpacked per part: refuses zip bombs
+  const u8of = buf => (buf instanceof Uint8Array ? buf : new Uint8Array(buf instanceof ArrayBuffer ? buf : buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)));
+  async function inflateRaw(bytes) {
+    if (typeof DecompressionStream === 'undefined') throw new Error('This browser cannot open Excel files. Update it, or save the sheet as CSV.');
+    const rd = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+    const parts = []; let n = 0;
+    for (;;) {
+      const { done, value } = await rd.read();
+      if (done) break;
+      n += value.length;
+      if (n > XLSX_MAX) { rd.cancel(); throw new Error('The workbook is too large to open here. Save the sheet as CSV.'); }
+      parts.push(value);
+    }
+    const out = new Uint8Array(n); let o = 0;
+    parts.forEach(p => { out.set(p, o); o += p.length; });
+    return out;
+  }
+  /* the zip's central directory lists every part with its compressed size and offset */
+  function unzip(u8) {
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    let e = -1;
+    for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+    if (e < 0) throw new Error('This is not a readable .xlsx workbook. Open it in Excel and save it again as .xlsx or CSV.');
+    const parts = {};
+    let p = dv.getUint32(e + 16, true);
+    for (let k = dv.getUint16(e + 10, true); k > 0 && p + 46 <= u8.length && dv.getUint32(p, true) === 0x02014b50; k--) {
+      const nl = dv.getUint16(p + 28, true);
+      parts[new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl))] = { flags: dv.getUint16(p + 8, true), method: dv.getUint16(p + 10, true), size: dv.getUint32(p + 20, true), off: dv.getUint32(p + 42, true) };
+      p += 46 + nl + dv.getUint16(p + 30, true) + dv.getUint16(p + 32, true);
+    }
+    return async function read(name) {
+      const f = parts[name];
+      if (!f) return null;
+      if (f.flags & 1) throw new Error('The workbook is password-protected. Remove the password in Excel, or save the sheet as CSV.');
+      if (f.off + 30 > u8.length || dv.getUint32(f.off, true) !== 0x04034b50) throw new Error('The workbook is damaged.');
+      const start = f.off + 30 + dv.getUint16(f.off + 26, true) + dv.getUint16(f.off + 28, true);
+      const raw = u8.subarray(start, start + f.size);
+      const out = f.method === 0 ? raw : f.method === 8 ? await inflateRaw(raw) : null;
+      if (!out) throw new Error('The workbook uses a compression method that cannot be read here. Save it again from Excel.');
+      /* tag prefixes (x:row, x:c) appear in files written by some libraries */
+      return new TextDecoder('utf-8').decode(out).replace(/<(\/?)[A-Za-z][\w.-]*:(?=[A-Za-z])/g, '<$1');
+    };
+  }
+  const unxml = s => s.replace(/&(#x[\da-f]+|#\d+|amp|lt|gt|quot|apos);/gi, (m, e) => (e[0] === '#' ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : +e.slice(1)) : { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" }[e.toLowerCase()]))
+    .replace(/_x([\dA-Fa-f]{4})_/g, (m, h) => String.fromCharCode(parseInt(h, 16)));
+  const attr = (s, k) => { const m = s.match(new RegExp('(?:^|\\s)(?:\\w+:)?' + k + '="([^"]*)"')); return m ? unxml(m[1]) : null; };
+  const runs = s => (s.replace(/<rPh\b[\s\S]*?<\/rPh>/g, '').match(/<t\b[^>]*>[^<]*<\/t>/g) || []).map(t => unxml(t.replace(/<[^>]+>/g, ''))).join('');
+  const colNum = ref => { let n = 0; for (const ch of ref) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+  /* a sheet's cells as a grid of strings; numbers keep Excel's 15 significant digits */
+  function sheetGrid(xml, sst) {
+    const grid = [];
+    let ri = -1;
+    for (const rm of xml.matchAll(/<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g)) {
+      const rr = attr(rm[1], 'r'); ri = rr ? +rr - 1 : ri + 1;
+      if (!rm[2] || ri > 2e5) continue;
+      const row = []; let ci = -1;
+      for (const cm of rm[2].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+        const ref = attr(cm[1], 'r'); ci = ref ? colNum(ref.replace(/\d+$/, '')) : ci + 1;
+        if (ci > 500) continue;
+        const ty = attr(cm[1], 't') || 'n', body = cm[2] || '', v = (body.match(/<v\b[^>]*>([^<]*)<\/v>/) || [])[1];
+        let s = '';
+        if (ty === 's') s = v != null ? sst[+v] || '' : '';
+        else if (ty === 'inlineStr') s = runs(body);
+        else if (ty === 'b') s = v === '1' ? 'TRUE' : 'FALSE';
+        else if (ty === 'e') s = '';
+        else if (v != null) { s = unxml(v); if (ty === 'n' && s !== '' && isFinite(+s)) s = String(+(+s).toPrecision(15)); }
+        row[ci] = s.trim();
+      }
+      grid[ri] = row;
+    }
+    return grid;
+  }
+  /* the block of numbers on a sheet: the header is the text row just above the first row of numbers;
+     columns with no numbers (notes, sample codes) are dropped, text in number columns becomes blank */
+  function gridTable(grid, name) {
+    const isNum = c => c != null && c !== '' && isFinite(Number(c));
+    const rows = []; for (let i = 0; i < grid.length; i++) rows.push((grid[i] || []).map(c => (c == null ? '' : c)));
+    const nNum = r => r.filter(isNum).length;
+    const i0 = rows.findIndex(r => nNum(r) >= 2);
+    if (i0 < 0) return null;
+    const isText = r => r && r.some(c => c !== '') && nNum(r) < r.filter(c => c !== '').length / 2;
+    let ih = -1;
+    for (let i = i0 - 1; i >= Math.max(0, i0 - 3); i--) if (rows[i].some(c => c !== '')) { if (isText(rows[i])) ih = i; break; }
+    const body = rows.slice(i0).filter(r => nNum(r) >= 1);
+    const w = Math.max(...body.map(r => r.length));
+    const keep = []; for (let j = 0; j < w; j++) if (body.some(r => isNum(r[j]))) keep.push(j);
+    if (keep.length < 2 || body.length < 2) return null;
+    const head = ih >= 0 ? rows[ih] : [];
+    /* a two-row header: names above, units below ("Temperature" over "K") */
+    const up = ih > 0 && isText(rows[ih - 1]) && keep.filter(j => rows[ih - 1][j]).length >= keep.length / 2 && keep.every(j => !head[j] || (head[j].length <= 12 && !/[()[\]]/.test(head[j]))) ? rows[ih - 1] : null;
+    const title = j => (up && up[j] && head[j] ? `${up[j]} (${head[j]})` : head[j] || (up && up[j]) || '');
+    const cols = keep.map((j, k) => title(j) || (k === 0 ? 'X' : keep.length > 2 ? 'Y' + k : 'Y'));
+    return { kind: 'xy', name, cols, rows: body.map(r => keep.map(j => (isNum(r[j]) ? r[j] : ''))), meta: { format: 'XLSX' } };
+  }
+  /* every visible sheet with numbers becomes a table: {kind:'book', name, sheets:[xy tables]} */
+  F.xlsx = async function (buf, name) {
+    if (typeof buf === 'string') throw new Error('Excel files are binary; open them as files.');
+    const u8 = u8of(buf);
+    if (u8[0] === 0xD0 && u8[1] === 0xCF && u8[2] === 0x11 && u8[3] === 0xE0) throw new Error('This is an older .xls workbook. In Excel choose File → Save As → Excel Workbook (.xlsx) or CSV, then open that file.');
+    /* many instruments write tab-separated text and call it .xls */
+    if (u8[0] !== 0x50 || u8[1] !== 0x4B) return F.text(u8, name);
+    const read = unzip(u8);
+    const rels = (await read('_rels/.rels')) || '';
+    const wbPath = ((rels.match(/<Relationship\b[^>]*officeDocument"[^>]*>/) || [''])[0].match(/Target="\/?([^"]+)"/) || [])[1] || 'xl/workbook.xml';
+    const wb = await read(wbPath);
+    if (!wb) throw new Error('This file has no workbook inside. Save it again from Excel as .xlsx or CSV.');
+    const dir = wbPath.replace(/[^/]*$/, '');
+    const wbRels = (await read(dir + '_rels/' + wbPath.slice(dir.length) + '.rels')) || '';
+    const target = {};
+    for (const m of wbRels.matchAll(/<Relationship\b([^>]*)>/g)) target[attr(m[1], 'Id')] = attr(m[1], 'Target');
+    const resolve = t => (t[0] === '/' ? t.slice(1) : (dir + t).split('/').reduce((a, s) => (s === '..' ? a.slice(0, -1) : s === '.' ? a : a.concat(s)), []).join('/'));
+    const sstPath = Object.values(target).find(t => /sharedStrings\.xml$/i.test(t || ''));
+    const sstXml = sstPath ? (await read(resolve(sstPath))) || '' : '';
+    const sst = (sstXml.match(/<si>[\s\S]*?<\/si>|<si\/>/g) || []).map(runs);
+    const stem = base(name), sheets = [];
+    const list = [...wb.matchAll(/<sheet\b([^>]*?)\/?>/g)].map(m => ({ name: attr(m[1], 'name') || 'Sheet', state: attr(m[1], 'state'), rid: attr(m[1], 'id') })).filter(s => !s.state || s.state === 'visible');
+    for (const s of list.slice(0, 30)) {
+      const path = target[s.rid] && resolve(target[s.rid]);
+      const xml = path && await read(path);
+      if (!xml) continue;
+      const t = gridTable(sheetGrid(xml, sst), list.length > 1 ? `${stem} – ${s.name}` : stem);
+      if (t) sheets.push(t);
+    }
+    if (!sheets.length) throw new Error('No columns of numbers were found in the workbook.');
+    return { kind: 'book', name: stem, sheets, meta: { format: 'XLSX' } };
+  };
+
+  const EXT = { csv: 'text', txt: 'text', dat: 'text', xy: 'text', xye: 'text', asc: 'text', tsv: 'text', prn: 'text', jdx: 'jcamp', dx: 'jcamp', jcamp: 'jcamp', xrdml: 'xrdml', ras: 'ras', uxd: 'uxd', spc: 'spc', cif: 'cif', xlsx: 'xlsx', xlsm: 'xlsx', xls: 'xlsx' };
   F.extensions = Object.keys(EXT);
   F.accept = F.extensions.map(e => '.' + e).join(',');
-  const UNSUPPORTED = { raw: 'Bruker and Rigaku .raw files are binary and vendor-specific. Export the scan as .xy, .uxd, .ras or .xrdml from DIFFRAC or SmartLab software, or use PowDLL to convert it.', sp: 'PerkinElmer .sp files are binary. Export the spectrum as CSV or JCAMP-DX from Spectrum software.', brml: 'Bruker .brml files are packaged archives. Export the scan as .xy or .uxd from DIFFRAC.EVA.', opj: 'Origin projects cannot be read; export the worksheet as CSV.', xlsx: 'Save the sheet as CSV, or copy the cells and paste them into a table.' };
-  /* name: file name; data: ArrayBuffer (or string for text formats) */
+  const UNSUPPORTED = { raw: 'Bruker and Rigaku .raw files are binary and vendor-specific. Export the scan as .xy, .uxd, .ras or .xrdml from DIFFRAC or SmartLab software, or use PowDLL to convert it.', sp: 'PerkinElmer .sp files are binary. Export the spectrum as CSV or JCAMP-DX from Spectrum software.', brml: 'Bruker .brml files are packaged archives. Export the scan as .xy or .uxd from DIFFRAC.EVA.', opj: 'Origin projects cannot be read; export the worksheet as CSV.', ods: 'Save the sheet as .xlsx or CSV from LibreOffice, then open that file.', numbers: 'Export the sheet as .xlsx or CSV from Numbers, then open that file.' };
+  /* name: file name; data: ArrayBuffer (or string for text formats). Workbooks are unpacked
+     asynchronously, so for .xlsx this returns a Promise of {kind:'book', sheets}. */
   F.parse = function (name, data) {
     const ext = String(name).toLowerCase().split('.').pop();
     if (UNSUPPORTED[ext]) throw new Error(UNSUPPORTED[ext]);
     const kind = EXT[ext] || 'text';
     if (kind === 'spc') return F.spc(data, name);
+    if (kind === 'xlsx') return F.xlsx(data, name);
     const text = decode(data);
     if (kind === 'text' && /^##TITLE=/m.test(text)) return F.jcamp(text, name);
     return F[kind](text, name);

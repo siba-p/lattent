@@ -18,6 +18,7 @@ body.studio { background: var(--bg); }
 .st-side { border-right: 1px solid var(--line); background: var(--card); padding: 14px 10px; position: sticky; top: 56px; height: calc(100vh - 56px); overflow: auto; display: flex; flex-direction: column; gap: 10px; }
 .st-side h5 { margin: 4px 8px 2px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
 .st-side .newbtn { margin: 0 6px; justify-content: center; }
+.st-side .newbtn + .newbtn { margin-top: 6px; }
 .nv-t { display: flex; flex-direction: column; gap: 1px; }
 .nv-row { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 0; background: none; padding: 7px 8px; border-radius: 8px; color: var(--ink); font: 500 13.5px Inter, sans-serif; cursor: pointer; }
 .nv-row:hover { background: var(--line-2); }
@@ -119,6 +120,13 @@ ul.checks li.bad::before { content: '!'; color: var(--warn); }
 .menu-list { display: grid; gap: 6px; }
 .share-row { display: flex; gap: 8px; margin: 14px 0 6px; }
 .share-row input { flex: 1; min-width: 0; font: 12.5px/1.4 'JetBrains Mono', monospace; }
+.bt-list { max-height: 300px; overflow: auto; margin: 14px 0 4px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.bt-list .check { margin: 6px 0; }
+.bt-list .bt-all { font-weight: 600; padding-bottom: 6px; border-bottom: 1px solid var(--line-2); }
+.bt-bar { height: 6px; margin: 16px 0 4px; border-radius: 3px; background: var(--line-2); overflow: hidden; }
+.bt-bar i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .15s; }
+.bt-plot { display: flex; gap: 8px; }
+.bt-plot select { flex: 1; min-width: 0; }
 .menu-list button { text-align: left; border: 1px solid var(--line); background: var(--card); border-radius: 9px; padding: 10px 14px; font: 500 14px Inter, sans-serif; cursor: pointer; color: var(--ink); }
 .menu-list button:hover { border-color: var(--axis); }
 .menu-list .danger { color: var(--bad); }
@@ -370,3 +378,6 @@ td.eqn { font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; }
 .drop-veil span { font-size: 14px; color: #dfe3ff; }
 
 .start-drop { margin: 12px 0 0; padding: 12px 14px; border: 1px dashed var(--axis); border-radius: 10px; font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+#st-store { position: fixed; z-index: 150; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(640px, calc(100% - 32px)); display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); border: 1px solid var(--accent); color: var(--ink); box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+#st-store p { margin: 0; font-size: 13.5px; line-height: 1.45; flex: 1; }
+.imp-fail li { line-height: 1.45; }

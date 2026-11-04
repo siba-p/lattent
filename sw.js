@@ -3,7 +3,7 @@
    stored at install, so Studio opens and analyses data with no connection (for example on an
    instrument computer). Only this site's own files are cached: never API calls, payment or
    sign-in traffic, and never user data. */
-const CACHE = 'lattent-v1';
+const CACHE = 'lattent-v2';
 const CORE = [
   'studio/', 'manifest.webmanifest', 'favicon.svg',
   'assets/css/bf.css', 'assets/css/studio.css',

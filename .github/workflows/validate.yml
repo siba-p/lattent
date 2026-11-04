@@ -21,6 +21,7 @@ jobs:
       - run: node tests/formats/check.js
       - run: node tests/bench/nist.js --check
       - run: node tests/share/check.js
+      - run: node tests/figure/check.js
   security:
     runs-on: ubuntu-latest
     steps:

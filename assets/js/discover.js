@@ -59,7 +59,7 @@
     const bar = host.previousElementSibling;
     if (bar) $$('[data-f]', bar).forEach(b => b.onclick = () => U.exportFigure(build, name, b.dataset.f));
   }
-  const chartBox = title => `<div class="cbox"><div class="cbar"><h4>${esc(title)}</h4><div class="exp"><button class="btn small ghost" data-f="png-free">PNG</button><button class="btn small ghost" data-f="svg">SVG <span class="lock">PRO</span></button><button class="btn small ghost" data-f="png">600 dpi <span class="lock">PRO</span></button></div></div><div class="chart-host"></div></div>`;
+  const chartBox = title => `<div class="cbox"><div class="cbar"><h4>${esc(title)}</h4><div class="exp"><button class="btn small ghost" data-f="png-free">PNG</button><button class="btn small ghost" data-f="svg">SVG <span class="lock">PRO</span></button><button class="btn small ghost" data-f="png">600 dpi <span class="lock">PRO</span></button><button class="btn small ghost" data-f="journal" title="Exact column width and text size for ACS, RSC, Elsevier, Nature or Wiley">Journal size <span class="lock">PRO</span></button></div></div><div class="chart-host"></div></div>`;
 
   /* ================= entry points ================= */
   D.views = VIEWS;

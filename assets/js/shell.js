@@ -60,25 +60,28 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   };
-  U.svgToPng = function (svg, W, H, scale, watermark) {
+  U.svgToCanvas = function (svg, W, H, scale, watermark) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
         const c = document.createElement('canvas');
         c.width = Math.round(W * scale); c.height = Math.round(H * scale);
         const x = c.getContext('2d');
+        if (!x) return reject(new Error('The figure is too large for this browser; choose a lower resolution.'));
         x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
         x.drawImage(img, 0, 0, c.width, c.height);
         if (watermark) {
           x.font = `${11 * scale}px Arial`; x.fillStyle = 'rgba(0,0,0,0.38)'; x.textAlign = 'right';
           x.fillText(watermark, c.width - 10 * scale, c.height - 8 * scale);
         }
-        c.toBlob(b => (b ? resolve(b) : reject(new Error('PNG export failed'))), 'image/png');
+        resolve(c);
       };
       img.onerror = () => reject(new Error('Could not render the figure'));
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     });
   };
+  U.svgToPng = (svg, W, H, scale, watermark) => U.svgToCanvas(svg, W, H, scale, watermark)
+    .then(c => new Promise((resolve, reject) => c.toBlob(b => (b ? resolve(b) : reject(new Error('PNG export failed; the figure may be too large for this browser.'))), 'image/png')));
   U.csv = rows => rows.map(r => r.map(v => {
     const s = v == null ? '' : typeof v === 'number' ? (isFinite(v) ? String(Number(v.toPrecision(8))) : '') : String(v);
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
@@ -210,7 +213,8 @@
       <p class="m-kicker">Lattent Pro${CFG.earlyAccess ? ' · early-access price' : ''}</p>
       <h2>${what ? U.esc(what) + ' is a Pro feature' : 'Publication-ready output, in one click'}</h2>
       <ul class="m-list">
-        <li>Figures as vector SVG and 600-dpi PNG, without the watermark</li>
+        <li>Figures at each journal's exact size (ACS, RSC, Elsevier, Nature, Wiley) as TIFF, PNG or SVG, without the watermark</li>
+        <li>Batch runs: one analysis on any number of files, collected in one summary table</li>
         <li>Auto-written methods, results and figure legend, ready to paste into a paper</li>
         <li>Cloud storage for your projects, results as CSV and reports</li>
         <li>Facet, the AI lab partner, with your own Claude or GPT key</li>
@@ -278,6 +282,7 @@
   /* ---------- figure export ---------- */
   /* build(theme, W, H) → {svg}; name: file stem */
   U.exportFigure = function (build, name, fmt) {
+    if (fmt === 'journal') return U.journalFigure(build, name);
     const W = 720, H = 500;
     const fig = build(BF.plot.print, W, H);
     if (fmt === 'png-free') {
@@ -286,6 +291,74 @@
     Pro.require('High-resolution and vector export', () => {
       if (fmt === 'svg') U.download(name + '.svg', 'image/svg+xml', fig.svg);
       else U.svgToPng(fig.svg, W, H, 5, null).then(b => U.download(name + "-600dpi.png", "image/png", b));
+    });
+  };
+
+  /* Journal-ready figure: the publisher's column width, text in points, a TIFF, PNG or SVG that
+     opens at its printed size. The preview shows the figure at that size on screen. */
+  const MAX_PX = 60e6;
+  U.journalFigure = function (build, name) {
+    const P = BF.plot, J = P.JOURNALS;
+    const st = Object.assign({ j: 'acs', w: 0, h: '', pt: '', fmt: '', dpi: '' }, store.get('bf.jfig', {}));
+    const opt = (v, label, on) => `<option value="${U.esc(v)}"${String(v) === String(on) ? ' selected' : ''}>${U.esc(label)}</option>`;
+    const m = U.modal(`<p class="m-kicker">Figure for a journal</p><h2>Export at the printed size</h2>
+      <div class="jf-grid"><div class="jf-form">
+        <div class="field"><label class="lbl" for="jf-j">Journal</label><select id="jf-j">${J.map(j => opt(j.id, j.name, st.j)).join('')}</select></div>
+        <div class="field"><label class="lbl" for="jf-w">Width</label><select id="jf-w"></select><input type="number" id="jf-wmm" min="30" max="400" step="0.5" aria-label="Width in mm" hidden></div>
+        <div class="jf-two"><div class="field"><label class="lbl" for="jf-h">Height (mm)</label><input type="number" id="jf-h" min="20" max="300" step="0.5"></div>
+        <div class="field"><label class="lbl" for="jf-pt">Text size (pt)</label><input type="number" id="jf-pt" min="5" max="14" step="0.5"></div></div>
+        <div class="jf-two"><div class="field"><label class="lbl" for="jf-fmt">Format</label><select id="jf-fmt">${opt('tiff', 'TIFF')}${opt('png', 'PNG')}${opt('svg', 'SVG (vector)')}</select></div>
+        <div class="field" id="jf-dpi-f"><label class="lbl" for="jf-dpi">Resolution</label><select id="jf-dpi">${[300, 600, 1000, 1200].map(d => opt(d, d + ' dpi')).join('')}</select></div></div>
+      </div><div class="jf-prev"><div class="jf-paper" id="jf-paper"></div><p class="hint" id="jf-info"></p></div></div>
+      <div class="m-actions"><button class="btn primary" id="jf-go">Download <span class="lock">PRO</span></button></div>
+      <p class="hint">Widths and text sizes follow each publisher's artwork guidelines. Check your journal's instructions too: some ask for EPS or PDF, which you can make from the SVG in Illustrator or Inkscape.</p>`);
+    m.querySelector('.modal-box').classList.add('jf-box');
+    const $m = s => m.querySelector(s);
+    const jour = () => J.find(j => j.id === $m('#jf-j').value) || J[0];
+    const fillWidths = keep => {
+      const j = jour(), on = keep ? st.w : 0;
+      $m('#jf-w').innerHTML = j.id === 'custom' ? opt('c', 'Width in mm', 'c') : j.widths.map(([l, mm], i) => opt(i, `${l}, ${mm} mm`, on)).join('') + opt('c', 'Custom width…', on);
+      if (!keep) { $m('#jf-pt').value = j.pt; $m('#jf-fmt').value = j.fmt; $m('#jf-dpi').value = j.dpi; $m('#jf-h').value = ''; }
+    };
+    const wmm = () => { const v = $m('#jf-w').value; return v === 'c' ? Math.min(400, Math.max(30, +$m('#jf-wmm').value || 85)) : jour().widths[+v][1]; };
+    let fig = null;
+    const draw = () => {
+      const j = jour(), w = wmm(), pt = Math.min(14, Math.max(5, +$m('#jf-pt').value || j.pt));
+      $m('#jf-wmm').hidden = $m('#jf-w').value !== 'c';
+      if (!$m('#jf-wmm').value) $m('#jf-wmm').value = w;
+      let h = +$m('#jf-h').value;
+      if (!h) { h = Math.round(w * (w > 120 ? 0.5 : 0.72)); if (j.maxH) h = Math.min(h, j.maxH); $m('#jf-h').value = h; }
+      const u = P.journalUnits(w, h, pt), out = build(P.print, u.W, u.H);
+      fig = Object.assign(P.svgPhysical(out.svg, u.s), { pt, dpi: +$m('#jf-dpi').value, fmt: $m('#jf-fmt').value });
+      const px = [Math.round(fig.wmm / 25.4 * fig.dpi), Math.round(fig.hmm / 25.4 * fig.dpi)];
+      fig.px = px;
+      $m('#jf-paper').innerHTML = fig.svg.replace(/width="([\d.]+)mm" height="([\d.]+)mm"/, (s, a, b) => `width="${(+a * 3.7795).toFixed(0)}" height="${(+b * 3.7795).toFixed(0)}"`);
+      const tooBig = fig.fmt !== 'svg' && px[0] * px[1] > MAX_PX;
+      $m('#jf-dpi-f').hidden = fig.fmt === 'svg';
+      $m('#jf-info').innerHTML = `${fig.wmm.toFixed(1)} × ${fig.hmm.toFixed(1)} mm · text ${(pt * 12 / 13).toFixed(1)}–${pt} pt` + (fig.fmt === 'svg' ? ' · vector' : ` · ${px[0]} × ${px[1]} px at ${fig.dpi} dpi`) + (j.maxH && fig.hmm > j.maxH ? `<br><b>Taller than ${j.maxH} mm, the most this journal allows.</b>` : '') + (tooBig ? '<br><b>Too many pixels for a browser to draw: choose a lower resolution or a smaller size.</b>' : '') + '<br>Shown here at its printed size on a typical screen.';
+      $m('#jf-go').disabled = tooBig;
+      store.set('bf.jfig', { j: j.id, w: $m('#jf-w').value === 'c' ? 'c' : +$m('#jf-w').value, h: $m('#jf-h').value, pt, fmt: fig.fmt, dpi: fig.dpi, wmm: $m('#jf-wmm').value });
+    };
+    fillWidths(true);
+    if (st.pt) { $m('#jf-pt').value = st.pt; $m('#jf-fmt').value = st.fmt; $m('#jf-dpi').value = st.dpi; $m('#jf-h').value = st.h; $m('#jf-wmm').value = st.wmm || ''; } else fillWidths(false);
+    $m('#jf-j').onchange = () => { fillWidths(false); draw(); };
+    $m('#jf-w').onchange = () => { $m('#jf-h').value = ''; draw(); };
+    ['#jf-wmm', '#jf-h', '#jf-pt'].forEach(s => $m(s).oninput = draw);
+    ['#jf-fmt', '#jf-dpi'].forEach(s => $m(s).onchange = draw);
+    draw();
+    $m('#jf-go').onclick = () => Pro.require('Journal-ready figures', async () => {
+      const f = fig, stem = `${name}-${jour().id}-${+f.wmm.toFixed(1)}mm`, b = $m('#jf-go');
+      if (f.fmt === 'svg') return U.download(stem + '.svg', 'image/svg+xml', f.svg);
+      b.disabled = true; b.textContent = 'Rendering…';
+      try {
+        const c = await U.svgToCanvas(f.svg, f.W, f.H, f.px[0] / f.W, null);
+        if (f.fmt === 'tiff') U.download(`${stem}-${f.dpi}dpi.tif`, 'image/tiff', P.tiff(c.getContext('2d').getImageData(0, 0, c.width, c.height).data, c.width, c.height, f.dpi));
+        else {
+          const blob = await new Promise((res, rej) => c.toBlob(x => (x ? res(x) : rej(new Error('PNG export failed; choose a lower resolution.'))), 'image/png'));
+          U.download(`${stem}-${f.dpi}dpi.png`, 'image/png', P.pngDpi(new Uint8Array(await blob.arrayBuffer()), f.dpi));
+        }
+      } catch (e) { U.toast(e.message || 'Export failed; choose a lower resolution.'); }
+      b.disabled = false; b.innerHTML = 'Download <span class="lock">PRO</span>';
     });
   };
 

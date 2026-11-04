@@ -6,6 +6,7 @@
   const pEq = p => (p < 0.0001 ? 'p < 0.0001' : 'p = ' + U.pfmt(p));
   const $$ = (s, el) => [...(el || document).querySelectorAll(s)];
   const KEY = 'bf.studio.v1';
+  const TABLE_MAX = 150;
   const uid = p => p + Math.random().toString(36).slice(2, 8);
   const TYPES = {
     xy: { label: 'XY', tag: 'XY', title: 'XY table', desc: 'One X column and one or more Y columns, e.g. temperature vs conductivity, 2θ vs intensity, dose vs response. Columns with the same title are replicates.' },
@@ -16,7 +17,18 @@
   /* ================= project state ================= */
   let proj = null, cur = null, cache = {};
   const blankTable = (type, name) => ({ id: uid('t'), name: name || 'Data ' + ((proj ? proj.tables.length : 0) + 1), type, cols: type === 'xy' ? ['X', 'Y'] : type === 'col' ? ['Group A', 'Group B', 'Group C'] : ['Sample', 'Var 1', 'Var 2', 'Var 3'], rows: [], ylabel: '', v: 1 });
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(proj)); } catch (e) { /* quota or disabled */ } scheduleCloud(); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(proj)); storeWarn(false); } catch (e) { storeWarn(true); } scheduleCloud(); }
+  /* the browser keeps about 5 MB per site: say so when a project outgrows it, instead of losing work on reload */
+  let storeHidden = false;
+  function storeWarn(full) {
+    let b = document.getElementById('st-store');
+    if (!full) { storeHidden = false; if (b) b.remove(); return; }
+    if (b || storeHidden) return;
+    b = document.createElement('div'); b.id = 'st-store'; b.setAttribute('role', 'alert');
+    b.innerHTML = '<p><b>This project is too large to keep in this browser,</b> so changes are no longer saved here. Save it to the cloud or as a project file, or delete tables you no longer need.</p><button type="button" class="btn small ghost">Dismiss</button>';
+    b.querySelector('button').onclick = () => { storeHidden = true; b.remove(); };
+    document.body.appendChild(b);
+  }
   function load() { try { return sanitize(JSON.parse(localStorage.getItem(KEY) || 'null')); } catch (e) { return null; } }
   /* Projects can come from files or shared cloud storage: keep only well-formed data. */
   function sanitize(p) {
@@ -33,14 +45,14 @@
       });
       return out;
     };
-    const tables = p.tables.slice(0, 50).filter(t => t && TYPES[t.type]).map(t => ({
+    const tables = p.tables.slice(0, TABLE_MAX).filter(t => t && TYPES[t.type]).map(t => ({
       id: /^t\w{1,20}$/.test(t.id) ? t.id : uid('t'), name: str(t.name, 200) || 'Data', type: t.type,
       cols: (Array.isArray(t.cols) ? t.cols : []).slice(0, 200).map(c => str(c, 200)),
       rows: (Array.isArray(t.rows) ? t.rows : []).slice(0, 100000).map(r => (Array.isArray(r) ? r.slice(0, 200).map(c => str(c, 100)) : [])),
       ylabel: str(t.ylabel, 200), v: 1
     }));
     const ids = new Set(tables.map(t => t.id));
-    const items = (Array.isArray(p.items) ? p.items : []).slice(0, 500).filter(i => i && K[i.kind] && ids.has(i.tableId)).map(i => ({
+    const items = (Array.isArray(p.items) ? p.items : []).slice(0, 1000).filter(i => i && K[i.kind] && ids.has(i.tableId)).map(i => ({
       id: /^a\w{1,20}$/.test(i.id) ? i.id : uid('a'), tableId: i.tableId, kind: i.kind, opts: cleanOpts(i.opts), name: i.name ? str(i.name, 200) : undefined
     }));
     const out = { name: str(p.name, 200) || 'Untitled project', tables, items };
@@ -888,6 +900,47 @@
 
   const GROUPS = ['Fit a model', 'Spectra and materials', 'Statistics', 'Multivariate and machine learning'];
 
+  /* Batch runs collect one row of key results per table. summary(res) → [[column title, value]];
+     an analysis without one cannot run as a batch. */
+  const unitOf = label => ((label || '').match(/\(([^)]+)\)\s*$/) || [])[1] || '';
+  const withUnit = (name, u) => (u ? `${name} (${u})` : name);
+  const SUMMARY = {
+    nlfit(res) {
+      const f = res.fits.find(q => !q.r.error); if (!f) return null;
+      const out = [];
+      res.model.params.forEach((p, j) => { out.push([p, f.r.fit.p[j]]); if (!f.r.fit.fixed[j]) out.push([p + ' SE', f.r.fit.se[j]]); });
+      f.r.derived.forEach(d => out.push([d.name, d.value]));
+      return out.concat([['R²', f.r.fit.r2]]);
+    },
+    autofit: res => (res.list.length ? [['Best model', res.list[0].model.name], ['Akaike weight', res.list[0].weight], ['R²', res.list[0].fit.r2]] : null),
+    linreg(res) { const f = res.fits.find(q => q.f); return f ? [['Slope', f.f.p[1]], ['Slope SE', f.f.se[1]], ['Intercept', f.f.p[0]], ['X-intercept', f.xint], ['R²', f.f.r2]] : null; },
+    peaks(res) {
+      const pk = res.pf.peaks.filter(p => p.height > 0); if (!pk.length) return null;
+      const top = pk.reduce((a, b) => (b.height > a.height ? b : a)), u = unitOf(res.d.xlabel);
+      const out = [['Peaks', pk.length], [withUnit('Strongest peak at', u), top.center], [withUnit('Its FWHM', u), top.fwhm], ['Its area', top.area], ['Fit R²', res.pf.r2]];
+      if (res.xr) {
+        out.push(['Scherrer size (nm)', res.xr.meanSize]);
+        if (res.xr.wh) out.push(['Williamson–Hall size (nm)', res.xr.wh.size], ['Microstrain (%)', res.xr.wh.strain * 100]);
+      }
+      return out;
+    },
+    tauc: res => [['Band gap (eV)', res.r.Eg], ['95% CI low (eV)', res.r.ci[0]], ['95% CI high (eV)', res.r.ci[1]], ['Tauc fit R²', res.r.r2]],
+    tensile(res) {
+      const r = res.r, u = unitOf(res.d.ylabel), sx = v => (r.pct ? v * 100 : v);
+      return [[withUnit("Young's modulus", u), r.E], [withUnit('Yield strength', u), r.yieldS], [withUnit('UTS', u), r.uts], [withUnit('Elongation at break', r.pct ? '%' : ''), sx(r.elong)], [withUnit('Toughness', u === 'MPa' ? 'MJ/m³' : ''), r.toughness]];
+    },
+    auc(res) { const l = res.list[0]; return l ? [['Area', l.r.total], ['Peak X', l.r.peakX], ['Peak Y', l.r.peakY]] : null; }
+  };
+  /* a number that changes from one table name to the next (ZnO_300C, ZnO_400C …), for plotting */
+  function nameNumbers(names) {
+    const nums = names.map(n => (String(n).match(/\d+(?:\.\d+)?/g) || []).map(Number));
+    const L = nums[0].length;
+    if (!L || nums.some(a => a.length !== L)) return null;
+    const vary = [];
+    for (let j = 0; j < L; j++) if (new Set(nums.map(a => a[j])).size > 1) vary.push(j);
+    return vary.length === 1 ? nums.map(a => a[vary[0]]) : null;
+  }
+
   /* ================= results cache and execution ================= */
   let lw = null, lwSeq = 0;
   const lwJobs = new Map();
@@ -920,7 +973,7 @@
   }
 
   /* ================= rendering helpers ================= */
-  const chartBox = (i, title, small) => `<div class="cbox${small ? ' small' : ''}"><div class="cbar"><h4>${esc(title)}</h4><div class="exp"><button class="btn small ghost" data-x="${i}" data-f="png-free">PNG</button><button class="btn small ghost" data-x="${i}" data-f="svg">SVG <span class="lock">PRO</span></button><button class="btn small ghost" data-x="${i}" data-f="png">600 dpi <span class="lock">PRO</span></button></div></div><div class="chart-host" data-chart="${i}"></div></div>`;
+  const chartBox = (i, title, small) => `<div class="cbox${small ? ' small' : ''}"><div class="cbar"><h4>${esc(title)}</h4><div class="exp"><button class="btn small ghost" data-x="${i}" data-f="png-free">PNG</button><button class="btn small ghost" data-x="${i}" data-f="svg">SVG <span class="lock">PRO</span></button><button class="btn small ghost" data-x="${i}" data-f="png">600 dpi <span class="lock">PRO</span></button><button class="btn small ghost" data-x="${i}" data-f="journal" title="Exact column width and text size for ACS, RSC, Elsevier, Nature or Wiley">Journal size <span class="lock">PRO</span></button></div></div><div class="chart-host" data-chart="${i}"></div></div>`;
   const notes = list => (list && list.length ? `<ul class="notes">${list.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : '');
 
   function drawCharts(el, charts, labels) {
@@ -1066,7 +1119,7 @@
   function pasteDialog(t) {
     const m = U.modal(`<p class="m-kicker">Import</p><h2>Paste or open a file</h2>
       <div class="field"><label class="lbl" for="pd-text">Paste a block from Excel, a CSV or an instrument export. The first row is used as column titles when it contains text.</label><textarea id="pd-text" style="min-height:220px"></textarea></div>
-      <div class="m-actions"><button class="btn primary" id="pd-go">Replace table contents</button><button class="btn ghost" id="pd-file">Open a file…</button></div><p class="hint">Reads CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC and CIF. You can also drop files anywhere on Studio.</p>`);
+      <div class="m-actions"><button class="btn primary" id="pd-go">Replace table contents</button><button class="btn ghost" id="pd-file">Open a file…</button></div><p class="hint">Reads Excel (.xlsx), CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC and CIF. You can also drop files anywhere on Studio.</p>`);
     const ta = $('#pd-text', m);
     U.fileInto(ta, $('#pd-file', m));
     $('#pd-go', m).onclick = () => {
@@ -1101,10 +1154,11 @@
     const t = table(it.tableId), k = K[it.kind];
     const main = $('#st-main');
     main.innerHTML = `<div class="view-head"><div><p class="crumb"><button data-back>${esc(t.name)}</button> ›</p><h2>${esc(k.label)}</h2></div>
-      <div class="acts"><button class="btn ghost small" id="it-csv">Results CSV <span class="lock">PRO</span></button><button class="btn ghost small" id="it-del">Delete</button></div></div>
+      <div class="acts">${SUMMARY[it.kind] ? '<button class="btn ghost small" id="it-batch" title="Repeat this analysis with the same options on other tables and collect the results">Run on other tables</button>' : ''}<button class="btn ghost small" id="it-csv">Results CSV <span class="lock">PRO</span></button><button class="btn ghost small" id="it-del">Delete</button></div></div>
       <details class="opts" ${window.innerWidth > 900 ? 'open' : ''}><summary>Options</summary><div class="opts-body" id="it-form">${k.form(it.opts, t)}</div></details>
       <div id="it-out"></div><div class="card rep" id="it-rep"></div>`;
     $('[data-back]', main).onclick = () => select('table', t.id);
+    if ($('#it-batch')) $('#it-batch').onclick = () => batchDialog(it);
     $('#it-del').onclick = e => { if (e.target.dataset.sure) { proj.items = proj.items.filter(x => x !== it); delete cache[it.id]; select('table', t.id); } else { e.target.dataset.sure = 1; e.target.textContent = 'Confirm delete'; } };
     const form = $('#it-form');
     const readForm = () => {
@@ -1153,6 +1207,80 @@
     lastRendered = { it, res, r };
   }
   let lastRendered = null;
+
+  /* ---------- batch: the same analysis on many tables, one summary table ---------- */
+  const BATCH_FREE = 5;
+  function batchDialog(it) {
+    const t0 = table(it.tableId), k = K[it.kind];
+    const others = proj.tables.filter(t => t.type === t0.type && t !== t0 && !/^Batch: /.test(t.name));
+    const derived = t => / vs number in name$/.test(t.name);
+    if (!others.length) { U.toast('Import or add more tables first. Each file you import becomes a table; choose several files at once with Import files.'); return; }
+    const m = U.modal(`<p class="m-kicker">Batch</p><h2>Run on other tables</h2>
+      <p class="m-sub">${esc(k.label)}, with the options set for “${esc(t0.name)}”. Each table gets its own analysis, and the key results go into one summary table you can plot, fit or export.</p>
+      <div class="bt-list"><label class="check bt-all"><input type="checkbox" id="bt-all"> All ${others.length} other tables</label>
+      ${others.map(t => `<label class="check"><input type="checkbox" data-bt="${t.id}"${derived(t) ? '' : ' checked'}> ${esc(t.name)}</label>`).join('')}</div>
+      <div class="m-actions"><button class="btn primary" id="bt-go"></button></div>
+      <p class="hint">“${esc(t0.name)}” is included, so the summary has every sample. Free: up to ${BATCH_FREE} tables per batch; Pro: no limit.</p>`);
+    const boxes = $$('[data-bt]', m), go = $('#bt-go', m);
+    const picked = () => boxes.filter(b => b.checked).map(b => table(b.dataset.bt));
+    const label = () => { const n = picked().length + 1; go.textContent = `Run on ${n} tables`; go.disabled = n < 2; $('#bt-all', m).checked = boxes.every(b => b.checked); };
+    $('#bt-all', m).onchange = e => { boxes.forEach(b => { b.checked = e.target.checked; }); label(); };
+    boxes.forEach(b => b.onchange = label); label();
+    go.onclick = () => {
+      const list = [t0].concat(picked());
+      if (list.length > BATCH_FREE && !Pro.active()) return Pro.require(`Batch runs on more than ${BATCH_FREE} tables`, () => runBatch(it, list));
+      runBatch(it, list);
+    };
+  }
+  async function runBatch(it, list) {
+    const k = K[it.kind], opts = JSON.stringify(it.opts);
+    const m = U.modal(`<p class="m-kicker">Batch</p><h2>${esc(k.label)}</h2><p id="bt-now" class="m-sub"></p><div class="bt-bar"><i id="bt-bar"></i></div>`);
+    m.querySelector('.modal-x').hidden = true;
+    const rows = [], cols = [];
+    for (let i = 0; i < list.length; i++) {
+      const t = list[i];
+      $('#bt-now', m).textContent = `${i + 1} of ${list.length}: ${t.name}`;
+      $('#bt-bar', m).style.width = (100 * i / list.length).toFixed(1) + '%';
+      await new Promise(r => setTimeout(r, 0));
+      /* reuse an identical analysis from an earlier batch rather than adding another */
+      let ti = t.id === it.tableId ? it : proj.items.find(x => x.tableId === t.id && x.kind === it.kind && JSON.stringify(x.opts) === opts);
+      if (!ti) { ti = { id: uid('a'), tableId: t.id, kind: it.kind, opts: JSON.parse(opts) }; proj.items.push(ti); }
+      let res, sum = null, note = '';
+      try { res = compute(ti); } catch (e) { res = { error: e.message }; }
+      if (!res || res.error) note = (res && res.error) || 'No result';
+      else { try { sum = SUMMARY[it.kind](res, ti.opts, t); } catch (e) { note = e.message; } if (!sum) note = note || 'Nothing found'; }
+      (sum || []).forEach(([c]) => { if (!cols.includes(c)) cols.push(c); });
+      rows.push({ t, sum: new Map(sum || []), note });
+    }
+    const cell = v => (typeof v === 'number' ? (isFinite(v) ? String(+v.toPrecision(6)) : '') : v == null ? '' : String(v));
+    const fromName = nameNumbers(list.map(t => t.name));
+    const anyNote = rows.some(r => r.note);
+    /* one summary per analysis: running the batch again updates it (rename it to keep a copy) */
+    const name = `Batch: ${k.label}`;
+    const head = ['Sample'].concat(fromName ? ['Number in name'] : [], cols, anyNote ? ['Note'] : []);
+    const body = rows.map((r, i) => [r.t.name].concat(fromName ? [String(fromName[i])] : [], cols.map(c => cell(r.sum.get(c))), anyNote ? [r.note] : []));
+    let st = proj.tables.find(t => t.name === name && t.type === 'mv');
+    if (st) Object.assign(st, { cols: head, rows: body, v: (st.v || 0) + 1 });
+    else { st = Object.assign(blankTable('mv', name), { cols: head, rows: body }); proj.tables.push(st); }
+    proj.sample = false; save(); select('table', st.id);
+    const ok = rows.filter(r => !r.note).length;
+    const numCols = cols.filter(c => rows.some(r => typeof r.sum.get(c) === 'number'));
+    const lead = numCols.find(c => /scherrer|band gap|modulus|^slope$|^area$/i.test(c)) || numCols[0];
+    const m2 = U.modal(`<p class="m-kicker">Batch complete</p><h2>${ok} of ${list.length} tables analysed</h2>
+      <p>The summary table “${esc(name)}” has one row per table${anyNote ? '; the Note column says why a table gave no result' : ''}. Each table also keeps its own analysis in the navigator, with its fit and figure.</p>
+      ${fromName && numCols.length ? `<div class="field"><label class="lbl" for="bt-y">Plot a result against the number in the table names (${fromName.slice(0, 3).join(', ')}${fromName.length > 3 ? ' …' : ''})</label>
+      <div class="bt-plot"><select id="bt-y">${numCols.map(c => `<option${c === lead ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select><button class="btn primary" id="bt-xy">Make an XY table</button></div></div>` : ''}
+      <div class="m-actions"><button class="btn${fromName && numCols.length ? '' : ' primary'}" id="bt-done">Open the summary</button></div>`);
+    $('#bt-done', m2).onclick = () => U.closeModal();
+    const xyb = $('#bt-xy', m2);
+    if (xyb) xyb.onclick = () => {
+      const c = $('#bt-y', m2).value, j = head.indexOf(c);
+      const pts = body.map(r => [r[1], r[j]]).filter(p => p[1] !== '' && isFinite(+p[1])).sort((a, b) => a[0] - b[0]);
+      const xt = Object.assign(blankTable('xy', `${c} vs number in name`), { cols: ['Number in name', c], rows: pts, ylabel: c });
+      proj.tables.push(xt); save(); U.closeModal(); select('table', xt.id);
+      U.toast('Rename the X column with its quantity and unit, for example “Annealing temperature (°C)”.', 'ok');
+    };
+  }
 
   /* ================= Facet: the AI lab partner ================= */
   function advise(t) {
@@ -1545,39 +1673,68 @@ ${projectSummary()}`;
       fr.readAsDataURL(file);
     });
   }
-  function addTableFromData(name, cols, rows) {
+  function addTableFromData(name, cols, rows, quiet) {
     if (!proj) proj = { name: 'Untitled project', tables: [], items: [] };
     const t = Object.assign(blankTable('xy', name), { cols, rows, v: 1, id: uid('t') });
-    proj.tables.push(t); save(); select('table', t.id);
+    proj.tables.push(t);
+    if (quiet) return t;
+    save(); select('table', t.id);
     U.toast('Added “' + name + '” with ' + rows.length + ' rows.', 'ok');
     return t;
   }
 
   /* ---------- drop lab files anywhere on Studio ---------- */
+  const IMPORT_MAX = 100;
   async function importFiles(files) {
-    let n = 0;
-    for (const f of [...files].slice(0, 12)) {
-      if (/\.(lattent|benchfit)\.json$/i.test(f.name)) { U.toast('Use Open to load a project file.'); continue; }
+    let n = 0, lam = null;
+    const failed = [];
+    /* an untouched example is disposable: imported files start a project of their own */
+    const begin = () => { if (!n && proj && proj.sample) { proj = { name: 'Untitled project', tables: [], items: [] }; cache = {}; cur = null; } };
+    const room = () => TABLE_MAX - (proj && !proj.sample ? proj.tables.length : 0);
+    const list = [...files].slice(0, IMPORT_MAX);
+    if (files.length > IMPORT_MAX) failed.push([`${files.length - IMPORT_MAX} more files`, `Up to ${IMPORT_MAX} files are imported at a time.`]);
+    for (const f of list) {
+      if (/\.(lattent|benchfit)\.json$/i.test(f.name)) { failed.push([f.name, 'This is a project file: use Open to load it.']); continue; }
+      if (room() <= 0) { failed.push([f.name, `A project holds up to ${TABLE_MAX} tables. Start a new project for more.`]); continue; }
       try {
         const r = await BF.formats.read(f);
         if (r.kind === 'structure') {
           const pat = BF.xtal.xrd(r.structure, { tmin: 10, tmax: 90 }), prof = BF.xtal.profile(pat, 10, 90, 0.1);
-          const t = addTableFromData(`${r.meta.formula || r.name} simulated XRD (from CIF)`, ['2θ (°)', 'Intensity (simulated)'], prof.map(([x, y]) => [x.toFixed(3), y.toFixed(3)]));
+          begin();
+          const t = addTableFromData(`${r.meta.formula || r.name} simulated XRD (from CIF)`, ['2θ (°)', 'Intensity (simulated)'], prof.map(([x, y]) => [x.toFixed(3), y.toFixed(3)]), true);
           t.ylabel = 'Intensity (relative)';
+          n++;
         } else {
-          const t = addTableFromData(r.name, r.cols, r.rows);
-          if (r.ylabel) t.ylabel = r.ylabel;
-          if (r.meta && r.meta.lambda) U.toast(`${f.name}: ${r.rows.length} points; wavelength ${r.meta.lambda} Å recorded in the file.`, 'ok');
+          for (const s of (r.kind === 'book' ? r.sheets : [r]).slice(0, Math.max(0, room()))) {
+            begin();
+            const t = addTableFromData(s.name, s.cols, s.rows, true);
+            if (s.ylabel) t.ylabel = s.ylabel;
+            n++;
+          }
+          if (r.meta && r.meta.lambda) lam = r.meta.lambda;
         }
-        n++;
-      } catch (e) { U.toast(`${f.name}: ${e.message}`); }
+      } catch (e) { failed.push([f.name, e.message]); }
     }
-    if (n) { save(); if (document.querySelector('.modal')) U.closeModal(); }
+    if (n) {
+      save(); if (document.querySelector('.modal')) U.closeModal();
+      const last = proj.tables[proj.tables.length - 1];
+      select('table', last.id);
+      U.toast(n === 1 ? `Added “${last.name}” with ${last.rows.length} rows${lam ? `; wavelength ${lam} Å recorded in the file` : ''}.` : `Added ${n} tables. To analyse them all the same way, run an analysis on one, then choose Run on other tables.`, 'ok');
+    }
+    if (!failed.length) return;
+    /* the start screen stays when nothing was imported; a list of reasons otherwise */
+    if (!n && (!proj || !proj.tables.length)) return U.toast(failed.length === 1 ? `${failed[0][0]}: ${failed[0][1]}` : `${failed.length} files could not be read. ${failed[0][0]}: ${failed[0][1]}`);
+    U.modal(`<p class="m-kicker">Import</p><h2>${failed.length === 1 ? 'One file was' : failed.length + ' files were'} not imported</h2>
+      <ul class="m-list imp-fail">${failed.map(([f, msg]) => `<li><b>${esc(f)}</b>: ${esc(msg)}</li>`).join('')}</ul>${n ? `<p class="hint">The other ${n === 1 ? 'table was' : n + ' tables were'} added.</p>` : ''}`);
+  }
+  function pickFiles() {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; inp.accept = BF.formats.accept;
+    inp.onchange = () => inp.files.length && importFiles(inp.files); inp.click();
   }
   (function dropZone() {
     let depth = 0;
     const veil = document.createElement('div'); veil.className = 'drop-veil'; veil.hidden = true;
-    veil.innerHTML = '<div><b>Drop to import</b><span>CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC or CIF. Each file becomes a table; nothing is uploaded.</span></div>';
+    veil.innerHTML = '<div><b>Drop to import</b><span>Excel, CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC or CIF. Each file becomes a table; nothing is uploaded.</span></div>';
     document.body.appendChild(veil);
     const files = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
     window.addEventListener('dragenter', e => { if (!files(e)) return; depth++; veil.hidden = false; });
@@ -1753,7 +1910,7 @@ ${projectSummary()}`;
     const S0 = window.BF_SAMPLES;
     const m = U.modal(`<p class="m-kicker">Lattent Studio</p><h2>What would you like to analyse?</h2>
       <div class="start-cols"><div><h5>Start with an example</h5><div class="ex-grid">${S0.map(s => `<button class="ex" data-ex="${s.id}"><span class="fld">${esc(s.field)}</span><b>${esc(s.title)}</b><span>${esc(s.blurb)}</span></button>`).join('')}</div></div>
-      <div><h5>Or a new, empty table</h5>${Object.entries(TYPES).map(([k, v]) => `<button class="newt" data-new="${k}"><b>${v.title}</b><span>${esc(v.desc)}</span></button>`).join('')}<p class="start-drop">Or drop instrument files anywhere on this page: CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC or CIF.</p></div></div>`);
+      <div><h5>Or a new, empty table</h5>${Object.entries(TYPES).map(([k, v]) => `<button class="newt" data-new="${k}"><b>${v.title}</b><span>${esc(v.desc)}</span></button>`).join('')}<p class="start-drop">Or drop instrument files anywhere on this page: Excel, CSV, TXT, XY, JCAMP-DX, XRDML, RAS, UXD, SPC or CIF. <button type="button" class="linkbtn" data-pick>Choose files…</button></p></div></div>`);
     m.querySelector('.modal-box').classList.add('xwide');
     if (!closable) m.querySelector('.modal-x').hidden = true;
     $$('[data-ex]', m).forEach(b => b.onclick = () => { loadSample(b.dataset.ex); U.closeModal(); });
@@ -1761,6 +1918,7 @@ ${projectSummary()}`;
       if (!proj) proj = { name: 'Untitled project', tables: [], items: [] };
       const t = blankTable(b.dataset.new); proj.tables.push(t); U.closeModal(); select('table', t.id);
     });
+    $('[data-pick]', m).onclick = () => pickFiles();
   }
   function loadSample(id) {
     const s = window.BF_SAMPLES.find(x => x.id === id).make();
@@ -1780,6 +1938,7 @@ ${projectSummary()}`;
   function wireToolbar() {
     $('#st-name').oninput = e => { proj.name = e.target.value; proj.sample = false; save(); };
     $('#st-new').onclick = () => startScreen(true);
+    $('#st-import').onclick = () => pickFiles();
     $('#st-addtable').onclick = () => {
       const m = U.modal(`<p class="m-kicker">New table</p><h2>Choose the table type</h2>${Object.entries(TYPES).map(([k, v]) => `<button class="newt" data-new="${k}"><b>${v.title}</b><span>${esc(v.desc)}</span></button>`).join('')}`);
       $$('[data-new]', m).forEach(b => b.onclick = () => { const t = blankTable(b.dataset.new); proj.tables.push(t); proj.sample = false; U.closeModal(); select('table', t.id); });

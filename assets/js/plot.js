@@ -356,5 +356,93 @@
     return { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${Wt} ${H}" width="${Wt}" height="${H}" font-family="${T.font}"><rect width="${Wt}" height="${H}" fill="${T.bg}"/>${g}</svg>`, H };
   };
 
+  /* ---------- figures at a journal's size ---------- */
+  /* Column widths (mm) and text sizes (pt) from each publisher's artwork guide, checked November
+     2026: Elsevier artwork sizing, Nature research figure guide, RSC figures and graphics, Wiley
+     figure preparation; ACS 3.25 in and 7 in. Line art is wanted at 600–1200 dpi. */
+  P.JOURNALS = [
+    { id: 'acs', name: 'ACS journals', widths: [['Single column', 82.5], ['Double column', 177.8]], pt: 7, dpi: 600, fmt: 'tiff' },
+    { id: 'rsc', name: 'RSC journals', widths: [['Single column', 83], ['Double column', 171]], pt: 7, dpi: 600, fmt: 'tiff' },
+    { id: 'elsevier', name: 'Elsevier', widths: [['Single column', 90], ['1.5 column', 140], ['Double column', 190]], pt: 7, dpi: 1000, fmt: 'tiff' },
+    { id: 'nature', name: 'Nature portfolio', widths: [['Single column', 89], ['Double column', 183]], pt: 7, dpi: 600, fmt: 'svg', maxH: 170 },
+    { id: 'wiley', name: 'Wiley journals', widths: [['Small', 80], ['Full width', 180]], pt: 7, dpi: 600, fmt: 'tiff' },
+    { id: 'custom', name: 'Custom size', widths: [['Custom', 85]], pt: 8, dpi: 600, fmt: 'png' }
+  ];
+  const MM_PT = 72 / 25.4;
+  /* Charts are drawn with 13-unit text (P.print). To print text at `pt` points the drawing is
+     scaled by pt/13 points per unit, so a W mm figure is drawn W·(72/25.4)/(pt/13) units wide and
+     lines, markers and padding shrink in proportion with the text. */
+  P.journalUnits = function (wmm, hmm, pt) {
+    const s = pt / P.print.size, r = v => Math.round(v * 100) / 100;
+    return { s, W: r(wmm * MM_PT / s), H: r(hmm * MM_PT / s) };
+  };
+  /* physical size on an exported SVG, from its viewBox and the scale */
+  P.svgPhysical = function (svg, s) {
+    const vb = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+    const w = +vb[1] * s / MM_PT, h = +vb[2] * s / MM_PT;
+    return { wmm: w, hmm: h, W: +vb[1], H: +vb[2], svg: svg.replace(/^<svg([^>]*?) width="[^"]*" height="[^"]*"/, `<svg$1 width="${w.toFixed(2)}mm" height="${h.toFixed(2)}mm"`) };
+  };
+
+  /* PNG with its resolution recorded (pHYs), so Word and journals place it at the right size */
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const crc32 = u8 => { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  P.pngDpi = function (png, dpi) {
+    const src = png instanceof Uint8Array ? png : new Uint8Array(png), dv = new DataView(src.buffer, src.byteOffset, src.byteLength);
+    const ppm = Math.round(dpi / 0.0254), ch = new Uint8Array(21), cv = new DataView(ch.buffer);
+    cv.setUint32(0, 9); ch.set([112, 72, 89, 115], 4); cv.setUint32(8, ppm); cv.setUint32(12, ppm); ch[16] = 1;
+    cv.setUint32(17, crc32(ch.subarray(4, 17)));
+    const parts = [src.subarray(0, 33), ch];               // signature + IHDR, then pHYs
+    for (let p = 33; p + 12 <= src.length;) {
+      const end = p + 12 + dv.getUint32(p);
+      if (String.fromCharCode(src[p + 4], src[p + 5], src[p + 6], src[p + 7]) !== 'pHYs') parts.push(src.subarray(p, end));
+      p = end;
+    }
+    const out = new Uint8Array(parts.reduce((a, q) => a + q.length, 0));
+    parts.reduce((o, q) => { out.set(q, o); return o + q.length; }, 0);
+    return out;
+  };
+
+  /* baseline TIFF: RGB, PackBits-compressed strips, resolution in dots per inch */
+  function packBits(src, out, o) {
+    const n = src.length;
+    for (let i = 0; i < n;) {
+      let j = i + 1;
+      while (j < n && j - i < 128 && src[j] === src[i]) j++;
+      if (j - i >= 3) { out[o++] = 257 - (j - i); out[o++] = src[i]; i = j; continue; }
+      let k = i + 1;
+      while (k < n && k - i < 128 && !(k + 2 < n && src[k] === src[k + 1] && src[k] === src[k + 2])) k++;
+      out[o++] = k - i - 1; out.set(src.subarray(i, k), o); o += k - i; i = k;
+    }
+    return o;
+  }
+  P.tiff = function (rgba, w, h, dpi) {
+    const rb = w * 3, rps = Math.max(1, Math.floor(65536 / rb)), strips = [], row = new Uint8Array(rb);
+    for (let y0 = 0; y0 < h; y0 += rps) {
+      const rows = Math.min(rps, h - y0), out = new Uint8Array(rows * (rb + Math.ceil(rb / 128) + 2));
+      let o = 0;
+      for (let y = y0; y < y0 + rows; y++) {
+        for (let x = 0, i = y * w * 4; x < w; x++, i += 4) { row[3 * x] = rgba[i]; row[3 * x + 1] = rgba[i + 1]; row[3 * x + 2] = rgba[i + 2]; }
+        o = packBits(row, out, o);
+      }
+      strips.push(out.slice(0, o));
+    }
+    const n = strips.length, nTags = 13, many = n > 1;
+    let p = 8 + 2 + nTags * 12 + 4;
+    const bps = p; p += 6; const xres = p; p += 8; const yres = p; p += 8;
+    const so = p; if (many) p += 4 * n; const sbc = p; if (many) p += 4 * n;
+    const data = p, buf = new ArrayBuffer(data + strips.reduce((a, s) => a + s.length, 0)), dv = new DataView(buf), u8 = new Uint8Array(buf);
+    dv.setUint16(0, 0x4949); dv.setUint16(2, 42, true); dv.setUint32(4, 8, true); dv.setUint16(8, nTags, true);
+    let e = 10;
+    const tag = (id, type, count, v) => { dv.setUint16(e, id, true); dv.setUint16(e + 2, type, true); dv.setUint32(e + 4, count, true); if (type === 3 && count === 1) dv.setUint16(e + 8, v, true); else dv.setUint32(e + 8, v, true); e += 12; };
+    tag(256, 4, 1, w); tag(257, 4, 1, h); tag(258, 3, 3, bps); tag(259, 3, 1, 32773); tag(262, 3, 1, 2);
+    tag(273, 4, n, many ? so : data); tag(277, 3, 1, 3); tag(278, 4, 1, rps); tag(279, 4, n, many ? sbc : strips[0].length);
+    tag(282, 5, 1, xres); tag(283, 5, 1, yres); tag(284, 3, 1, 1); tag(296, 3, 1, 2);
+    dv.setUint32(e, 0, true);
+    [0, 2, 4].forEach(k => dv.setUint16(bps + k, 8, true));
+    dv.setUint32(xres, dpi, true); dv.setUint32(xres + 4, 1, true); dv.setUint32(yres, dpi, true); dv.setUint32(yres + 4, 1, true);
+    strips.reduce((q, s, i) => { if (many) { dv.setUint32(so + 4 * i, q, true); dv.setUint32(sbc + 4 * i, s.length, true); } u8.set(s, q); return q + s.length; }, data);
+    return u8;
+  };
+
   root.BF.plot = P;
 })(typeof window !== 'undefined' ? window : globalThis);

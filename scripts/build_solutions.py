@@ -153,6 +153,7 @@ FIELDS = [
 ]
 
 CHANGES = [
+    ("2026-11-04", "Excel import, batch runs and journal-size figures", ["Open Excel workbooks (.xlsx): every sheet with numbers becomes a table, two-row headers become “Name (unit)”, and hidden sheets are skipped. Nothing is uploaded.", "Batch runs: import many files at once, analyse one, then choose Run on other tables. Each table keeps its own analysis, and the key results (crystallite size, band gap, fit parameters, modulus …) go into one summary table, ready to plot against the temperature or time in the file names.", "Journal size: export any figure at the exact column width and text size for ACS, RSC, Elsevier, Nature or Wiley journals, as TIFF, PNG with its resolution recorded, or vector SVG."]),
     ("2026-11-04", "Share by link, offline Studio and three new tools", ["Share a copy of any project as a link. The data is packed inside the link itself and never uploaded; whoever opens it gets their own copy of the tables, analyses and graphs.", "Install Lattent as an app from your browser. Studio keeps working without an internet connection, for example on an instrument computer.", "New quick tools: adsorption kinetics (pseudo-first and pseudo-second order, fitted directly and compared by AICc), Tafel slope with exchange current density, and Avrami crystallisation kinetics, each with a worked example.", "Opening an example after a reload now replaces the previous example instead of adding to it."]),
     ("2026-10-16", "Lab files, explained candidates and a NIST benchmark", ["Drop instrument files anywhere in Studio: CSV, TXT, XY, JCAMP-DX (including compressed), PANalytical XRDML, Rigaku RAS, Bruker UXD, Thermo SPC and CIF. A CIF becomes a simulated diffraction pattern. Files are read in your browser and never uploaded.", "Every generated material now has a Why? panel: how often the generator proposed it, its oxidation states, the predicted formation energy and band gap with intervals, and an estimate of its distance from the convex hull built from Alexandria's stable phases of the same system.", "A technical note on the Validation page: on the 52 NIST StRD nonlinear-regression fits Lattent reaches four or more correct digits in 51, against 45 for SciPy's curve_fit with default settings. The fitter uses improved damping and scouting restarts and is faster than before.", "Data privacy is now spelled out on the home page, and a Cite Lattent button gives BibTeX and APA references."]),
     ("2026-10-15", "Report agent and help guide", ["Autonomous scientific reports: Facet plans the analyses, runs them, checks them and writes the report (methods, results, figures, quality checks, limitations, next steps), offline. With your AI key it drafts the summary and discussion and reviews supplied figures.", "A Lattent guide on every page answers questions from the help articles and links to the right tool.", "Facet AI is a visible menu again."]),
@@ -260,8 +261,11 @@ COMPARE = [
     ("Discover: database, phase identification, generative design", (1, 1, 1)),
     ("AI: equation discovery, AutoML, shape recognition", (1, 1, 1)),
     ("Live graphs and the PNG figure", (1, 1, 1)),
+    ("Excel and instrument-file import", (1, 1, 1)),
+    ("Batch runs: one analysis on many files, one summary table", ("Up to 5 files", "Any number", "Any number")),
     ("Publishing", None),
     ("600-dpi PNG and vector SVG, no watermark", (0, 1, 1)),
+    ("Figures at each journal's column width and text size (TIFF, PNG, SVG)", (0, 1, 1)),
     ("Auto-written methods, results and figure legend", (0, 1, 1)),
     ("Results as CSV, reports and project files", (0, 1, 1)),
     ("Facet chat with your own Claude or GPT key", (0, 1, 1)),
@@ -292,7 +296,7 @@ def pricing():
       <ul><li>All analyses, tools and examples</li><li>Discover and the AI models</li><li>Live graphs and PNG figures</li><li>3 cloud projects with a free account</li></ul>
       <a class="btn" href="{root}studio/">Open Studio</a></div>
     <div class="card price best"><h3>Pro <span>Best value</span></h3><div class="amt" data-amt="pro">$29<small> / year</small></div><p class="sub" data-sub="pro">about $2.42 a month</p>
-      <ul><li>Everything in Free</li><li>600-dpi PNG and vector SVG, no watermark</li><li>Auto-written methods and results</li><li>Unlimited cloud projects, 250 MB</li><li>Facet chat with your own AI key</li></ul>
+      <ul><li>Everything in Free</li><li>Journal-size TIFF, PNG and SVG figures, no watermark</li><li>Batch runs on any number of files</li><li>Auto-written methods and results</li><li>Unlimited cloud projects, 250 MB</li><li>Facet chat with your own AI key</li></ul>
       <button class="btn primary" data-buy-pro>Get Pro</button><button class="pr-trial" data-trial>or try Pro free for 7 days</button></div>
     <div class="card price"><h3>Lab</h3><div class="amt" data-amt="lab">$299<small> / year</small></div><p class="sub">up to 10 people, one invoice</p>
       <ul><li>Everything in Pro for the group</li><li>Shared lab projects</li><li>Invite and remove members</li><li>Invoice or purchase order</li></ul>
@@ -357,7 +361,7 @@ GUIDES = [
     ("Getting started", "studio/", [
         ("How do I start?", "Open Studio and choose a worked example close to your field, or create a table and paste your data straight from Excel or an instrument export. Then press Analyze, or open Facet for a suggestion."),
         ("Which table type should I use?", "XY for curves and spectra (one X column, one or more Y columns; columns with the same title are replicates). Column for comparing groups. Multiple variables for compositions, process settings and properties, one row per sample."),
-        ("Can I import instrument files?", "Yes. Drop them anywhere on Studio, or use Paste data, then Open a file. Supported: CSV, TXT, XY, JCAMP-DX, PANalytical XRDML, Rigaku RAS, Bruker UXD, Thermo SPC, and CIF (which becomes a simulated XRD pattern). Export binary .raw or .brml scans as .xy or .xrdml first. Files are read in the browser and never uploaded."),
+        ("Can I import instrument files?", "Yes. Drop them anywhere on Studio, or choose Import files to pick several at once. Supported: Excel (.xlsx), CSV, TXT, XY, JCAMP-DX, PANalytical XRDML, Rigaku RAS, Bruker UXD, Thermo SPC, and CIF (which becomes a simulated XRD pattern). Export binary .raw or .brml scans as .xy or .xrdml first. Files are read in the browser and never uploaded."),
         ("Do I need an account?", "No. Everything runs in your browser and projects are kept there. An account adds cloud storage, your plan on every computer and Lab sharing."),
     ]),
     ("Curve fitting and equations", "tools/curve-fitting/", [
@@ -384,7 +388,8 @@ GUIDES = [
         ("Are generated materials real discoveries?", "They are candidates: compositions predicted to be stable and close to your target band gap, and absent from the database. Confirm them with a calculation or a synthesis."),
     ]),
     ("Figures, reports and export", "studio/", [
-        ("How do I get a figure for my paper?", "Every chart has PNG export. Pro adds 600-dpi PNG and vector SVG without the watermark, plus methods, results and figure-legend text written from your numbers."),
+        ("How do I get a figure for my paper?", "Every chart has PNG export. Pro adds Journal size, which draws the figure at the exact column width and text size for ACS, RSC, Elsevier, Nature or Wiley and saves it as TIFF, PNG or vector SVG without the watermark, plus methods, results and figure-legend text written from your numbers."),
+        ("Can I analyse many files at once?", "Yes. Choose Import files and select them all (or drop them on Studio); each becomes a table. Run the analysis on one, set the options, then choose Run on other tables. Every table gets its own analysis, and the key numbers are collected in one summary table you can plot against the temperature or time in the file names. Free plans run batches of up to 5 files."),
         ("Can I export my results?", "Yes: results tables as CSV and one-page reports with Pro, and your data tables as CSV on any plan."),
     ]),
     ("Projects, cloud and Lab teams", "account/", [
@@ -441,7 +446,7 @@ def support():
 
 
 EXTRA_KB = [
-    ("Which file formats can I import?", "Drag files onto Studio, or use Paste data, then Open a file. Lattent reads CSV, TXT, DAT, XY, JCAMP-DX (.jdx, .dx, including compressed data), PANalytical .xrdml, Rigaku .ras, Bruker .uxd, Thermo/Galactic .spc and .cif. A CIF becomes a simulated XRD pattern. Binary vendor files (.raw, .brml, PerkinElmer .sp) need exporting to text first. Nothing is uploaded.", "studio/", "Open Studio", "import file format csv jcamp jdx xrdml ras uxd spc cif raw drag drop upload instrument export"),
+    ("Which file formats can I import?", "Drag files onto Studio, or choose Import files to pick several at once. Lattent reads Excel workbooks (.xlsx, one table per sheet), CSV, TXT, DAT, XY, JCAMP-DX (.jdx, .dx, including compressed data), PANalytical .xrdml, Rigaku .ras, Bruker .uxd, Thermo/Galactic .spc and .cif. A CIF becomes a simulated XRD pattern. Binary vendor files (.raw, .brml, PerkinElmer .sp) and old .xls workbooks need saving in another format first. Nothing is uploaded.", "studio/", "Open Studio", "import file format excel xlsx xls spreadsheet batch many files csv jcamp jdx xrdml ras uxd spc cif raw drag drop upload instrument export"),
     ("Why did the generator suggest this material?", "Press Why? next to any generated formula. It shows how often the diffusion model proposed it, its oxidation states, the predicted formation energy and band gap with 90% intervals, and an estimate of its distance from the convex hull built from Alexandria's stable phases in the same chemical system.", "studio/?discover=gen", "Generate materials", "why candidate explain generated convex hull stability decomposition suggestion reason"),
     ("How do I cite Lattent?", "Use the Cite Lattent link in the footer or Studio's sidebar for BibTeX and APA references. If you used Discover, please also cite the Alexandria database and Matbench, listed in the same dialog.", "validation/", "Validation", "cite citation bibtex apa reference paper publish acknowledge"),
     ("How accurate is the curve fitting?", "On the 52 NIST StRD nonlinear-regression reference fits, Lattent gets at least four correct significant digits in every parameter for 51 (median 8.6 digits); SciPy's curve_fit with default settings gets 45. The full benchmark is in the technical note on the Validation page.", "validation/#nist", "Technical note", "accuracy nist strd benchmark scipy curve_fit precision digits speed white paper"),

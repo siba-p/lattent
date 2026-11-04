@@ -218,6 +218,15 @@ textarea:focus, input:focus, select:focus { outline: 2px solid color-mix(in srgb
 .chart-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--ink-3); font-size: 12.5px; padding-top: 6px; }
 .exp { display: flex; gap: 6px; flex-wrap: wrap; }
 .lock { font-size: 10.5px; font-weight: 700; color: var(--brand-ink); background: var(--brand-soft); padding: 2px 6px; border-radius: 5px; letter-spacing: .02em; }
+.modal-box.jf-box { max-width: 900px; }
+.jf-grid { display: grid; grid-template-columns: minmax(220px, 280px) 1fr; gap: 20px; align-items: start; }
+.jf-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.jf-form select, .jf-form input { width: 100%; }
+.jf-form #jf-wmm { margin-top: 6px; }
+.jf-prev { min-width: 0; }
+.jf-paper { padding: 14px; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: auto; max-height: 460px; }
+.jf-paper svg { display: block; max-width: none; box-shadow: 0 0 0 1px #e5e5e5; }
+@media (max-width: 720px) { .jf-grid { grid-template-columns: 1fr; } }
 
 .res { padding: 18px; }
 .res h3 { font-size: 16px; margin-bottom: 12px; }

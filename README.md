@@ -13,12 +13,14 @@ Free to use, no installation: open it, paste your data, and share a copy of any 
 ## What it does
 
 **Lattent Studio** is a browser workspace for scientific data, in the spirit of GraphPad Prism but for every lab:
-- data tables (XY, Column, Multiple variables);
+- data tables (XY, Column, Multiple variables), filled by pasting, or by opening Excel workbooks and instrument files (CSV, JCAMP-DX, XRDML, RAS, UXD, SPC, CIF), many at a time;
+- batch runs: one analysis repeated on every imported file, with the key results collected in one summary table;
 - nonlinear regression with 35 equations from materials science, polymers, nanomaterials, chemistry and biology, plus user-defined equations and AICc auto-fit;
 - statistics: t tests, ANOVA with Tukey, Kruskal–Wallis, correlation and regression;
 - spectra and materials analyses: multi-peak fitting, XRD Scherrer and Williamson–Hall, Tauc band gap, tensile tests;
 - PCA, clustering, and Gaussian-process Bayesian optimisation for materials discovery;
 - **Discover**: live search of 5.8 million DFT structures (Alexandria, via OPTIMADE) with a 3D viewer and simulated XRD; XRD phase identification; and generative design of new compositions with Lattent's own masked-diffusion model and property networks;
+- figures at each journal's exact column width and text size (ACS, RSC, Elsevier, Nature, Wiley), as TIFF, PNG or SVG;
 - Facet, the AI lab partner: built-in suggestions, an offline reviewer that checks the whole project for errors, a graph reader that turns a picture of a plot into data, and Claude or GPT chat (with figures) on the user's own key; the validated engine does the computing.
 
 Quick calculators cover routine bench assays: dose–response, standard curves, enzyme kinetics and qPCR.
@@ -55,7 +57,7 @@ Live site: https://siba-p.github.io/lattent/
 | `tools/`, `scripts/build_tools.py` | Quick-tool pages for materials and chemistry (generated) |
 | `assets/js/stats.js` | Levenberg–Marquardt fitting, covariance, t, F, χ² and studentized-range distributions, delta method |
 | `assets/js/engines.js` | Analysis engines for the four tools (no DOM access; shared with the tests) |
-| `assets/js/plot.js` | SVG charts used both on screen and for exported figures |
+| `assets/js/plot.js` | SVG charts used both on screen and for exported figures; journal sizes, TIFF and PNG-resolution writers |
 | `assets/js/shell.js` | Header and footer, table parsing, exports, write-up panel, Pro licence and trial gate |
 | `assets/js/config.js` | Prices, checkout links, store id, support address |
 | `dose.js`, `stdcurve.js`, `kinetics.js`, `qpcr.js` | The tool pages |
@@ -63,7 +65,7 @@ Live site: https://siba-p.github.io/lattent/
 | `supabase/migrations/` | Database schema, row-level security policies, quotas, team functions |
 | `supabase/functions/` | `ls-webhook` and `rzp-webhook` (signed payment events), `contact` and `delete-account`; shared, unit-tested logic in `_shared/` |
 | `scripts/` | One-command backend deployment, site configuration, page generators (`build_tools.py`, `build_solutions.py`, which also run `seo.py` for canonical URLs, social cards and structured data), app icons, rebranding and `set-domain.py` for moving to a custom domain |
-| `tests/` | Validation against SciPy; share-link format; database security and webhook tests (`npm run test:db`) |
+| `tests/` | Validation against SciPy; file import (including Excel); figure sizes and image writers; share-link format; database security and webhook tests (`npm run test:db`) |
 
 It is a static site with no build step. To serve it locally, run `python3 -m http.server` and open http://localhost:8000.
 
@@ -109,7 +111,7 @@ node tests/run-studio.js /tmp/st.json && python tests/check_studio.py /tmp/st.js
 node tests/ml/check.js && node tests/ml/check_learn.js                                  # specialist models, AutoML
 node tests/gen/check.js tests/gen/props_parity.json && node tests/gen/check_xtal.js --offline
 node tests/formats/check.js && node tests/bench/nist.js --check                         # file import, NIST StRD
-node tests/share/check.js                                                               # share-link format
+node tests/share/check.js && node tests/figure/check.js                                 # share links, journal-size figures
 npm ci && npm run test:db                                                               # database security, both payment webhooks
 ```
 
