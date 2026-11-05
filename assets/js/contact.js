@@ -48,7 +48,9 @@
       busy(true);
       let ok = false;
       try {
-        const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ access_key: C.web3forms, subject, from_name: 'Lattent contact form', name: d.name, email: d.email, organisation: d.organisation || '—', topic, message: d.message, botcheck: false }) });
+        /* a plain form post: no preflight request, so one less thing a firewall can refuse */
+        const fd = new FormData(); Object.entries({ access_key: C.web3forms, subject, from_name: 'Lattent contact form', name: d.name, email: d.email, organisation: d.organisation || '—', topic, message: d.message }).forEach(([k, v]) => fd.append(k, v));
+        const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { Accept: 'application/json' }, body: fd });
         const j = await r.json().catch(() => ({}));
         ok = r.ok && j.success === true;
       } catch (err) { ok = false; }
