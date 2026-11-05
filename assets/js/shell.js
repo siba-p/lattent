@@ -595,6 +595,28 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     window.addEventListener('load', () => navigator.serviceWorker.register(U.root + 'sw.js').catch(() => { /* offline support is optional */ }));
   }
+  /* Install as an app. Chrome and Edge fire beforeinstallprompt once the site qualifies and
+     then U.install() shows their prompt; every other browser installs from its own menu, so
+     U.install() explains the steps for the device instead. Any [data-install] link opens it. */
+  let installEvt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); installEvt = e; document.documentElement.classList.add('can-install');
+    if (!U.store.get('bf.install.hint', false) && /\/studio\//.test(location.pathname)) { U.store.set('bf.install.hint', true); setTimeout(() => U.toast('Lattent can be installed as an app: see “Install app” at the foot of the page.'), 2500); }
+  });
+  window.addEventListener('appinstalled', () => { installEvt = null; document.documentElement.classList.remove('can-install'); U.toast('Lattent is installed. Find it with your other apps.', 'ok'); });
+  U.installed = () => (matchMedia('(display-mode: standalone)').matches || navigator.standalone === true);
+  U.install = async function () {
+    if (installEvt && !U.installed()) { const e = installEvt; installEvt = null; e.prompt(); const r = await e.userChoice.catch(() => null); if (!r || r.outcome !== 'accepted') installEvt = e; return; }
+    const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), android = /Android/.test(ua), firefox = /Firefox/.test(ua), safari = /Safari/.test(ua) && !/Chrome|CriOS|Edg/.test(ua);
+    const steps = U.installed() ? ['Lattent is already installed on this device: open it from your home screen or app list.']
+      : ios ? ['Open this page in Safari; other iPhone browsers cannot install apps.', 'Tap the Share button, the square with an arrow at the bottom of the screen.', 'Scroll down and tap “Add to Home Screen”, then “Add”.']
+      : android ? ['Tap the browser menu, the three dots at the top right.', firefox ? 'Tap “Add to Home screen” (Firefox may call it “Install”).' : 'Tap “Add to Home screen” or “Install app”.', 'Confirm. Lattent appears with your other apps and works offline.']
+      : safari ? ['In Safari on a Mac, open the File menu and choose “Add to Dock”.']
+      : firefox ? ['Firefox on a computer does not install web apps. Use Chrome or Edge for the app, or bookmark this page.']
+      : ['In Chrome or Edge, click the install icon at the right end of the address bar (a small screen with an arrow), or open the browser menu and choose “Install Lattent” or “Apps › Install this site as an app”.'];
+    U.modal(`<p class="m-kicker">Lattent</p><h2>${U.installed() ? 'Already installed' : 'Install Lattent as an app'}</h2><p>The app opens full screen, sits with your other apps, and Studio keeps working without an internet connection. Nothing comes from a store: it is this site, kept on your device, and it updates itself.</p><ol class="install-steps">${steps.map(s => `<li>${U.esc(s)}</li>`).join('')}</ol>`);
+  };
+  document.addEventListener('click', e => { const a = e.target.closest('[data-install]'); if (a) { e.preventDefault(); U.install(); } });
   const tools = [
     ['tools/xrd-crystallite-size/', 'XRD crystallite size'], ['tools/band-gap-tauc/', 'Band gap (Tauc)'],
     ['tools/activation-energy-arrhenius/', 'Activation energy'], ['tools/adsorption-isotherms/', 'Adsorption isotherms'],
@@ -706,7 +728,7 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         <div><a class="logo" href="${U.root}"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lt-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#252d6b"/><stop offset="1" stop-color="#0c1031"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#lt-g)"/><circle cx="32" cy="32" r="2.6" fill="#3f4789"/><circle cx="46" cy="32" r="2.6" fill="#3f4789"/><circle cx="32" cy="18" r="2.6" fill="#3f4789"/><circle cx="18" cy="18" r="5" fill="#e3e7ff"/><circle cx="18" cy="32" r="5" fill="#e3e7ff"/><circle cx="18" cy="46" r="5" fill="#e3e7ff"/><circle cx="32" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="46" r="5" fill="#e3e7ff"/><circle cx="46" cy="18" r="10" fill="none" stroke="#f08c3e" stroke-opacity=".5" stroke-width="2"/><circle cx="46" cy="18" r="5.6" fill="#f08c3e"/></svg><span>Lattent</span></a><p>Data analysis and materials discovery for the lab bench. It runs in your browser, and your data stays on your computer unless you save it to the cloud.</p></div>
         <div><h5>Platform</h5><a href="${U.root}studio/">Lattent Studio</a><a href="${U.root}studio/?discover=gen">Discover</a><a href="${U.root}ai/">Facet AI</a><a href="${U.root}#features">Features</a><a href="${U.root}tools/">Quick tools</a><a href="${U.root}pricing/">Pricing</a></div>
         <div><h5>Solutions</h5>${FIELDS.map(([p, n]) => `<a href="${U.root}${p}">${n}</a>`).join('')}<a href="${U.root}life-science/">Life sciences</a></div>
-        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}support/">Support</a><a href="${U.root}contact/">Contact</a><a href="#cite" data-cite>Cite Lattent</a></div>
+        <div><h5>Resources</h5><a href="${U.root}#examples">Worked examples</a><a href="${U.root}validation/">Validation</a><a href="${U.root}changelog/">What’s new</a><a href="${U.root}support/">Support</a><a href="${U.root}contact/">Contact</a><a href="#install" data-install>Install app</a><a href="#cite" data-cite>Cite Lattent</a></div>
         <div><h5>Company</h5><a href="${U.root}account/">Account</a><a href="${U.root}legal/terms.html">Terms</a><a href="${U.root}legal/privacy.html">Privacy</a><a href="${U.root}legal/refunds.html">Refunds</a><a href="${U.root}legal/security.html">Security</a></div>
       </div><p class="foot-note">${founders()}© ${new Date().getFullYear()} Lattent.</p>`;
     }
