@@ -33,8 +33,12 @@ body.landing .top.open .nav { background: var(--card); }
 .l-win-bar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; background: var(--night-2); border-bottom: 1px solid rgba(255,255,255,.08); }
 .l-win-bar i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.22); }
 .l-win-bar span { margin-left: 10px; font: 500 11.5px var(--mono); color: #8f96bb; letter-spacing: .02em; }
-.l-shot { aspect-ratio: 11 / 8; overflow: hidden; background: #fff; }
+.l-shot { position: relative; aspect-ratio: 11 / 8; overflow: hidden; background: #fff; }
 .l-shot img { display: block; width: 125%; max-width: none; height: auto; margin: -5.3% 0 0 -25%; }
+/* the film draws over the screenshot once it is ready; the screenshot stays for reduced motion and old browsers */
+.l-film { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
+.l-shot.on .l-film { display: block; }
+.l-shot.on img { visibility: hidden; }
 @media (max-width: 960px) {
   .l-hero-in { grid-template-columns: minmax(0, 1fr); gap: 36px; text-align: center; }
   .l-hero h1 { max-width: 640px; margin-inline: auto; }
