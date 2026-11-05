@@ -20,6 +20,9 @@ body.studio { background: var(--bg); }
   .st-top .btn { padding: 7px 9px; font-size: 13px; }
   .st-top .tb { gap: 4px; }
   #st-cloud svg, #st-share svg, #st-co svg { flex: none; }
+  /* table and analysis headers: the title spans the width so the hint below it wraps instead of being cut */
+  .view-head > div { flex: 1 1 100%; min-width: 0; }
+  .view-head .ttl { width: 100%; }
   /* the Facet question box stacks: text area above, buttons below */
   #co-form { flex-wrap: wrap; }
   #co-form textarea { flex: 1 1 100%; }

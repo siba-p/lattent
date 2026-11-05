@@ -378,6 +378,7 @@ table.t tr.dim td { color: var(--ink-3); }
 .status { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; background: var(--line-2); margin-bottom: 16px; font-size: 14.5px; }
 .status.on { background: var(--ok-soft); color: var(--ok); }
 @media (max-width: 560px) {
+  .eq { white-space: normal; font-size: 15px; }
   :root { --gutter: 16px; }
   .side, .res, .rep, .method, .chart-card { padding: 14px; }
   .band { padding: 28px; }
