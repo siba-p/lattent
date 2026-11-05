@@ -15,6 +15,11 @@ window.BF_CONFIG = {
   razorpay: { monthly: '', yearly: '', lab: '' },
   /* USD prices for Lemon Squeezy; INR prices for Razorpay */
   prices: { monthly: 4, yearly: 29, lab: 299, inr: { monthly: 299, yearly: 1999, lab: 19999 } },
+  /* Access codes issued by the founders with scripts/access-code.py: only the SHA-256 of
+     "email|code" is listed, with the plan ('pro' or 'lab') and an optional end date. */
+  access: [
+    { h: '3ddd21503774d57b98a23c95a799d449863ae93a835f8c1f4a0e7b3ecd3c6c18', plan: 'pro', until: null, note: 'founder' },
+  ],
   earlyAccess: true,
   trialDays: 7,
   support: 'sibasankarpanigrahy08@gmail.com',

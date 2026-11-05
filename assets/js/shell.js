@@ -154,8 +154,38 @@
     store.del('bf.pro');
     document.dispatchEvent(new CustomEvent('bf:pro'));
   };
+  /* Access codes, issued by the founders with scripts/access-code.py and bound to one email
+     address. Only the SHA-256 of "email|code" is published in config.js (the access list), so a
+     code cannot be read from the site; removing the entry revokes it at the next page load. */
+  const normCode = (email, code) => email.trim().toLowerCase() + '|' + code.trim().toUpperCase().replace(/\s+/g, '');
+  Pro.hash = async function (email, code) {
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normCode(email, code)));
+    return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+  };
+  Pro.isCode = v => /^\s*LAT-/i.test(v || '');
+  const codeEntry = h => (CFG.access || []).find(x => x && x.h === h);
+  const codeLive = e => !!e && !(e.until && Date.parse(e.until + 'T23:59:59Z') < Date.now());
+  Pro.redeem = async function (email, code) {
+    email = (email || '').trim(); code = (code || '').trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error('Enter the email address the code was issued to.');
+    if (!code) throw new Error('Enter your access code.');
+    if (!window.isSecureContext || !crypto.subtle) throw new Error('Access codes need a secure (https) page.');
+    const h = await Pro.hash(email, code), e = codeEntry(h);
+    if (!e) throw new Error('That code does not match this email address. Check both against the message you received.');
+    if (!codeLive(e)) throw new Error('This access code expired on ' + e.until + '.');
+    store.set('bf.pro', { code: h, status: 'active', expires: e.until ? e.until + 'T23:59:59Z' : null, checked: Date.now(), plan: (e.plan === 'lab' ? 'Lab' : 'Pro') + ' · access code', email, note: e.note || '' });
+    document.dispatchEvent(new CustomEvent('bf:pro'));
+    return Pro.state();
+  };
   Pro.revalidate = async function () {
     const s = Pro.state();
+    if (s && s.code) {   // an access code: still listed, and not past its date?
+      const e = codeEntry(s.code);
+      if (!codeLive(e)) { store.del('bf.pro'); document.dispatchEvent(new CustomEvent('bf:pro')); return; }
+      const until = e.until ? e.until + 'T23:59:59Z' : null;
+      if (until !== (s.expires || null)) { s.expires = until; store.set('bf.pro', s); }
+      return;
+    }
     if (!s || !s.key || Date.now() - (s.checked || 0) < 3 * 864e5) return;
     try {
       const res = await lsPost('validate', { license_key: s.key, instance_id: s.instance || '' });

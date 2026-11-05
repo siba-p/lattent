@@ -33,18 +33,21 @@
     const t = $('#ac-trial'); if (t) t.onclick = () => { Pro.startTrial(); renderLocal(); };
   }
   function licenceBox(s) {
-    const has = s && s.key;
-    return `<details class="card acct" ${has ? 'open' : ''}><summary><h2>Licence key</h2></summary>
-      <p class="hint">If you received a licence key by email, activate it here. It is stored only in this browser.</p>
-      ${has ? `<div class="status on">Licence ${esc(s.status)}${s.plan ? ' · ' + esc(s.plan) : ''}</div><button class="btn" id="ac-off">Deactivate on this browser</button>`
-        : `<div class="row"><input type="text" id="ac-key" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" autocomplete="off" spellcheck="false"><button class="btn primary" id="ac-go">Activate</button></div><p class="hint" id="ac-msg"></p>`}
+    const has = s && (s.key || s.code);
+    return `<details class="card acct" ${has ? 'open' : ''}><summary><h2>Licence key or access code</h2></summary>
+      <p class="hint">If you received a licence key or an access code by email, activate it here. It is stored only in this browser.</p>
+      ${has ? `<div class="status on">${s.code ? 'Access code' : 'Licence'} ${esc(s.status)}${s.plan ? ' · ' + esc(s.plan) : ''}${s.expires ? ' · until ' + esc(String(s.expires).slice(0, 10)) : ''}</div><button class="btn" id="ac-off">Deactivate on this browser</button>`
+        : `<div class="row"><input type="text" id="ac-key" placeholder="Licence key, or LAT-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false"><button class="btn primary" id="ac-go">Activate</button></div>
+          <div class="row" id="ac-email-row" style="display:none"><input type="email" id="ac-email" placeholder="The email address the code was issued to" autocomplete="email"></div><p class="hint" id="ac-msg"></p>`}
     </details>`;
   }
   function wireLicence() {
-    const go = $('#ac-go');
+    const go = $('#ac-go'), key = $('#ac-key'), row = $('#ac-email-row');
+    if (key) key.oninput = () => { row.style.display = Pro.isCode(key.value) ? '' : 'none'; };
     if (go) go.onclick = () => {
       go.disabled = true; $('#ac-msg').textContent = 'Checking…';
-      Pro.activate($('#ac-key').value).then(() => { U.toast('Pro activated. Thank you!', 'ok'); render(); })
+      const v = key.value, p = Pro.isCode(v) ? Pro.redeem($('#ac-email').value, v) : Pro.activate(v);
+      p.then(() => { U.toast('Pro activated. Thank you!', 'ok'); render(); })
         .catch(e => { $('#ac-msg').textContent = e.message; }).then(() => { go.disabled = false; });
     };
     const off = $('#ac-off'); if (off) off.onclick = () => Pro.deactivate().then(render);

@@ -353,7 +353,8 @@ def contact():
 </section>
 </main>
 """
-    return HEAD.format(title="Contact | Lattent", desc="Contact Lattent about buying Pro, Lab plans and invoices, help with an analysis, or partnerships.", root=root, fonts=FONTS).replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/contact.js"></script>\n</body>')
+    # the contact page may post to the Web3Forms relay (assets/js/contact.js)
+    return HEAD.format(title="Contact | Lattent", desc="Contact Lattent about buying Pro, Lab plans and invoices, help with an analysis, or partnerships.", root=root, fonts=FONTS).replace('https://api.lemonsqueezy.com;', 'https://api.lemonsqueezy.com https://api.web3forms.com;').replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/contact.js"></script>\n</body>')
 
 
 
@@ -475,6 +476,7 @@ EXTRA_KB = [
     ("What is Facet?", "Facet is Lattent’s AI lab partner. It suggests analyses, checks your project for mistakes, reads graphs, writes reports autonomously and, with your own Claude or GPT key, answers questions and reviews figures. All numbers come from the validated engine.", "ai/", "Facet AI", "facet ai assistant partner co-scientist"),
     ("How much does Lattent cost?", "{{pricing}}", "pricing/", "See pricing", "price cost pro plan lab free subscription payment inr rupee"),
     ("Is my data private?", "Analyses run in your browser and projects stay there unless you save them to the cloud. Nothing you paste is uploaded. The optional AI features send data only to the provider you chose, with your own key.", "legal/privacy.html", "Privacy notice", "privacy data upload security gdpr stored"),
+    ("How do I use an access code?", "If we sent you an access code (it starts with LAT-), open Account, find Licence key or access code, paste the code, enter the email address it was issued to and press Activate. Pro is then active on that browser; do the same on another computer with the same code. A code may carry an end date, and we can renew or withdraw it. Nothing is sent anywhere: the page checks the code against a fingerprint.", "account/", "Account and plans", "access code LAT- activate licence key free pro founder invitation unlock"),
     ("How do I talk to a person?", "Use the contact form and tell us what you need. We usually reply within one working day.", "contact/", "Contact us", "contact email support human sales invoice question help"),
 ]
 
