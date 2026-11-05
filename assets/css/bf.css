@@ -57,7 +57,7 @@ h3, h4 { font-weight: 600; letter-spacing: -0.01em; }
 .btn.ghost { background: transparent; }
 .btn.small { padding: 7px 11px; font-size: 13px; }
 .btn.big { padding: 14px 22px; font-size: 15.5px; border-radius: 11px; }
-.btn svg { width: 15px; height: 15px; }
+.btn svg { width: 15px; height: 15px; flex: none; }
 
 /* header */
 .top { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }

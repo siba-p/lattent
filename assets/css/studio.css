@@ -12,7 +12,19 @@ body.studio { background: var(--bg); }
 #st-co.btn svg { color: #ffc28e; }
 #st-co svg { width: 16px; height: 16px; }
 #st-co { white-space: nowrap; }
-@media (max-width: 560px) { #st-co .lbl-co { display: none; } }
+@media (max-width: 560px) {
+  #st-co .lbl-co { display: none; }
+  /* a phone-width top bar: icon buttons only, no wordmark, nothing squeezed to zero */
+  .st-top { gap: 8px; padding: 0 10px; }
+  .st-top .logo span, .st-top .logo small { display: none; }
+  .st-top .btn { padding: 7px 9px; font-size: 13px; }
+  .st-top .tb { gap: 4px; }
+  #st-cloud svg, #st-share svg, #st-co svg { flex: none; }
+  /* the Facet question box stacks: text area above, buttons below */
+  #co-form { flex-wrap: wrap; }
+  #co-form textarea { flex: 1 1 100%; }
+  .co-send { flex: 1 1 100%; margin-top: 0; }
+}
 #st-menu { display: none; }
 .st-body { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: calc(100vh - 56px); }
 .st-side { border-right: 1px solid var(--line); background: var(--card); padding: 14px 10px; position: sticky; top: 56px; height: calc(100vh - 56px); overflow: auto; display: flex; flex-direction: column; gap: 10px; }
