@@ -353,12 +353,13 @@
         csv: () => [['Centre', 'Centre SE', 'Height', 'FWHM', 'Area', 'eta'].concat(res.xr ? ['d (A)', 'Size (nm)'] : [])].concat((res.xr ? res.xr.rows : res.pf.peaks).map(p => [p.center, p.centerSE, p.height, p.fwhm, p.area, p.eta].concat(res.xr ? [p.d, p.size] : [])))
       };
     },
-    text(res, o) {
+    text(res, o, t) {
       const shape = { gauss: 'Gaussian', lorentz: 'Lorentzian', pv: 'pseudo-Voigt' }[o.shape];
       let m = `${o.baseline !== 'none' ? `A ${['constant', 'linear', 'quadratic', 'cubic'][+o.baseline]} baseline was removed by iterative polynomial fitting. ` : ''}Peaks were located on the Savitzky–Golay-smoothed signal and fitted simultaneously with ${shape} profiles by nonlinear least squares.`;
       if (res.xr) m += ` Crystallite sizes were estimated with the Scherrer equation (K = ${o.K}, λ = ${o.lambda} Å${+o.inst ? `, instrumental broadening of ${o.inst}° removed in quadrature` : ''})${res.xr.wh ? ' and with a Williamson–Hall analysis' : ''}.`;
       m += ` Analyses were performed with Lattent (${BF_CONFIG.site}).`;
-      let r = `${res.pf.peaks.length} peaks were resolved (R² = ${res.pf.r2.toFixed(3)}), at ${res.pf.peaks.map(p => fmt(p.center, 4)).join(', ')}.`;
+      const unit = ((String(t && t.cols && t.cols[0] || '').match(/\(([^)]+)\)\s*$/) || [])[1] || '').trim();
+      let r = `${res.pf.peaks.length} peak${res.pf.peaks.length === 1 ? ' was' : 's were'} resolved (R² = ${res.pf.r2.toFixed(3)}) at ${res.xr ? '2θ = ' : ''}${res.pf.peaks.map(p => fmt(p.center, 4) + (unit ? (unit === '°' ? '' : ' ') + unit : '')).join(', ')}${res.xr && res.xr.rows.every(q => isFinite(q.d)) ? ` (d = ${res.xr.rows.map(q => fmt(q.d, 4)).join(', ')} Å)` : ''}.`;
       if (res.xr) r += ` The mean Scherrer crystallite size was ${fmt(res.xr.meanSize, 3)} nm${res.xr.wh && isFinite(res.xr.wh.size) ? `; the Williamson–Hall analysis gave ${fmt(res.xr.wh.size, 3)} nm with a microstrain of ${fmt(res.xr.wh.strain * 100, 2)}%` : ''}.`;
       return [{ title: 'Methods', html: `<p>${m}</p>` }, { title: 'Results', html: `<p>${r}</p>` }];
     }
@@ -1363,13 +1364,24 @@
     $('#co-tab-advisor').click();
     if (t) renderAdvisor(t);
   }
+  let homeTable = null;   // the table the suggestions are for
+  /* The home pane: suggestions for the current table, a card for reading a graph, and the
+     conversation with Facet, in one scrolling column with the question box at the foot. */
   function renderAdvisor(t) {
     t = t || (cur && (cur.type === 'table' ? table(cur.id) : cur.type === 'item' && item(cur.id) ? table(item(cur.id).tableId) : null));
-    const box = $('#co-advisor');
-    if (!t) { box.innerHTML = cur && cur.type === 'discover' ? '<p class="hint">Suggestions follow your data tables. In Discover, ask Facet in the Ask tab, or open a table.</p>' : '<p class="hint">Open a table to get suggestions.</p>'; return; }
+    homeTable = t; renderChat();
+  }
+  function suggestionsHTML(t) {
+    if (!t) return `<div class="co-sug"><p class="hint">${cur && cur.type === 'discover' ? 'Suggestions follow your data tables. Open a table to see them; in Discover, ask below.' : 'Open a table and Facet will suggest the analyses it calls for.'}</p></div>`;
     const list = advise(t);
-    box.innerHTML = `<p class="hint">Suggestions for <b>${esc(t.name)}</b>.</p>` + list.map((s, i) => (s.shape ? `<div class="sug ai">${shapeLine(s.shape)}<p class="hint" style="margin:6px 0 0">Lattent's shape model was trained on ${(BF.ml.metrics().train_samples / 1000).toFixed(0)},000 simulated lab datasets and runs in your browser.</p></div>` : `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind || s.disc ? `<button class="btn small primary" data-run="${i}">${s.disc ? 'Open' : 'Run'}</button>` : ''}</div>`)).join('');
-    $$('[data-run]', box).forEach(b => b.onclick = () => { const s = list[+b.dataset.run]; if (s.disc) BF.discover.open(s.disc, s.ctx); else addItem(t.id, s.kind, s.opts); });
+    return `<div class="co-sug"><p class="co-sug-h">Suggested for <b>${esc(t.name)}</b></p>` + list.map((s, i) => (s.shape ? `<div class="sug ai">${shapeLine(s.shape)}<p class="hint" style="margin:6px 0 0">Lattent's shape model was trained on ${(BF.ml.metrics().train_samples / 1000).toFixed(0)},000 simulated lab datasets and runs in your browser.</p></div>` : `<div class="sug"><b>${esc(s.title)}</b><p>${esc(s.why)}</p>${s.kind || s.disc ? `<button class="btn small primary" data-run="${i}">${s.disc ? 'Open in Discover' : 'Run'}</button>` : ''}</div>`)).join('') + '</div>';
+  }
+  const graphCardHTML = () => `<div class="sug co-graph"><b>Read a graph from an image</b><p>A plot from a paper, a spectrum, an instrument screen: calibrate the axes with four clicks and Facet traces the curve into a table. Runs in your browser.</p><button class="btn small" id="gr-pick" type="button">Choose an image</button><span class="hint"> or paste a screenshot into the question box.</span><input type="file" id="gr-file" accept="image/*" hidden></div>`;
+  function wireHome(log, t) {
+    const list = t ? advise(t) : [];
+    $$('[data-run]', log).forEach(b => b.onclick = () => { const s = list[+b.dataset.run]; if (!s) return; if (s.disc) BF.discover.open(s.disc, s.ctx); else addItem(t.id, s.kind, s.opts); });
+    const pick = $('#gr-pick', log), file = $('#gr-file', log);
+    if (pick) { pick.onclick = () => file.click(); file.onchange = e => { if (e.target.files[0]) readImage(e.target.files[0]).then(digitizer).catch(err => U.toast(err.message)); e.target.value = ''; }; }
   }
 
   /* LLM chat: the model plans; Lattent computes. */
@@ -1431,13 +1443,17 @@ ${projectSummary()}`;
   }
   function renderChat() {
     const log = $('#co-log');
-    log.innerHTML = chat.map((m, mi) => {
+    const head = suggestionsHTML(homeTable) + graphCardHTML() + (chat.length ? '<p class="co-sug-h">Conversation</p>' : '');
+    log.innerHTML = head + chat.map((m, mi) => {
       if (m.role === 'user') return `<div class="msg u">${m.image ? `<img class="msg-img" src="${m.image.url}" alt="Attached figure">` : ''}${esc(m.content)}</div>`;
       const acts = [], csvs = [];
       let body = m.content.replace(/```(?:lattent|benchfit)\s*([\s\S]*?)```/g, (_, js) => { try { const j = JSON.parse(js); (j.actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore malformed */ } return ''; });
       body = body.replace(/```csv\s*([\s\S]*?)```/g, (_, c) => { csvs.push(c.trim()); return '\n[data table below]\n'; });
       return `<div class="msg a">${esc(body.trim()).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}${acts.map((a, i) => (K[a.kind] && table(a.table) ? `<div class="act"><span>${esc(K[a.kind].label)} on ${esc(table(a.table).name)}</span><button class="btn small primary" data-act="${mi}:${i}">Run</button></div>` : '')).join('')}${csvs.map((c, i) => `<div class="act"><span>Data read from the figure (${c.split('\n').length - 1} rows, approximate)</span><button class="btn small primary" data-csv="${mi}:${i}">Add as table</button></div>`).join('')}</div>`;
-    }).join('') || '<p class="hint">Ask in plain language, for example: “Which isotherm fits best and what is the maximum capacity?”, or attach a figure and ask “What is wrong with this graph?”</p>';
+    }).join('');
+    if (!chat.length) log.insertAdjacentHTML('beforeend', `<p class="hint co-ask-hint">Ask in plain language, for example “Which isotherm fits best and what is the maximum capacity?”, or attach a figure and ask “What is wrong with this graph?”${AI.get().key ? '' : ' Answers need your own Claude or GPT key: <a href="#" data-key>add it</a>.'}</p>`);
+    wireHome(log, homeTable);
+    const kl = $('[data-key]', log); if (kl) kl.onclick = e => { e.preventDefault(); aiKeyDialog(); };
     $$('[data-act]', log).forEach(b => b.onclick = () => {
       const [mi, i] = b.dataset.act.split(':').map(Number);
       const acts = []; chat[mi].content.replace(/```(?:lattent|benchfit)\s*([\s\S]*?)```/g, (_, js) => { try { (JSON.parse(js).actions || []).forEach(a => acts.push(a)); } catch (e) { /* ignore */ } });
@@ -1455,26 +1471,23 @@ ${projectSummary()}`;
   function wireCoscientist() {
     $('#co-close').onclick = () => document.body.classList.remove('co-open');
     $('#st-co').onclick = () => { document.body.classList.toggle('co-open'); renderAdvisor(); };
-    const PANES = { 'co-tab-advisor': '#co-advisor', 'co-tab-check': '#co-check', 'co-tab-graph': '#co-graph', 'co-tab-report': '#co-report', 'co-tab-chat': '#co-chat' };
+    const PANES = { 'co-tab-advisor': '#co-chat', 'co-tab-check': '#co-check', 'co-tab-report': '#co-report' };
     $$('.co-tabs button').forEach(b => b.onclick = () => {
       $$('.co-tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
       Object.entries(PANES).forEach(([id, sel2]) => { $(sel2).hidden = id !== b.id; });
-      if (b.id === 'co-tab-advisor') renderAdvisor(); else if (b.id === 'co-tab-check') renderCheck(); else if (b.id === 'co-tab-graph') renderGraphTab(); else if (b.id === 'co-tab-report') renderReportTab(); else { renderChat(); syncAiCfg(); }
+      if (b.id === 'co-tab-advisor') { renderAdvisor(); syncAiCfg(); } else if (b.id === 'co-tab-check') renderCheck(); else renderReportTab();
     });
+    $('#co-key').onclick = aiKeyDialog;
     const showAtt = () => { const a = $('#co-att'); a.hidden = !attached; a.innerHTML = attached ? `<img src="${attached.url}" alt=""><span>${esc(attached.name)}</span><button type="button" aria-label="Remove figure">×</button>` : ''; if (attached) a.querySelector('button').onclick = () => { attached = null; showAtt(); }; };
     const takeImage = f => readImage(f).then(img => { attached = img; showAtt(); if (!$('#co-q').value.trim()) $('#co-q').value = 'What does this figure show, and is anything wrong with it?'; }).catch(e => U.toast(e.message));
     $('#co-attach').onclick = () => $('#co-img').click();
     $('#co-img').onchange = e => { if (e.target.files[0]) takeImage(e.target.files[0]); e.target.value = ''; };
     $('#co-q').addEventListener('paste', e => { const it = [...(e.clipboardData || {}).items || []].find(x => x.type.startsWith('image/')); if (it) { e.preventDefault(); takeImage(it.getAsFile()); } });
-    const cfg = AI.get();
-    $('#ai-provider').value = cfg.provider; $('#ai-model').value = cfg.model; $('#ai-key').value = cfg.key ? '••••••••' + cfg.key.slice(-4) : '';
-    const saveCfg = () => { const c = AI.get(); c.provider = $('#ai-provider').value; c.model = $('#ai-model').value.trim(); const k = $('#ai-key').value.trim(); if (k && !k.startsWith('••')) c.key = k; AI.set(c); syncAiCfg(); };
-    $('#ai-provider').onchange = () => { $('#ai-model').value = $('#ai-provider').value === 'openai' ? 'gpt-5' : 'claude-sonnet-5-5'; saveCfg(); };
-    $('#ai-model').onchange = saveCfg; $('#ai-key').onchange = saveCfg;
-    $('#ai-forget').onclick = () => { const c = AI.get(); c.key = ''; AI.set(c); $('#ai-key').value = ''; syncAiCfg(); U.toast('Key removed from this browser.'); };
+    syncAiCfg();
     $('#co-form').onsubmit = e => {
       e.preventDefault();
       const q = $('#co-q').value.trim(); if (!q) return;
+      if (!AI.get().key) { aiKeyDialog(); return; }
       Pro.require('The Facet chat', async () => {
         const img = attached; attached = null; showAtt();
         $('#co-q').value = ''; renderChat();
@@ -1483,6 +1496,19 @@ ${projectSummary()}`;
         renderChat();
       });
     };
+  }
+  /* the AI key: provider, model and key, kept only in this browser */
+  function aiKeyDialog() {
+    const cfg = AI.get();
+    const m = U.modal(`<p class="m-kicker">Facet · AI key</p><h2>Your own Claude or GPT key</h2>
+      <p>Facet suggests, checks and reads graphs without any key. To chat, to have figures reviewed and to have the report narrative redrafted, add a key from Anthropic or OpenAI. It stays in this browser and is sent only to that provider; every number still comes from Lattent's engine.</p>
+      <div class="co-cfg"><div class="row"><select id="ai-provider" aria-label="Provider"><option value="anthropic">Anthropic (Claude)</option><option value="openai">OpenAI (GPT)</option></select><input id="ai-model" aria-label="Model"></div>
+      <div class="row"><input id="ai-key" type="password" placeholder="Paste your API key" autocomplete="off" aria-label="API key"></div></div>
+      <div class="m-actions"><button class="btn primary" id="ai-save">Save</button>${cfg.key ? '<button class="btn ghost" id="ai-forget">Forget the key</button>' : ''}</div>`);
+    $('#ai-provider', m).value = cfg.provider; $('#ai-model', m).value = cfg.model || (cfg.provider === 'openai' ? 'gpt-5' : 'claude-sonnet-5-5'); $('#ai-key', m).value = cfg.key ? '••••••••' + cfg.key.slice(-4) : '';
+    $('#ai-provider', m).onchange = () => { $('#ai-model', m).value = $('#ai-provider', m).value === 'openai' ? 'gpt-5' : 'claude-sonnet-5-5'; };
+    $('#ai-save', m).onclick = () => { const c = AI.get(); c.provider = $('#ai-provider', m).value; c.model = $('#ai-model', m).value.trim(); const k = $('#ai-key', m).value.trim(); if (k && !k.startsWith('••')) c.key = k; AI.set(c); syncAiCfg(); U.closeModal(); renderChat(); U.toast(c.key ? 'Facet can now use your ' + (c.provider === 'openai' ? 'OpenAI' : 'Anthropic') + ' key.' : 'Saved without a key.', c.key ? 'ok' : undefined); };
+    const f = $('#ai-forget', m); if (f) f.onclick = () => { const c = AI.get(); c.key = ''; AI.set(c); syncAiCfg(); U.closeModal(); renderChat(); U.toast('Key removed from this browser.'); };
   }
   async function llmOnce(system, text, img, maxTokens) {
     const cfg = AI.get();
@@ -1524,31 +1550,6 @@ ${projectSummary()}`;
     return res;
   }
   const fmtDate = () => new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-  function paras(text) { return esc(text).split(/\n{2,}/).map(x => `<p>${x.replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join(''); }
-  function assembleReport(d) {
-    const css = `*{box-sizing:border-box}body{font:15px/1.65 Georgia,'Times New Roman',serif;color:#14182e;max-width:820px;margin:0 auto;padding:40px 28px 64px}h1,h2,h3,.k,table,figcaption,.meta{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}h1{font-size:30px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}h2{font-size:20px;margin:34px 0 8px;padding-bottom:6px;border-bottom:2px solid #e0712c}h3{font-size:16px;margin:22px 0 6px}.meta{color:#656d8c;font-size:13px;margin:0 0 22px}.k{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#a5501a;font-weight:600;margin:0 0 8px}figure{margin:14px 0;padding:10px;border:1px solid #e2e5ef;border-radius:8px}figure svg{max-width:100%;height:auto;display:block}figcaption{font-size:12.5px;color:#3a4160;margin-top:6px}table{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0}th,td{text-align:left;padding:6px 9px;border-bottom:1px solid #e2e5ef;vertical-align:top}th{background:#f6f7fb}.note{background:#fdf1e7;border-left:3px solid #e0712c;padding:8px 12px;font-size:13px;font-family:system-ui,sans-serif;margin:10px 0}.ai{background:#eceefd;border-left:3px solid #3e4ed8;padding:8px 14px;margin:10px 0}.ai small{display:block;font:600 11px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#2d3aad;margin-bottom:4px}.chk li{margin:4px 0}.foot{margin-top:40px;font:12px system-ui,sans-serif;color:#656d8c;border-top:1px solid #e2e5ef;padding-top:10px}@media print{body{padding:0;max-width:none}h2{break-after:avoid}figure,table{break-inside:avoid}}`;
-    const toc = d.sections.map(s2 => s2.title);
-    const body = [];
-    body.push(`<p class="k">Analysis report</p><h1>${esc(d.title)}</h1><p class="meta">Generated by Lattent (${esc(BF_CONFIG.site)}) on ${fmtDate()}${d.author ? ' · ' + esc(d.author) : ''} · ${d.nTables} data table${d.nTables === 1 ? '' : 's'}, ${d.nAnalyses} analys${d.nAnalyses === 1 ? 'is' : 'es'}</p>`);
-    body.push(`<h2>Summary</h2>${d.aiSummary ? `<div class="ai"><small>Drafted by ${esc(d.model)} from the results below; check before use</small>${paras(d.aiSummary)}</div>` : ''}<ul>${d.findings.map(f => `<li>${esc(f)}</li>`).join('') || '<li>No analyses could be completed.</li>'}</ul>`);
-    d.sections.forEach((sec, i) => {
-      body.push(`<h2>${i + 1}. ${esc(sec.title)}</h2><p>${esc(sec.data)}</p>`);
-      sec.runs.forEach(r => {
-        body.push(`<h3>${esc(r.label)}</h3>`);
-        if (r.error) { body.push(`<div class="note">This analysis could not be completed: ${esc(r.error)}</div>`); return; }
-        if (r.svg) body.push(`<figure>${r.svg}<figcaption><b>Figure ${r.fig}.</b> ${esc(r.label)}: ${esc(sec.title)}.</figcaption></figure>`);
-        r.sections.forEach(x => body.push(`<h4 style="font:600 13px system-ui,sans-serif;margin:12px 0 2px;color:#3a4160">${esc(x.title)}</h4>${x.html}`));
-      });
-    });
-    if (d.aiDiscussion) body.push(`<h2>Discussion</h2><div class="ai"><small>Drafted by ${esc(d.model)} from the results above; check before use</small>${paras(d.aiDiscussion)}</div>`);
-    if (d.figReviews.length) body.push(`<h2>Supplied figures</h2>${d.figReviews.map(f => `<figure><img src="${f.url}" alt="${esc(f.name)}" style="max-width:100%;height:auto"><figcaption><b>${esc(f.name)}.</b></figcaption></figure>${f.text ? `<div class="ai"><small>Reviewed by ${esc(d.model)}; values read from images are approximate</small>${paras(f.text)}</div>` : '<p class="meta">No AI key was available, so this figure was included without review.</p>'}`).join('')}`);
-    body.push(`<h2>Quality checks</h2>${d.checks.length ? `<ul class="chk">${d.checks.map(c => `<li><b>${c.sev === 'error' ? 'Error' : c.sev === 'warn' ? 'Warning' : 'Note'}:</b> ${plain(c.msg)} <span class="meta">(${esc(c.where)})</span></li>`).join('')}</ul>` : '<p>Facet found no problems with units, sample sizes, fit quality, model choice or test assumptions.</p>'}`);
-    body.push(`<h2>Limitations and next steps</h2><ul>${d.next.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`);
-    body.push(`<h2>Reproducibility</h2><table><tr><th>Analysis</th><th>Table</th><th>Options</th></tr>${d.repro.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(r.table)}</td><td style="font-family:ui-monospace,monospace;font-size:11.5px">${esc(r.opts)}</td></tr>`).join('')}</table>`);
-    body.push(`<p class="foot">Results were computed by Lattent’s validated analysis engine (checked against SciPy and NumPy) in the author’s browser. ${d.aiSummary || d.aiDiscussion || d.figReviews.some(f => f.text) ? 'Passages marked as drafted by a language model are interpretation only and were not used to compute any number. ' : ''}Lattent is research software and is not validated for GLP or clinical use.</p>`);
-    void toc;
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(d.title)}: analysis report</title><style>${css}</style></head><body>${body.join('\n')}</body></html>`;
-  }
   async function runAgent() {
     const log = $('#rp-log'); log.innerHTML = '';
     const out = $('#rp-out'); out.innerHTML = '';
@@ -1564,28 +1565,26 @@ ${projectSummary()}`;
       st.ok(`Read ${tables.length} table${tables.length > 1 ? 's' : ''} (${tables.reduce((n, t) => n + t.rows.length, 0)} rows)`);
       st = step('Planning the analyses'); await sleep(300);
       st.ok(plan.length ? `Plan: ${plan.map(p => K[p.it.kind].label.split(' (')[0]).join(' · ')}` : 'No analyses to run; reporting the data only');
-      const sections = [], findings = [], repro = [], allText = [];
+      const dTables = [];
       let fig = 0, nA = 0;
       for (const t of tables) {
-        const sec = { title: t.name, data: `${TYPES[t.type].title}: ${t.rows.length} rows, columns ${t.cols.map(c => '“' + (c || '–') + '”').join(', ')}.`, runs: [] };
+        const dt = { name: t.name, type: t.type, typeTitle: TYPES[t.type].title, nRows: t.rows.length, cols: t.cols.slice(), ylabel: t.ylabel || '', runs: [] };
         for (const p of plan.filter(x => x.t === t)) {
           const k = K[p.it.kind], label = k.label.replace(/\s*\(.*\)$/, '');
           const s2 = step(`${p.existing ? 'Collecting' : 'Running'} ${label} on ${t.name}`);
           await sleep(60);
           const res = await runPlanItem(p);
-          if (!res || res.error || res.pending) { s2.fail(`${label}: ${(res && res.error) || 'timed out'}`); sec.runs.push({ label, error: (res && res.error) || 'The analysis timed out.' }); continue; }
+          if (!res || res.error || res.pending) { s2.fail(`${label}: ${(res && res.error) || 'timed out'}`); dt.runs.push({ kind: p.it.kind, label, opts: p.it.opts, error: (res && res.error) || 'The analysis timed out.' }); continue; }
           let r, text;
-          try { r = k.render(res, p.it.opts, t); text = k.text ? k.text(res, p.it.opts, t) : null; } catch (e) { s2.fail(`${label}: ${e.message}`); sec.runs.push({ label, error: e.message }); continue; }
+          try { r = k.render(res, p.it.opts, t); text = k.text ? k.text(res, p.it.opts, t) : null; } catch (e) { s2.fail(`${label}: ${e.message}`); dt.runs.push({ kind: p.it.kind, label, opts: p.it.opts, error: e.message }); continue; }
           const build = (r.charts || []).filter(Boolean)[0];
           let svg = ''; try { svg = build ? build(P.print, 720, 460).svg : ''; } catch (e) { svg = ''; }
-          const run = { label, svg, fig: svg ? ++fig : 0, sections: text || [] };
-          sec.runs.push(run); nA++;
-          (text || []).filter(x => /result/i.test(x.title)).forEach(x => { const f = plain(x.html); if (f) { findings.push(`${t.name}: ${f}`); } });
-          (text || []).forEach(x => allText.push(`[${t.name} · ${label} · ${x.title}] ${plain(x.html)}`));
-          repro.push({ label, table: t.name, opts: JSON.stringify(p.it.opts) });
-          s2.ok(`${label} on ${t.name}${svg ? ' (figure ' + run.fig + ')' : ''}`);
+          let csv = null; try { csv = r.csv ? r.csv() : null; } catch (e) { csv = null; }
+          if (svg) fig++;
+          dt.runs.push({ kind: p.it.kind, label, opts: p.it.opts, res, svg, sections: text || [], csv }); nA++;
+          s2.ok(`${label} on ${t.name}${svg ? ' (figure ' + fig + ')' : ''}`);
         }
-        sections.push(sec);
+        dTables.push(dt);
       }
       st = step('Checking the analyses for mistakes'); await sleep(250);
       let checks = []; try { checks = critique().filter(c => tables.some(t => c.where.includes(t.name)) || scope === 'all'); } catch (e) { checks = []; }
@@ -1595,7 +1594,8 @@ ${projectSummary()}`;
       plan.filter(p => p.it.kind === 'bo').forEach(p => { const r = compute(p.it); if (r && r.s && r.s.picks) next.push(`Run the suggested experiments for ${p.t.name}: ${r.s.picks.slice(0, 3).map(q => '(' + q.x.map(v => U.fmt(v, 3)).join(', ') + ')').join('; ')}, then add the measured values and re-run.`); });
       next.push('Treat fitted equations as descriptions of the data range, not as proof of mechanism, and do not extrapolate beyond it.');
       next.push('Replicate key measurements; confidence intervals here reflect the scatter in the data supplied, not systematic error.');
-      const d = { title: proj.name || 'Untitled project', author, nTables: tables.length, nAnalyses: nA, sections, findings, checks, next, repro, figReviews: [], aiSummary: '', aiDiscussion: '', model };
+      const d = { title: proj.name || 'Untitled project', author, date: fmtDate(), site: BF_CONFIG.site, tables: dTables, checks, next, figReviews: [], ai: {} };
+      let built = BF.report.build(d);
       /* multimodal: review supplied figures */
       if (repFigs.length) {
         for (const f of repFigs) {
@@ -1607,21 +1607,22 @@ ${projectSummary()}`;
           } catch (e) { d.figReviews.push({ name: f.name, url: f.url, text: '' }); s3.fail(`Figure review failed: ${e.message}`); }
         }
       }
-      if (canAI && allText.length) {
-        const s4 = step(`Drafting the summary and discussion (${model})`);
+      if (canAI && nA) {
+        const s4 = step(`Redrafting the abstract, introduction, discussion and conclusions (${model})`);
         try {
-          const txt = await llmOnce('You are Facet writing parts of a scientific report from verified results. Write exactly two sections headed SUMMARY and DISCUSSION. SUMMARY: at most 120 words of plain scientific prose on what was measured and found. DISCUSSION: at most 220 words interpreting the results physically or chemically, noting limitations, and recommending the next experiment. Use only numbers that appear in the RESULTS text; never introduce new numbers or claim anything the results do not support.', 'RESULTS:\n' + allText.join('\n').slice(0, 9000) + (checks.length ? '\n\nCHECKS FLAGGED:\n' + checks.map(c => plain(c.msg)).join('\n') : ''), null, 1200);
-          const m = txt.match(/SUMMARY\s*:?\s*([\s\S]*?)(?:\n\s*#*\s*DISCUSSION\s*:?\s*([\s\S]*))?$/i);
-          d.aiSummary = (m && m[1] ? m[1] : txt).trim(); d.aiDiscussion = (m && m[2] ? m[2] : '').trim();
-          s4.ok('Drafted the summary and discussion');
+          const txt = await llmOnce(BF.report.PROMPT, built.outline.slice(0, 14000), null, 3000);
+          const parts = BF.report.parseDraft(txt);
+          if (parts.abstract || parts.discussion) { d.ai = Object.assign({ model }, parts); s4.ok('Narrative redrafted; the rule-written text stays as the fallback in each section'); }
+          else s4.fail('The model did not return the four sections; the rule-written text is used');
         } catch (e) { s4.fail('Drafting failed: ' + e.message); }
-      } else if (hasKey && !canAI) step('Drafting the summary and discussion').skip('Needs Pro or a trial; the report uses the computed findings instead');
+      } else if (hasKey && !canAI) step('Redrafting the narrative').skip('Needs Pro or a trial; the report uses the rule-written narrative');
       st = step('Assembling the report'); await sleep(250);
-      const html = assembleReport(d);
+      built = BF.report.build(d);
+      const html = built.html;
       lastReport = { html, d, plan };
-      st.ok(`Report ready: ${nA} analyses, ${fig} figure${fig === 1 ? '' : 's'}, ${checks.length} flagged point${checks.length === 1 ? '' : 's'}`);
+      st.ok(`Report ready: ${nA} analyses, ${built.nFigures} figure${built.nFigures === 1 ? '' : 's'}, ${built.nTables} table${built.nTables === 1 ? '' : 's'}, ${built.nRefs} references, ${checks.length} flagged point${checks.length === 1 ? '' : 's'}`);
       const fname = (d.title || 'report').replace(/[^\w-]+/g, '_') + '-report.html';
-      out.innerHTML = `<div class="rp-done"><b>Your report is ready.</b><span>${nA} analyses · ${fig} figures · ${checks.length} checks flagged${d.aiSummary ? ' · AI-drafted summary' : ''}</span>
+      out.innerHTML = `<div class="rp-done"><b>Your report is ready.</b><span>${nA} analyses · ${built.nFigures} figures · ${built.nTables} tables · ${built.nRefs} references${d.ai.abstract ? ' · narrative by ' + esc(d.ai.model) : ''}</span>
         <div class="rp-btns"><button class="btn primary small" data-rp="preview">Preview</button><button class="btn small" data-rp="download">Download HTML <span class="lock">PRO</span></button><button class="btn small" data-rp="print">Print or save PDF <span class="lock">PRO</span></button>${plan.some(p => !p.existing) ? '<button class="btn small ghost" data-rp="add">Add these analyses to the project</button>' : ''}</div></div>`;
       $$('[data-rp]', out).forEach(b => b.onclick = () => {
         const a = b.dataset.rp;
@@ -1635,13 +1636,13 @@ ${projectSummary()}`;
   }
   function renderReportTab() {
     const box = $('#co-report'); const hasKey = !!AI.get().key;
-    box.innerHTML = `<div class="rp-intro"><b>Autonomous report</b><p>Facet plans the analyses your data call for, runs them, checks them for mistakes and writes a complete scientific report with methods, results, figures, checks and next steps. It works offline; with your AI key it also drafts the summary and discussion, and reviews figures you attach.</p></div>
+    box.innerHTML = `<div class="rp-intro"><b>Write the report</b><p>Facet plans the analyses your data call for, runs them, checks them for mistakes and writes a full report: abstract, introduction, data, methods with references, results with figures and parameter tables, a discussion of every result, conclusions, next steps and limitations. Every number comes from the engine. With your AI key it also redrafts the narrative and reviews figures you attach.</p></div>
       <div class="rp-opts">
         <div class="seg" role="radiogroup"><label><input type="radio" name="rp-scope" value="all" checked> Whole project</label><label><input type="radio" name="rp-scope" value="current"> Current table</label></div>
         <label class="rp-l">Author or group <span>optional</span><input type="text" id="rp-author" maxlength="120" placeholder="e.g. Panigrahy lab"></label>
         <div class="rp-figs"><div class="rp-fh"><span>Figures to review <small>optional · multimodal</small></span><button type="button" class="btn small ghost" id="rp-add">Add figure</button><input type="file" id="rp-file" accept="image/*" multiple hidden></div><div id="rp-fl"></div>
           <p class="hint">${hasKey ? 'A vision model reads each figure and lists problems, using your key.' : 'Add your Claude or GPT key in Ask to have the figures reviewed. Without it they are included as supplied.'}</p></div>
-        <button class="btn primary" id="rp-go">Run the agent</button>
+        <button class="btn primary" id="rp-go">Write the report</button>
       </div>
       <ol class="rp-log" id="rp-log"></ol><div id="rp-out"></div>`;
     const paint = () => { $('#rp-fl', box).innerHTML = repFigs.map((f, i) => `<div class="rp-f"><img src="${f.url}" alt=""><span>${esc(f.name)}</span><button type="button" data-rm="${i}" aria-label="Remove">×</button></div>`).join(''); $$('[data-rm]', box).forEach(b => b.onclick = () => { repFigs.splice(+b.dataset.rm, 1); paint(); }); };
@@ -1812,23 +1813,6 @@ ${projectSummary()}`;
   }
 
   /* ---------- Read a graph: digitise a plot image into a table ---------- */
-  function renderGraphTab() {
-    const box = $('#co-graph');
-    box.innerHTML = `<div class="gr-drop" id="gr-drop" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V9m4 11V5m4 15v-8m4 8V8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      <b>Drop a picture of a graph</b><span>or click to choose, or paste a screenshot. A plot from a paper, a spectrum, an instrument screen.</span></div>
-      <input type="file" id="gr-file" accept="image/*" hidden>
-      <ol class="gr-steps"><li>Click two known points on the X axis and type their values.</li><li>Do the same on the Y axis.</li><li>Click the curve or the markers you want.</li><li>Facet traces them and adds the data as a table.</li></ol>
-      <p class="hint">Runs entirely in your browser. To have the figure interpreted or checked for errors, attach it in the Ask tab.</p>`;
-    const drop = $('#gr-drop', box), file = $('#gr-file', box);
-    const take = f => readImage(f).then(digitizer).catch(e => U.toast(e.message));
-    drop.onclick = () => file.click();
-    drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } };
-    file.onchange = e => { if (e.target.files[0]) take(e.target.files[0]); e.target.value = ''; };
-    drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
-    drop.ondragleave = () => drop.classList.remove('over');
-    drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) take(f); };
-    drop.onpaste = e => { const it = [...(e.clipboardData || {}).items || []].find(x => x.type.startsWith('image/')); if (it) take(it.getAsFile()); };
-  }
   function digitizer(img) {
     const m = U.modal(`<p class="m-kicker">Facet · Read a graph</p><h2 id="dg-title">Click the first point on the X axis</h2>
       <div class="dg-wrap"><canvas id="dg-c" aria-label="Graph image; click to place calibration points"></canvas></div>
@@ -1903,7 +1887,7 @@ ${projectSummary()}`;
     step();
   }
 
-  function syncAiCfg() { const c = AI.get(); $('#ai-state').textContent = c.key ? 'Connected with your ' + (c.provider === 'openai' ? 'OpenAI' : 'Anthropic') + ' key (stored only in this browser).' : 'Add your own API key; requests go straight from your browser to the provider.'; }
+  function syncAiCfg() { const c = AI.get(), b = $('#co-key'); if (!b) return; b.textContent = c.key ? (c.provider === 'openai' ? 'GPT' : 'Claude') + ' · key set' : 'Add AI key'; b.classList.toggle('on', !!c.key); }
 
   /* ================= start screen ================= */
   function startScreen(closable) {
@@ -2179,7 +2163,7 @@ ${projectSummary()}`;
   document.addEventListener('bf:theme', () => { if (proj) render(); });
   if (q.get('cloud')) { history.replaceState(null, '', location.pathname); setTimeout(() => cloudDialog(), 300); }
   if (q.get('facet')) {
-    const TABS = { suggest: 'co-tab-advisor', check: 'co-tab-check', graph: 'co-tab-graph', report: 'co-tab-report', ask: 'co-tab-chat' };
+    const TABS = { suggest: 'co-tab-advisor', ask: 'co-tab-advisor', graph: 'co-tab-advisor', check: 'co-tab-check', report: 'co-tab-report' };
     const id = TABS[q.get('facet')];
     if (id) setTimeout(() => { document.body.classList.add('co-open'); $('#' + id).click(); }, 400);
   }

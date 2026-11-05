@@ -321,8 +321,16 @@ td.eqn { font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; }
 .co-head small { color: var(--ink-3); font-size: 12px; }
 .facet-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: #fff; background: linear-gradient(135deg, var(--brand), #5a3fc6); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
 .facet-mark svg { width: 20px; height: 20px; }
-.co-tabs button { font-size: 13px; padding: 8px 5px; }
-#co-check, #co-graph { padding: 14px 16px; overflow-y: auto; display: grid; gap: 10px; align-content: start; }
+.co-tabs button { font-size: 13.5px; padding: 9px 8px; flex: 1; }
+.co-sug { display: grid; gap: 10px; }
+.co-sug-h { margin: 4px 0 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.co-graph { background: var(--line-2); border-style: dashed; }
+.co-graph .hint { font-size: 12.5px; }
+.co-ask-hint a { color: var(--brand); font-weight: 600; }
+.co-send > span { display: flex; gap: 6px; }
+#co-key.on { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.modal .co-cfg { border: 0; padding: 4px 0 0; }
+#co-check { padding: 14px 16px; overflow-y: auto; display: grid; gap: 10px; align-content: start; }
 .chk-sum { padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); font-size: 13.5px; }
 .chk-sum.ok { background: var(--ok-soft); }
 .chk { display: flex; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }

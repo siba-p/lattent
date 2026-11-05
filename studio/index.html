@@ -61,20 +61,13 @@
 </div>
 <aside class="co" aria-label="Facet, your AI lab partner">
   <div class="co-head"><span class="facet-mark" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 1.8l6.8 4v8.4L10 18.2l-6.8-4V5.8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 1.8v16.4M3.2 5.8l13.6 8.4M16.8 5.8L3.2 14.2" fill="none" stroke="currentColor" stroke-width="1" opacity=".45"/><circle cx="14.6" cy="5.4" r="2.2" fill="#f08c3e"/></svg></span><div><h3>Facet</h3><small>Your AI lab partner</small></div><button class="x" id="co-close" aria-label="Close">×</button></div>
-  <div class="co-tabs" role="tablist"><button id="co-tab-advisor" aria-selected="true">Suggest</button><button id="co-tab-check" aria-selected="false">Check</button><button id="co-tab-graph" aria-selected="false">Graph</button><button id="co-tab-report" aria-selected="false">Report</button><button id="co-tab-chat" aria-selected="false">Ask</button></div>
-  <div id="co-advisor"></div>
+  <div class="co-tabs" role="tablist"><button id="co-tab-advisor" aria-selected="true">Suggest &amp; ask</button><button id="co-tab-check" aria-selected="false">Check</button><button id="co-tab-report" aria-selected="false">Report</button></div>
   <div id="co-check" hidden></div>
-  <div id="co-graph" hidden></div>
   <div id="co-report" hidden></div>
-  <div id="co-chat" hidden>
-    <div class="co-cfg">
-      <div class="row"><select id="ai-provider" aria-label="Provider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select><input id="ai-model" aria-label="Model"></div>
-      <div class="row"><input id="ai-key" type="password" placeholder="Your API key" autocomplete="off" aria-label="API key"><button class="btn small ghost" id="ai-forget">Forget</button></div>
-      <span id="ai-state"></span>
-    </div>
+  <div id="co-chat">
     <div id="co-log"></div>
     <form id="co-form"><div id="co-att" hidden></div><textarea id="co-q" placeholder="Ask about your data, or attach a figure…" aria-label="Question"></textarea>
-      <div class="co-send"><input type="file" id="co-img" accept="image/png,image/jpeg,image/webp,image/gif" hidden><button class="btn small ghost" type="button" id="co-attach" title="Attach a figure: a plot, spectrum or screenshot"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 6.5l-5.8 5.8a1.8 1.8 0 0 0 2.5 2.5l6.1-6.1a3.4 3.4 0 0 0-4.8-4.8L5.3 10.1a5 5 0 0 0 7.1 7.1l4.7-4.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Figure</button><button class="btn primary" type="submit">Ask</button></div></form>
+      <div class="co-send"><span><input type="file" id="co-img" accept="image/png,image/jpeg,image/webp,image/gif" hidden><button class="btn small ghost" type="button" id="co-attach" title="Attach a figure: a plot, spectrum or screenshot"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 6.5l-5.8 5.8a1.8 1.8 0 0 0 2.5 2.5l6.1-6.1a3.4 3.4 0 0 0-4.8-4.8L5.3 10.1a5 5 0 0 0 7.1 7.1l4.7-4.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Figure</button><button class="btn small ghost" type="button" id="co-key" title="Your own Claude or GPT key, kept in this browser">Add AI key</button></span><button class="btn primary" type="submit">Ask</button></div></form>
   </div>
 </aside>
 <script src="../assets/js/config.js"></script>
@@ -94,6 +87,7 @@
 <script src="../assets/js/chem.js"></script>
 <script src="../assets/js/crystal.js"></script>
 <script src="../assets/js/discover.js"></script>
+<script src="../assets/js/report.js"></script>
 <script src="../assets/js/studio.js"></script>
 </body>
 </html>

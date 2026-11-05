@@ -24,6 +24,7 @@ jobs:
       - run: node tests/figure/check.js
       - run: node tests/guide/check.js
       - run: node tests/access/check.js
+      - run: node tests/report/check.js
   security:
     runs-on: ubuntu-latest
     steps:
