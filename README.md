@@ -112,6 +112,7 @@ node tests/ml/check.js && node tests/ml/check_learn.js                          
 node tests/gen/check.js tests/gen/props_parity.json && node tests/gen/check_xtal.js --offline
 node tests/formats/check.js && node tests/bench/nist.js --check                         # file import, NIST StRD
 node tests/share/check.js && node tests/figure/check.js                                 # share links, journal-size figures
+node tests/guide/check.js                                                               # on-site help guide
 npm ci && npm run test:db                                                               # database security, both payment webhooks
 ```
 
