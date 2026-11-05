@@ -51,7 +51,7 @@ Live site: https://siba-p.github.io/lattent/
 | `assets/js/learn.js`, `learn-worker.js` | Equation discovery (symbolic regression) and AutoML with permutation importance and conformal intervals |
 | `ai/`, `assets/js/ai.js` | The AI page: periodic table of Lattent's models and a live lab |
 | `assets/js/theme.js` | Applies the saved light or dark theme before the page paints |
-| `assets/js/hero.js` | “Lattent in 30 seconds”: the home-page film, drawn on a canvas from the gold-nanoparticle example; `window.__film.seek(t)` renders one moment for tests and video capture |
+| `assets/js/hero.js` | “Lattent in 40 seconds”: the home-page film, a five-step workflow (data in, analyse, features, AI & ML, publish) drawn on a canvas from the worked examples’ numbers; `window.__film.seek(t)` renders one moment for tests and video capture |
 | `sw.js`, `manifest.webmanifest` | Installable app; Studio works offline (network first, so updates always arrive when online) |
 | `assets/js/discover.js` | Studio's Discover views: database, phase identification, generation, 3D viewer |
 | `tests/gen/` | Featurisation, training scripts, bundling and checks for the generative models |
