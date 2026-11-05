@@ -18,6 +18,10 @@ window.BF_CONFIG = {
   earlyAccess: true,
   trialDays: 7,
   support: 'sibasankarpanigrahy08@gmail.com',
+  /* Web3Forms access key: delivers contact-form messages to the support inbox without a server.
+     Get one free at https://web3forms.com (enter the support address; the key arrives by email).
+     Leave empty and the form opens the visitor's own email app instead. */
+  web3forms: '',
   site: 'siba-p.github.io/lattent',
   /* shown in the site footer; url is optional */
   founders: [{ name: 'Sibasankar Panigrahy', url: 'https://siba-p.github.io/' }, { name: 'Satyendra Rajput', url: '' }],

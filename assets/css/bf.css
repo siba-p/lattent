@@ -187,7 +187,7 @@ h3, h4 { font-weight: 600; letter-spacing: -0.01em; }
 .field { margin: 10px 0; }
 .field > label, .lbl { display: block; font-size: 13.5px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
 .field small, .hint { display: block; color: var(--ink-3); font-size: 12.5px; margin-top: 4px; line-height: 1.45; }
-textarea, input[type=text], input[type=number], select { width: 100%; font: 13.5px/1.45 Inter, sans-serif; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
+textarea, input[type=text], input[type=email], input[type=url], input[type=password], input[type=search], input[type=number], select { width: 100%; font: 13.5px/1.45 Inter, sans-serif; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
 textarea { font-family: var(--mono); font-size: 12.5px; min-height: 180px; resize: vertical; white-space: pre; tab-size: 12; }
 textarea.drag { border-color: var(--brand); background: var(--brand-soft); }
 textarea:focus, input:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--brand) 35%, transparent); border-color: var(--brand); }
