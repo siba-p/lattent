@@ -35,6 +35,23 @@
     if (!p || typeof p !== 'object' || !Array.isArray(p.tables)) return null;
     const str = (v, n) => String(v == null ? '' : v).slice(0, n || 500);
     const prim = v => (v === null || ['string', 'number', 'boolean'].includes(typeof v) ? (typeof v === 'string' ? v.slice(0, 2000) : v) : null);
+    /* figure options per chart index: a whitelist of small values */
+    const cleanFig = fg => {
+      if (!fg || typeof fg !== 'object') return undefined;
+      const out = {};
+      Object.entries(fg).slice(0, 8).forEach(([k, f]) => {
+        if (!/^\d$/.test(k) || !f || typeof f !== 'object') return;
+        const g = {};
+        ['title', 'xl', 'yl'].forEach(a => { if (typeof f[a] === 'string' && f[a]) g[a] = f[a].slice(0, 120); });
+        ['x0', 'x1', 'y0', 'y1', 'ms', 'lw', 'fs'].forEach(a => { if (f[a] !== '' && f[a] != null && isFinite(+f[a])) g[a] = +f[a]; });
+        if (typeof f.pal === 'string' && /^[a-z]{1,12}$/.test(f.pal)) g.pal = f.pal;
+        if (typeof f.aspect === 'string' && /^\d{1,2}:\d{1,2}$/.test(f.aspect)) g.aspect = f.aspect;
+        if (f.legend === false) g.legend = false; if (f.grid === false) g.grid = false;
+        if (Array.isArray(f.colors)) g.colors = f.colors.slice(0, 12).map(c => (typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c) ? c : ''));
+        if (Object.keys(g).length) out[k] = g;
+      });
+      return Object.keys(out).length ? out : undefined;
+    };
     const cleanOpts = o => {
       const out = {};
       Object.entries(o && typeof o === 'object' ? o : {}).slice(0, 40).forEach(([k, v]) => {
@@ -53,7 +70,7 @@
     }));
     const ids = new Set(tables.map(t => t.id));
     const items = (Array.isArray(p.items) ? p.items : []).slice(0, 1000).filter(i => i && K[i.kind] && ids.has(i.tableId)).map(i => ({
-      id: /^a\w{1,20}$/.test(i.id) ? i.id : uid('a'), tableId: i.tableId, kind: i.kind, opts: cleanOpts(i.opts), name: i.name ? str(i.name, 200) : undefined
+      id: /^a\w{1,20}$/.test(i.id) ? i.id : uid('a'), tableId: i.tableId, kind: i.kind, opts: cleanOpts(i.opts), name: i.name ? str(i.name, 200) : undefined, fig: cleanFig(i.fig)
     }));
     const out = { name: str(p.name, 200) || 'Untitled project', tables, items };
     /* an untouched example stays disposable after a reload, so the next example or import replaces it */
@@ -772,6 +789,42 @@
 
   /* ---------- AI: equation discovery and AutoML ---------- */
   const aiTag = '<span class="ai-tag" title="Computed by Lattent’s own machine-learning code, in your browser">AI</span>';
+  K.overlay = {
+    label: 'Overlay tables (one figure)', types: ['xy'], group: 'Fit a model',
+    desc: 'Draw the curves of several XY tables in one figure, with the fitted curves from their existing analyses, for comparison or a combined publication figure. Use Customise for colours, labels, ranges and sizes.',
+    defaults: t => ({ tables: [t.id], fits: true }),
+    form: (o, t) => `<div class="fg"><label>Tables to overlay</label><div class="checkcols">${proj.tables.filter(x => x.type === 'xy').map(x => `<label class="check"><input type="checkbox" data-o="tables" data-id="1" value="${esc(x.id)}"${!o.tables || !o.tables.length || o.tables.includes(x.id) ? ' checked' : ''}> ${esc(x.name)}</label>`).join('')}</div></div>
+      <div class="fg"><label class="check"><input type="checkbox" data-o="fits"${o.fits ? ' checked' : ''}> Include the fitted curves from existing analyses of these tables</label></div>`,
+    run(t, o) {
+      const ids = (o.tables && o.tables.length ? o.tables : [t.id]).filter(id => table(id) && table(id).type === 'xy');
+      if (!ids.length) return { error: 'Choose at least one XY table.' };
+      const series = [], curves = []; let xl = '', yl = '';
+      ids.forEach(id => {
+        const tb = table(id), d = xyData(tb); xl = xl || d.xlabel; yl = yl || d.ylabel;
+        d.series.forEach(s => series.push({ table: tb.name, name: ids.length > 1 ? (d.series.length > 1 ? tb.name + ' · ' + s.name : tb.name) : s.name, pts: s.means.map(q => ({ x: q.x, y: q.y })) }));
+        if (!o.fits) return;
+        const xs = [].concat(...d.series.map(s => s.xs)), x0 = Math.min(...xs), x1 = Math.max(...xs);
+        const add = (model, p, name) => { if (!model || !model.f || !p) return; const pts = []; for (let k = 0; k <= 120; k++) { const x = x0 + (x1 - x0) * k / 120; let y; try { y = model.f(x, p); } catch (e) { y = NaN; } if (isFinite(y)) pts.push([x, y]); } if (pts.length > 2 && !curves.some(c => c.table === tb.name && c.name === name)) curves.push({ table: tb.name, name, pts }); };
+        proj.items.filter(i => i.tableId === id && (i.kind === 'nlfit' || i.kind === 'autofit')).forEach(i => {
+          let res; try { res = compute(i); } catch (e) { res = null; }
+          if (!res || res.error || res.pending) return;
+          if (i.kind === 'nlfit') res.fits.forEach(f => { if (!f.r.error) add(res.model, f.r.fit.p, (ids.length > 1 ? tb.name + ': ' : '') + res.model.name); });
+          else if (res.list && res.list[0] && res.list[0].fit) add(res.list[0].model, res.list[0].fit.p, (ids.length > 1 ? tb.name + ': ' : '') + res.list[0].model.name);
+        });
+      });
+      return { series, curves, xl, yl, n: ids.length };
+    },
+    render(res) {
+      const spec = { x: { label: res.xl }, y: { label: res.yl }, legend: true, series: res.series.map((s, i) => ({ name: s.name, ci: i, points: s.pts })).concat(res.curves.map(c => { const si = Math.max(0, res.series.findIndex(s => s.table === c.table)); return { name: c.name, ci: si, points: [], curve: c.pts }; })) };
+      return {
+        html: `${chartBox(0, 'Overlay')}<p class="hint">${res.series.length} data series${res.curves.length ? ' and ' + res.curves.length + ' fitted curve' + (res.curves.length === 1 ? '' : 's') : ''} from ${res.n} table${res.n === 1 ? '' : 's'}. Fitted curves take the colour of their data. Use Customise for colours, labels, ranges and sizes, and Journal size for the export.</p>`,
+        charts: [(T, W, H) => P.xy(spec, T, W, H)],
+        csv: () => [['Table', 'Series', res.xl || 'X', res.yl || 'Y']].concat(...res.series.map(s => s.pts.map(q => [s.table, s.name, q.x, q.y])))
+      };
+    },
+    text: res => [{ title: 'Figure legend', html: `<p>${esc(res.yl || 'Y')} against ${esc(res.xl || 'X')} for ${res.series.map(s => esc(s.name)).join(', ')}${res.curves.length ? ', with the fitted ' + res.curves.map(c => esc(c.name)).join(', ') + ' (lines)' : ''}. Symbols are measured values.</p>` }]
+  };
+
   K.symreg = {
     label: 'Discover the equation (symbolic regression)', types: ['xy'], group: 'Fit a model',
     desc: 'Lattent searches thousands of candidate equations built from powers, logarithms, exponentials and saturation terms, and returns the simplest ones that explain your data, ranked by AICc.',
@@ -973,8 +1026,12 @@
     return res;
   }
 
+  /* The write-ups: assets/js/writeup.js supplies full Methods, Results, Figure legend and
+     Interpretation sections for every kind, replacing the short text above. */
+  if (BF.writeup) Object.keys(BF.writeup.kinds).forEach(k => { if (K[k]) K[k].text = (res, o, t) => BF.writeup.kinds[k](res, o, t, { site: BF_CONFIG.site, label: K[k].label.replace(/\s*\(.*\)$/, '') }); });
+
   /* ================= rendering helpers ================= */
-  const chartBox = (i, title, small) => `<div class="cbox${small ? ' small' : ''}"><div class="cbar"><h4>${esc(title)}</h4><div class="exp"><button class="btn small ghost" data-x="${i}" data-f="png-free">PNG</button><button class="btn small ghost" data-x="${i}" data-f="svg">SVG <span class="lock">PRO</span></button><button class="btn small ghost" data-x="${i}" data-f="png">600 dpi <span class="lock">PRO</span></button><button class="btn small ghost" data-x="${i}" data-f="journal" title="Exact column width and text size for ACS, RSC, Elsevier, Nature or Wiley">Journal size <span class="lock">PRO</span></button></div></div><div class="chart-host" data-chart="${i}"></div></div>`;
+  const chartBox = (i, title, small) => `<div class="cbox${small ? ' small' : ''}"><div class="cbar"><h4>${esc(title)}</h4><div class="exp"><button class="btn small ghost" data-fig="${i}" title="Title, labels, ranges, colours and sizes">Customise</button><button class="btn small ghost" data-x="${i}" data-f="png-free">PNG</button><button class="btn small ghost" data-x="${i}" data-f="svg">SVG <span class="lock">PRO</span></button><button class="btn small ghost" data-x="${i}" data-f="png">600 dpi <span class="lock">PRO</span></button><button class="btn small ghost" data-x="${i}" data-f="journal" title="Exact column width and text size for ACS, RSC, Elsevier, Nature or Wiley">Journal size <span class="lock">PRO</span></button></div></div><div class="chart-host" data-chart="${i}"></div></div>`;
   const notes = list => (list && list.length ? `<ul class="notes">${list.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : '');
 
   function drawCharts(el, charts, labels) {
@@ -1166,7 +1223,7 @@
       $$('[data-o]', form).forEach(el => {
         const key = el.dataset.o;
         if (el.type === 'checkbox' && el.value && el.value !== 'on') {
-          const all = $$(`[data-o="${key}"]`, form).filter(x => x.checked).map(x => +x.value);
+          const all = $$(`[data-o="${key}"]`, form).filter(x => x.checked).map(x => (x.dataset.id ? x.value : +x.value));
           it.opts[key] = all;
         } else if (el.type === 'checkbox') it.opts[key] = el.checked;
         else it.opts[key] = el.value;
@@ -1194,11 +1251,17 @@
     let r;
     try { r = k.render(res, it.opts, t); } catch (e) { console.error(e); out.innerHTML = `<div class="card res"><div class="err">Could not display this result: ${esc(e.message)}</div></div>`; return; }
     out.innerHTML = `<div class="card res">${r.html}</div>`;
-    const charts = (r.charts || []).filter(Boolean);
-    drawCharts(out, r.charts || [], r.labels);
+    const figOf = i => (it.fig && it.fig[i]) || null;
+    const withFig = (b, i) => (b ? (T, W, H) => { P.fig = figOf(i); try { return b(T, W, H); } finally { P.fig = null; } } : b);
+    const wrapped = (r.charts || []).map(withFig), charts = wrapped.filter(Boolean);
+    drawCharts(out, wrapped, r.labels);
     $$('[data-x]', out).forEach(b => b.onclick = () => {
-      const build = r.charts[+b.dataset.x];
-      U.exportFigure((T, W, H) => build(T, W, H), (t.name + '-' + it.kind).replace(/[^\w-]+/g, '_'), b.dataset.f);
+      const i = +b.dataset.x;
+      U.exportFigure(wrapped[i], (t.name + '-' + it.kind).replace(/[^\w-]+/g, '_'), b.dataset.f, figOf(i));
+    });
+    $$('[data-fig]', out).forEach(b => b.onclick = () => {
+      const i = +b.dataset.fig;
+      U.figureDialog(r.charts[i], figOf(i), f => { it.fig = it.fig || {}; if (f) it.fig[i] = f; else delete it.fig[i]; if (!Object.keys(it.fig).length) delete it.fig; save(); runItem(it); U.toast(f ? 'Figure options saved with this analysis.' : 'Figure options reset.', 'ok'); });
     });
     if (r.wire) r.wire(out, it);
     $('#it-csv').onclick = () => Pro.require('CSV export', () => r.csv && U.download((t.name + '-' + it.kind).replace(/[^\w-]+/g, '_') + '.csv', 'text/csv', U.csv(r.csv())));
@@ -1578,7 +1641,7 @@ ${projectSummary()}`;
           let r, text;
           try { r = k.render(res, p.it.opts, t); text = k.text ? k.text(res, p.it.opts, t) : null; } catch (e) { s2.fail(`${label}: ${e.message}`); dt.runs.push({ kind: p.it.kind, label, opts: p.it.opts, error: e.message }); continue; }
           const build = (r.charts || []).filter(Boolean)[0];
-          let svg = ''; try { svg = build ? build(P.print, 720, 460).svg : ''; } catch (e) { svg = ''; }
+          let svg = ''; try { P.fig = (p.it.fig && p.it.fig[0]) || null; svg = build ? build(P.print, 720, 460).svg : ''; } catch (e) { svg = ''; } finally { P.fig = null; }
           let csv = null; try { csv = r.csv ? r.csv() : null; } catch (e) { csv = null; }
           if (svg) fig++;
           dt.runs.push({ kind: p.it.kind, label, opts: p.it.opts, res, svg, sections: text || [], csv }); nA++;

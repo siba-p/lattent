@@ -3,13 +3,13 @@
    stored at install, so Studio opens and analyses data with no connection (for example on an
    instrument computer). Only this site's own files are cached: never API calls, payment or
    sign-in traffic, and never user data. */
-const CACHE = 'lattent-v2';
+const CACHE = 'lattent-v3';
 const CORE = [
   'studio/', 'manifest.webmanifest', 'favicon.svg',
   'assets/css/bf.css', 'assets/css/studio.css',
   'assets/js/theme.js', 'assets/js/config.js', 'assets/js/stats.js', 'assets/js/models.js', 'assets/js/ml-features.js',
   'assets/models/shape-v1.js', 'assets/js/ml.js', 'assets/js/analysis.js', 'assets/js/plot.js', 'assets/js/shell.js',
-  'assets/js/cloud.js', 'assets/js/samples.js', 'assets/js/learn.js', 'assets/js/formats.js', 'assets/js/chem.js',
+  'assets/js/cloud.js', 'assets/js/report.js', 'assets/js/writeup.js', 'assets/js/samples.js', 'assets/js/learn.js', 'assets/js/formats.js', 'assets/js/chem.js',
   'assets/js/crystal.js', 'assets/js/discover.js', 'assets/js/studio.js', 'assets/js/learn-worker.js',
   'assets/js/gen-worker.js', 'assets/js/generate.js', 'assets/models/gen-v1.js'
 ];

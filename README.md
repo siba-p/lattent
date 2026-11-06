@@ -51,6 +51,7 @@ Live site: https://siba-p.github.io/lattent/
 | `assets/js/learn.js`, `learn-worker.js` | Equation discovery (symbolic regression) and AutoML with permutation importance and conformal intervals |
 | `ai/`, `assets/js/ai.js` | The AI page: periodic table of Lattent's models and a live lab |
 | `assets/js/theme.js` | Applies the saved light or dark theme before the page paints |
+| `assets/js/writeup.js` | The write-up under every analysis: Methods, Results, Figure legend and Interpretation in the register of a methods section, from the engine’s numbers; feeds the Facet report |
 | `assets/js/report.js` | Facet’s report writer: abstract, introduction, data, methods with references, results with figures and parameter tables, an interpretation of every analysis, conclusions, next steps, limitations and settings, from the engine’s results; a language model may redraft the narrative |
 | `assets/js/hero.js` | “Lattent in 40 seconds”: the home-page film, a five-step workflow (data in, analyse, features, AI & ML, publish) drawn on a canvas from the worked examples’ numbers; `window.__film.seek(t)` renders one moment for tests and video capture |
 | `sw.js`, `manifest.webmanifest` | Installable app; Studio works offline (network first, so updates always arrive when online) |
@@ -115,6 +116,7 @@ node tests/gen/check.js tests/gen/props_parity.json && node tests/gen/check_xtal
 node tests/formats/check.js && node tests/bench/nist.js --check                         # file import, NIST StRD
 node tests/share/check.js && node tests/figure/check.js                                 # share links, journal-size figures
 node tests/guide/check.js && node tests/access/check.js && node tests/report/check.js   # help guide, access codes, report writer
+node tests/writeup/check.js                                                             # write-ups for every analysis kind
 npm ci && npm run test:db                                                               # database security, both payment webhooks
 ```
 

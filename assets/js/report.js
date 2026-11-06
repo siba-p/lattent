@@ -96,7 +96,7 @@
     ttest: r => `${r.t.name}: individual values with mean ± SD for the two groups.`,
     automl: r => `Predicted versus measured ${r.res.yname} under cross-validation, with ${Math.round(100 * r.res.level)}% prediction intervals; the diagonal marks perfect prediction.`,
     pca: r => `Scores of the ${r.t.name} samples on the first two principal components.`,
-    kmeans: r => `${r.t.name} samples in principal-component space, coloured by cluster (k = ${r.res.best.k}).`,
+    kmeans: r => `${r.t.name} samples in principal-component space, coloured by cluster (k = ${r.res.best.k || (r.res.best.sizes || []).length}).`,
     bo: r => `Gaussian-process model of ${r.res.names[r.res.names.length - 1]}: measured versus predicted values and the proposed experiments.`,
     corr: r => `Correlation matrix of ${r.t.name}.`,
     mlr: r => `Predicted versus observed ${r.res.y} from the multiple linear regression.`,
@@ -236,7 +236,7 @@
     kmeans(r) {
       const b = r.res.best; if (!b) return '';
       const sil = b.silhouette;
-      let s = `${b.k} clusters ${r.opts.k === 'auto' ? 'gave the highest silhouette score' : 'were requested'}; the silhouette of ${nf(sil, 2)} indicates ${sil > 0.7 ? 'a strong, well-separated structure' : sil > 0.5 ? 'a reasonable structure' : sil > 0.25 ? 'a weak structure that may be artificial' : 'no substantial clustering'}.`;
+      let s = `${b.k || (b.sizes || []).length} clusters ${r.opts.k === 'auto' ? 'gave the highest silhouette score' : 'were requested'}; the silhouette of ${nf(sil, 2)} indicates ${sil > 0.7 ? 'a strong, well-separated structure' : sil > 0.5 ? 'a reasonable structure' : sil > 0.25 ? 'a weak structure that may be artificial' : 'no substantial clustering'}.`;
       s += ' k-means assumes compact, similarly sized clusters; sample membership near the boundaries is uncertain and should be confirmed with an independent variable.';
       return s;
     },
@@ -264,6 +264,15 @@
       return s;
     },
   };
+  INTERPRET.auc = function (r) {
+    const l = r.res.list || []; if (!l.length) return '';
+    const parts = l.map(x => `${x.s.name} has a total area of ${nf(x.r.total, 4)}${x.r.negative < 0 && Math.abs(x.r.negative) > 0.05 * Math.abs(x.r.total) ? `, of which ${nf(Math.abs(x.r.negative), 3)} lies below the baseline` : ''}, peaking at ${nf(x.r.peakX, 4)}`);
+    return `${join(parts)}. The area depends on the baseline chosen${r.opts && r.opts.base === 'line' ? ' (here the line through the first and last points)' : r.opts && r.opts.base === 'min' ? ' (here the minimum value)' : ' (here zero)'}, so the same convention must be used when areas are compared, and the trapezoidal rule underestimates sharp peaks that are sampled coarsely.`;
+  };
+  INTERPRET.smooth = function (r) {
+    const d = +(r.opts && r.opts.deriv) || 0, half = +(r.opts && r.opts.half) || 5;
+    return `${d ? `The ${d === 1 ? 'first' : 'second'} derivative amplifies noise, so the window (${2 * half + 1} points) sets a compromise between noise and resolution` : `A ${2 * half + 1}-point window smooths features narrower than about half the window`}; features of that width or less should be interpreted with caution, and the smoothed values should not be used for quantitative fitting, which belongs on the raw data.`;
+  };
   R.interpret = function (run) { try { const f = INTERPRET[run.kind]; return f ? f(run) : ''; } catch (e) { return ''; } };
   R.aim = function (run) { try { const f = AIM[run.kind]; return f ? f(run) : `analyse ${run.t.name} with ${lower1(run.label)}`; } catch (e) { return `analyse ${run.t.name}`; } };
   R.legend = function (run) { const s = sec(run, /legend/i); if (s) return plain(s.html); try { const f = LEGEND[run.kind]; return f ? f(run) : `${run.label} of ${run.t.name}.`; } catch (e) { return `${run.label} of ${run.t.name}.`; } };
@@ -273,7 +282,7 @@
     try {
       const res = run.res;
       if (run.kind === 'pca') return `PC1 and PC2 explain ${(100 * (res.r.explained[0] + (res.r.explained[1] || 0))).toFixed(0)}% of the variance in ${run.t.name}.`;
-      if (run.kind === 'kmeans') return `${run.t.name} separates into ${res.best.k} clusters (silhouette ${nf(res.best.silhouette, 2)}).`;
+      if (run.kind === 'kmeans') return `${run.t.name} separates into ${res.best.k || (res.best.sizes || []).length} clusters (silhouette ${nf(res.best.silhouette, 2)}).`;
       if (run.kind === 'mlr') return `A linear model explains ${(100 * (isNum(res.r.adj) ? res.r.adj : res.r.r)).toFixed(0)}% of ${res.y} (adjusted R²).`;
       if (run.kind === 'corr') { const t = INTERPRET.corr(run); return t ? firstSentence(t) : ''; }
     } catch (e) { /* no finding */ }

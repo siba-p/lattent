@@ -72,5 +72,30 @@ ok(phys.length === 1 && phys[0].data.readUInt32BE(0) === 23622 && phys[0].data[8
 ok(zlib.inflateSync(chunks[2].data).equals(raw), 'image data untouched');
 
 if (process.argv[2]) { fs.writeFileSync(path.join(process.argv[2], 'sample.tif'), tif); fs.writeFileSync(path.join(process.argv[2], 'sample.png'), out); }
+
+/* figure options: palette, per-series colour, axis labels and ranges, title, marker and line sizes */
+{
+  const spec = () => ({ x: { label: 'X (s)' }, y: { label: 'Y (a.u.)' }, series: [{ name: 'A', ci: 0, points: [{ x: 1, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 5 }], curve: [[1, 2], [3, 5]] }, { name: 'B', ci: 1, points: [{ x: 1, y: 1 }, { x: 2, y: 2 }] }] });
+  const base = P.xy(spec(), P.print, 600, 400).svg;
+  P.fig = { pal: 'okabe' }; const pal = P.xy(spec(), P.print, 600, 400).svg; P.fig = null;
+  ok(pal.includes('#0072B2') && !base.includes('#0072B2'), 'palette changes the series colours');
+  P.fig = { colors: ['', '#ff0000'] }; const col = P.xy(spec(), P.print, 600, 400).svg; P.fig = null;
+  ok(col.includes('#ff0000') && col.includes(P.print.series[0]), 'a per-series colour replaces only that series');
+  P.fig = { xl: 'Time (min)', yl: 'Signal' }; const lab = P.xy(spec(), P.print, 600, 400).svg; P.fig = null;
+  ok(lab.includes('Time (min)') && lab.includes('>Signal<') && !lab.includes('X (s)'), 'axis labels are replaced');
+  P.fig = { title: 'Figure 1' }; const ttl = P.xy(spec(), P.print, 600, 400).svg; P.fig = null;
+  ok(ttl.includes('Figure 1') && ttl.includes('font-weight="600"'), 'a title is drawn');
+  P.fig = { ms: 7.5, lw: 4 }; const big = P.xy(spec(), P.print, 600, 400).svg; P.fig = null;
+  ok(big.includes('r="7.5"') && big.includes('stroke-width="4"') && !base.includes('r="7.5"'), 'marker and line sizes apply');
+  P.fig = { x0: 0, x1: 10 }; const rng = P.xy(spec(), P.print, 600, 400).svg; P.fig = null;
+  ok(rng.includes('>10<') && !base.includes('>10<'), 'an axis range widens the axis');
+  P.fig = { legend: false }; const nol = P.xy(spec(), P.print, 600, 400).svg; P.fig = null;
+  ok(base.includes('>A<') && !nol.includes('>A<'), 'the legend can be hidden');
+  const noid = x => x.replace(/c[0-9a-z]{6}/g, 'cid');
+  ok(noid(P.xy(spec(), P.print, 600, 400).svg) === noid(base), 'without options the chart is unchanged');
+  const cspec = { groups: [{ name: 'G1', v: [1, 2, 3] }, { name: 'G2', v: [2, 3, 4] }], y: { label: 'Y' }, err: 'sd' };
+  P.fig = { title: 'Groups', pal: 'grey' }; const cs = P.col(cspec, P.print, 500, 300).svg; P.fig = null;
+  ok(cs.includes('Groups') && /viewBox="0 0 500 3\d\d"/.test(cs) && !/viewBox="0 0 500 300"/.test(cs), 'a column chart gets a title and grows to fit it');
+}
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

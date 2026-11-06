@@ -10,6 +10,52 @@
     bg: '#ffffff', ink: '#111111', muted: '#555555', grid: '#ececec', axis: '#333333',
     series: ['#3e4ed8', '#e0712c', '#0d9488', '#8b4fc9', '#d14d7d'], font: 'Arial, Helvetica, sans-serif', size: 13
   };
+  /* Figure options, applied to the next chart drawn: Studio sets P.fig around a build so the
+     same options reach the screen, the exports and the report. Fields: title, xl, yl (axis
+     labels), x0, x1, y0, y1 (ranges in data units), pal (palette name), colors (hex per
+     series), ms (marker radius), lw (line width), fs (font px), legend (true/false),
+     grid (false hides), aspect ('4:3', '3:2', '16:9', '1:1' for exports). */
+  P.fig = null;
+  P.PALETTES = {
+    lattent: null,
+    okabe: ['#0072B2', '#D55E00', '#009E73', '#CC79A7', '#E69F00', '#56B4E9', '#000000'],
+    tol: ['#4477AA', '#EE6677', '#228833', '#CCBB44', '#66CCEE', '#AA3377', '#BBBBBB'],
+    warm: ['#b8321f', '#e0712c', '#f2b84b', '#7a4a1e', '#d9a066', '#8c2d19'],
+    cool: ['#1f4e9c', '#2a9d8f', '#5a3fc6', '#4cc9f0', '#264653', '#8ab6d6'],
+    viridis: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
+    grey: ['#000000', '#555555', '#888888', '#aaaaaa', '#cccccc'],
+  };
+  P.PALETTE_NAMES = [['lattent', 'Lattent (default)'], ['okabe', 'Okabe–Ito (colour-blind safe)'], ['tol', 'Tol bright'], ['warm', 'Warm'], ['cool', 'Cool'], ['viridis', 'Viridis'], ['grey', 'Greyscale (print)']];
+  P.ASPECTS = { '4:3': [720, 540], '3:2': [720, 480], '16:9': [720, 405], '1:1': [600, 600] };
+  function withFig(spec, T) {
+    const F = P.fig; if (!F) return { spec, T, title: '' };
+    const S2 = Object.assign({}, spec);
+    if (S2.x) S2.x = Object.assign({}, S2.x); if (S2.y) S2.y = Object.assign({}, S2.y);
+    if (F.xl && S2.x) S2.x.label = F.xl; if (F.yl && S2.y) S2.y.label = F.yl;
+    [['x0', 'x', 'min'], ['x1', 'x', 'max'], ['y0', 'y', 'min'], ['y1', 'y', 'max']].forEach(([k, ax, mm]) => { const v = F[k]; if (v !== '' && v != null && isFinite(+v) && S2[ax]) { const lg = S2[ax].log; if (!lg || +v > 0) S2[ax][mm] = lg ? Math.log10(+v) : +v; } });
+    if (Array.isArray(S2.series)) {
+      if (F.legend === false) S2.series = S2.series.map(s => Object.assign({}, s, { hideLegend: true }));
+      else if (F.legend === true) S2.legend = true;
+      if (Array.isArray(F.colors)) S2.series = S2.series.map((s, i) => (F.colors[i] ? Object.assign({}, s, { color: F.colors[i] }) : s));
+    }
+    const T2 = Object.assign({}, T);
+    if (F.pal && P.PALETTES[F.pal]) T2.series = P.PALETTES[F.pal];
+    if (F.fs && isFinite(+F.fs)) T2.size = +F.fs;
+    if (F.grid === false) T2.grid = T.bg;
+    if (F.lw && isFinite(+F.lw)) T2.lw = +F.lw; if (F.ms && isFinite(+F.ms)) T2.ms = +F.ms;
+    return { spec: S2, T: T2, title: F.title || '' };
+  }
+  /* a title above a finished chart: the viewBox grows and the drawing shifts down */
+  function titled(out, title, T) {
+    if (!title) return out;
+    const str = typeof out === 'string'; let s = str ? out : out.svg;
+    const m = s.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/); if (!m) return out;
+    const H = +m[2], th = T.size + 14;
+    s = s.replace(m[0], `viewBox="0 0 ${m[1]} ${H + th}"`).replace(/ height="([\d.]+)"/, ` height="${H + th}"`);
+    s = s.replace(/(<rect width="[\d.]+" height=")([\d.]+)(" fill="[^"]*"\/>)/, (a, b, c, d) => `${b}${H + th}${d}<text x="16" y="${T.size + 6}" font-size="${T.size + 1}" font-weight="600" fill="${T.ink}">${esc(title)}</text><g transform="translate(0 ${th})">`).replace(/<\/svg>\s*$/, '</g></svg>');
+    return str ? s : Object.assign({}, out, { svg: s });
+  }
+  P.withFig = withFig; P.titled = titled;
   P.screen = function () {
     const cs = getComputedStyle(document.documentElement);
     const v = n => cs.getPropertyValue(n).trim();
@@ -80,9 +126,11 @@
      points:[{x, y, err, excl, key}], curve:[[x,y]], band:[[x,lo,hi]]}], vguides:[{x, label, ci}], hguides:[{y, label}]}
      x values are in data units; with x.log the values are log10 already. */
   P.xy = function (spec, T, W, H) {
-    const pad = { l: 66, r: 18, t: 14, b: 50 };
+    const fx = withFig(spec, T); spec = fx.spec; T = fx.T;
+    const pad = { l: 66, r: 18, t: 14 + (fx.title ? T.size + 12 : 0), b: 50 };
     const vis = spec.series.filter(s => !s.hideLegend);
     const items = vis.map(s => ({ name: s.name, color: s.color || T.series[s.ci % T.series.length], line: !!s.curve || !!s.asLine }));
+    P.last = { series: spec.series.map(s => ({ name: s.name, color: s.color || T.series[s.ci % T.series.length] })) };
     const leg = vis.length > 1 || (spec.legend && vis.length) ? legendRow(items, T, pad.l, pad.t + 12, W - pad.l - pad.r) : { svg: '', height: 0 };
     pad.t += leg.height + (leg.height ? 6 : 0);
     const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
@@ -156,21 +204,21 @@
     spec.series.forEach(s => {
       const c = s.color || T.series[s.ci % T.series.length];
       if (s.curve && s.curve.length) {
-        d += `<path d="M${s.curve.map(q => `${X(q[0]).toFixed(1)} ${Y(q[1]).toFixed(1)}`).join('L')}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round"${s.dash ? ' stroke-dasharray="6 5"' : ''}/>`;
+        d += `<path d="M${s.curve.map(q => `${X(q[0]).toFixed(1)} ${Y(q[1]).toFixed(1)}`).join('L')}" fill="none" stroke="${c}" stroke-width="${T.lw || 2}" stroke-linejoin="round"${s.dash ? ' stroke-dasharray="6 5"' : ''}/>`;
       }
     });
     d += '</g>';
     spec.series.forEach((s, si) => {
       const c = s.color || T.series[s.ci % T.series.length];
       if (s.asLine) {
-        if (s.points.length) d += `<path d="M${s.points.map(q => `${X(q.x).toFixed(1)} ${Y(q.y).toFixed(1)}`).join('L')}" fill="none" stroke="${c}" stroke-width="${s.width || 1.4}" stroke-linejoin="round"${s.dash ? ' stroke-dasharray="5 4"' : ''} clip-path="url(#${clipId})"/>`;
+        if (s.points.length) d += `<path d="M${s.points.map(q => `${X(q.x).toFixed(1)} ${Y(q.y).toFixed(1)}`).join('L')}" fill="none" stroke="${c}" stroke-width="${s.width || (T.lw ? T.lw * 0.7 : 1.4)}" stroke-linejoin="round"${s.dash ? ' stroke-dasharray="5 4"' : ''} clip-path="url(#${clipId})"/>`;
         return;
       }
       s.points.forEach((p, pi) => {
         const cx = X(p.x), cy = Y(p.y);
         if (p.err) d += `<line x1="${cx}" x2="${cx}" y1="${Y(p.y - p.err)}" y2="${Y(p.y + p.err)}" stroke="${c}" stroke-width="1.4"/><line x1="${cx - 4}" x2="${cx + 4}" y1="${Y(p.y - p.err)}" y2="${Y(p.y - p.err)}" stroke="${c}" stroke-width="1.4"/><line x1="${cx - 4}" x2="${cx + 4}" y1="${Y(p.y + p.err)}" y2="${Y(p.y + p.err)}" stroke="${c}" stroke-width="1.4"/>`;
         const shape = s.shape || si % 3;
-        const r = 4.6;
+        const r = T.ms || 4.6;
         const fill = p.excl ? T.bg : c, stroke = p.excl ? T.muted : T.bg;
         const attrs = `fill="${fill}" stroke="${stroke}" stroke-width="${p.excl ? 1.4 : 1.5}" data-s="${si}" data-p="${pi}" data-xy="${p.x},${p.y}"${p.label ? ` data-l="${esc(p.label)}"` : ''} class="pt"`;
         if (shape === 1) d += `<rect x="${cx - r * 0.9}" y="${cy - r * 0.9}" width="${r * 1.8}" height="${r * 1.8}" ${attrs}/>`;
@@ -183,13 +231,15 @@
       const c = v.ci != null ? T.series[v.ci % T.series.length] : T.muted;
       d += `<text x="${X(v.x) + 5}" y="${pad.t + ih - 7}" fill="${c}" font-size="${T.size - 1.5}">${esc(v.label)}</text>`;
     });
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="${T.font}"><rect width="${W}" height="${H}" fill="${T.bg}"/>${leg.svg}${g}${d}</svg>`;
+    const ttl = fx.title ? `<text x="${pad.l}" y="${T.size + 8}" font-size="${T.size + 1}" font-weight="600" fill="${T.ink}">${esc(fx.title)}</text>` : '';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="${T.font}"><rect width="${W}" height="${H}" fill="${T.bg}"/>${ttl}${leg.svg}${g}${d}</svg>`;
     return { svg, X, Y, logx: !!spec.x.log, logy: !!spec.y.log, inv: { x: px => x0 + (px - pad.l) / iw * (x1 - x0), y: py => y0 + (pad.t + ih - py) / ih * (y1 - y0) } };
   };
 
   /* Categorical dot plot on a log2 axis (qPCR fold change).
      spec: {groups:[...], series:[{name, ci, cells:{group:{mean, lo, hi, pts:[...]}}}], y:{label}, ref: 1} */
   P.cat = function (spec, T, W, H) {
+    const fx = withFig(spec, T); spec = fx.spec; T = fx.T; if (fx.title) { const keep = P.fig; P.fig = null; try { return titled(P.cat(spec, T, W, H), fx.title, T); } finally { P.fig = keep; } }
     const pad = { l: 66, r: 18, t: 14, b: 50 };
     const items = spec.series.map(s => ({ name: s.name, color: T.series[s.ci % T.series.length] }));
     const leg = legendRow(items, T, pad.l, pad.t + 12, W - pad.l - pad.r);
@@ -243,6 +293,7 @@
   /* Column scatter (dot) plot with mean and error bar per group and significance brackets.
      spec: {groups:[{name, v:[...]}], y:{label}, err:'sd'|'sem'|'ci', brackets:[{i, j, text}]} */
   P.col = function (spec, T, W, H) {
+    const fx = withFig(spec, T); spec = fx.spec; T = fx.T; if (fx.title) { const keep = P.fig; P.fig = null; try { return titled(P.col(spec, T, W, H), fx.title, T); } finally { P.fig = keep; } }
     const pad = { l: 66, r: 16, t: 18, b: 46 };
     const G = spec.groups;
     const longest = Math.max(...G.map(g => g.name.length));
@@ -302,6 +353,7 @@
 
   /* Horizontal bars. spec: {items:[{name, v, lo, hi}], x:{label}, ci: color index} */
   P.bars = function (spec, T, W, H) {
+    const fx = withFig(spec, T); spec = fx.spec; T = fx.T; if (fx.title) { const keep = P.fig; P.fig = null; try { return titled(P.bars(spec, T, W, H), fx.title, T); } finally { P.fig = keep; } }
     const items = spec.items;
     const lw = Math.min(200, 12 + Math.max(...items.map(i => String(i.name).length)) * 7);
     const pad = { l: lw, r: 22, t: 12, b: 44 };
@@ -331,6 +383,7 @@
 
   /* Heatmap of a square matrix in [-1, 1] (correlations). */
   P.heat = function (spec, T, W) {
+    const fx = withFig(spec, T); spec = fx.spec; T = fx.T; if (fx.title) { const keep = P.fig; P.fig = null; try { return titled(P.heat(spec, T, W), fx.title, T); } finally { P.fig = keep; } }
     const n = spec.names.length;
     const lw = Math.min(150, 12 + Math.max(...spec.names.map(s => s.length)) * 6.8);
     const cell = Math.max(22, Math.min(64, (W - lw - 70) / n));

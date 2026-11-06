@@ -311,9 +311,9 @@
 
   /* ---------- figure export ---------- */
   /* build(theme, W, H) → {svg}; name: file stem */
-  U.exportFigure = function (build, name, fmt) {
+  U.exportFigure = function (build, name, fmt, opts) {
     if (fmt === 'journal') return U.journalFigure(build, name);
-    const W = 720, H = 500;
+    const [W, H] = (opts && BF.plot.ASPECTS[opts.aspect]) || [720, 500];
     const fig = build(BF.plot.print, W, H);
     if (fmt === 'png-free') {
       return U.svgToPng(fig.svg, W, H, 2, 'Made with Lattent (free)').then(b => U.download(name + '.png', 'image/png', b));
@@ -322,6 +322,49 @@
       if (fmt === 'svg') U.download(name + '.svg', 'image/svg+xml', fig.svg);
       else U.svgToPng(fig.svg, W, H, 5, null).then(b => U.download(name + "-600dpi.png", "image/png", b));
     });
+  };
+
+  /* Customise a figure: title, axis labels and ranges, palette or per-series colours, marker,
+     line and text sizes, legend, grid and export shape, with a live preview. `build` is the raw
+     chart builder; the options are applied by setting BF.plot.fig around each draw, so Studio
+     stores them with the analysis and they reach every export and the report. */
+  U.figureDialog = function (build, fig, onApply) {
+    const P = BF.plot; let f = Object.assign({}, fig || {});
+    const esc = U.esc, opt = (list, v) => list.map(([val, lab]) => `<option value="${esc(val)}"${String(v) === String(val) ? ' selected' : ''}>${esc(lab)}</option>`).join('');
+    const m = U.modal(`<p class="m-kicker">Figure</p><h2>Customise the figure</h2>
+      <div class="fig-wrap"><div class="fig-prev" id="fg-prev"></div>
+      <form class="fig-form" id="fg-form" autocomplete="off">
+        <label>Title <input type="text" data-k="title" value="${esc(f.title || '')}" placeholder="none" maxlength="120"></label>
+        <div class="fig-row"><label>X-axis label <input type="text" data-k="xl" value="${esc(f.xl || '')}" placeholder="from the data" maxlength="120"></label><label>Y-axis label <input type="text" data-k="yl" value="${esc(f.yl || '')}" placeholder="from the data" maxlength="120"></label></div>
+        <div class="fig-row"><label>X from <input type="number" step="any" data-k="x0" value="${f.x0 ?? ''}" placeholder="auto"></label><label>X to <input type="number" step="any" data-k="x1" value="${f.x1 ?? ''}" placeholder="auto"></label><label>Y from <input type="number" step="any" data-k="y0" value="${f.y0 ?? ''}" placeholder="auto"></label><label>Y to <input type="number" step="any" data-k="y1" value="${f.y1 ?? ''}" placeholder="auto"></label></div>
+        <div class="fig-row"><label>Colours <select data-k="pal">${opt(P.PALETTE_NAMES, f.pal || 'lattent')}</select></label><label>Text size <select data-k="fs">${opt([['', 'Normal'], ['11', 'Small'], ['15', 'Large'], ['17', 'Larger']], f.fs || '')}</select></label></div>
+        <div id="fg-colors" class="fig-colors"></div>
+        <div class="fig-row"><label>Markers <select data-k="ms">${opt([['', 'Normal'], ['3.2', 'Small'], ['6', 'Large'], ['7.5', 'Very large']], f.ms || '')}</select></label><label>Lines <select data-k="lw">${opt([['', 'Normal'], ['1.2', 'Thin'], ['3', 'Thick'], ['4', 'Very thick']], f.lw || '')}</select></label><label>Export shape <select data-k="aspect">${opt([['', 'Default'], ['4:3', '4 : 3'], ['3:2', '3 : 2'], ['16:9', '16 : 9'], ['1:1', 'Square']], f.aspect || '')}</select></label></div>
+        <div class="fig-row"><label class="check"><input type="checkbox" data-k="legend"${f.legend === false ? '' : ' checked'}> Legend</label><label class="check"><input type="checkbox" data-k="grid"${f.grid === false ? '' : ' checked'}> Grid lines</label></div>
+      </form></div>
+      <div class="m-actions"><button class="btn primary" id="fg-apply" type="button">Apply</button><button class="btn ghost" id="fg-reset" type="button">Reset to defaults</button></div>`);
+    m.querySelector('.modal-box').classList.add('xwide');
+    const $m = s => m.querySelector(s);
+    const read = () => {
+      const g = {}; m.querySelectorAll('[data-k]').forEach(el => { const k = el.dataset.k; if (el.type === 'checkbox') { if (!el.checked) g[k] = false; } else if (el.value !== '') g[k] = el.type === 'number' ? +el.value : el.value; });
+      if (g.pal === 'lattent') delete g.pal;
+      const cols = [...m.querySelectorAll('[data-c]')].map(el => (el.dataset.on === '1' ? el.value : '')); if (cols.some(Boolean)) g.colors = cols;
+      f = g;
+    };
+    const draw = () => {
+      const [W, H] = P.ASPECTS[f.aspect] || [720, 500], w = 560, h = Math.round(w * H / W);
+      P.fig = f; let out; try { out = build(P.screen(), w, h); } catch (e) { out = { svg: '' }; } P.fig = null;
+      $m('#fg-prev').innerHTML = out.svg || '';
+    };
+    const colours = () => {
+      const ser = (P.last && P.last.series) || [];
+      $m('#fg-colors').innerHTML = ser.length ? '<span class="fig-colors-h">Series colours</span>' + ser.map((s, i) => `<label class="fig-col"><input type="color" data-c="${i}" value="${(f.colors && f.colors[i]) || s.color}" data-on="${f.colors && f.colors[i] ? 1 : 0}"> ${esc(s.name || 'Series ' + (i + 1))}</label>`).join('') : '';
+      $m('#fg-colors').querySelectorAll('[data-c]').forEach(el => { el.oninput = () => { el.dataset.on = '1'; read(); draw(); }; });
+    };
+    draw(); colours();
+    m.querySelector('#fg-form').addEventListener('input', e => { if (e.target.dataset.k) { const pal = e.target.dataset.k === 'pal'; if (pal) m.querySelectorAll('[data-c]').forEach(el => { el.dataset.on = '0'; }); read(); draw(); if (pal) colours(); } });
+    $m('#fg-apply').onclick = () => { read(); U.closeModal(); onApply(Object.keys(f).length ? f : null); };
+    $m('#fg-reset').onclick = () => { U.closeModal(); onApply(null); };
   };
 
   /* Journal-ready figure: the publisher's column width, text in points, a TIFF, PNG or SVG that
