@@ -29,15 +29,15 @@
 <header data-bf></header>
 <main>
 <section class="sol-hero ai-hero"><div class="wrap">
-  <h1>Sixteen models, one bench.</h1>
-  <p class="sol-lede">Lattent’s AI recognises your data, discovers equations, predicts properties with honest uncertainty, proposes new materials and writes up the analysis on its own. Every model was built and tested by Lattent, runs on your computer, and states how well it works on data it never saw.</p>
+  <h1>Machine learning in Lattent</h1>
+  <p class="sol-lede">Sixteen models for recognising data, discovering equations, predicting properties with calibrated uncertainty, proposing compositions and writing up analyses. Each was trained and tested by Lattent, runs in the browser, and reports its accuracy on held-out data.</p>
 </div></section>
 <section class="wrap section ai-main">
-  <div class="sec-head"><h2>The periodic table of Lattent’s AI</h2><p>Each element is a model. The number in the corner is its headline result on held-out data. Choose one to see what it does, how it learned and where to try it.</p></div>
+  <div class="sec-head"><h2>Model catalogue</h2><p>Each tile is a model; the number in the corner is its headline result on held-out data. Choose one to see its purpose, how it was trained and where it is used.</p></div>
   <div class="ai-layout"><div id="ai-table"></div><div id="ai-detail" aria-live="polite"></div></div>
 </section>
 <section class="wrap section" id="lab">
-  <div class="sec-head"><h2>Try it live</h2><p>Paste two columns, X then Y, or choose a sample. Everything runs in this page.</p></div>
+  <div class="sec-head"><h2>Run a model in this page</h2><p>Paste two columns, X then Y, or choose a sample. Everything runs in this page.</p></div>
   <div class="card ai-lab" id="ai-lab">
     <div class="lab-top"><div class="lab-tabs" role="tablist"><button data-mode="symreg" role="tab" aria-selected="true">Discover the equation</button><button data-mode="shape" role="tab" aria-selected="false">Read the shape</button></div>
       <div class="lab-samples"><span>Samples</span><button data-sample="arrhenius">Ionic conductivity</button><button data-sample="isotherm">Adsorption</button><button data-sample="decay">PL decay</button></div></div>
@@ -45,15 +45,15 @@
   </div>
 </section>
 <section class="wrap section ai-principles">
-  <div class="sec-head"><h2>Built to be trusted</h2></div>
+  <div class="sec-head"><h2>Provenance and validation</h2></div>
   <div class="sol-team-grid ai-p4">
-    <div class="card"><h3>Our own models</h3><p>Trained by Lattent on simulated data or open, licensed databases. Never on your data, and never on the output of other AI models.</p></div>
-    <div class="card"><h3>On your computer</h3><p>Every model runs in your browser, heavy ones in a background thread. Your measurements are not uploaded to train or run anything.</p></div>
-    <div class="card"><h3>Measured, not claimed</h3><p>Every number on this page comes from data the model did not see in training. The checks run before each release; see the <a href="../validation/#ai">validation page</a>.</p></div>
-    <div class="card"><h3>Uncertainty included</h3><p>Predictions carry calibrated intervals, fits carry confidence intervals and AICc, and models report their cross-validated accuracy, so you know when to trust them.</p></div>
+    <div class="card"><h3>Training data</h3><p>Trained by Lattent on simulated data or open, licensed databases. Never on your data, and never on the output of other AI models.</p></div>
+    <div class="card"><h3>Execution</h3><p>Every model runs in your browser, heavy ones in a background thread. Your measurements are not uploaded to train or run anything.</p></div>
+    <div class="card"><h3>Held-out accuracy</h3><p>Every number on this page comes from data the model did not see in training. The checks run before each release; see the <a href="../validation/#ai">validation page</a>.</p></div>
+    <div class="card"><h3>Uncertainty</h3><p>Predictions carry calibrated intervals, fits carry confidence intervals and AICc, and models report their cross-validated accuracy, so you know when to trust them.</p></div>
   </div>
 </section>
-<section class="wrap"><div class="band"><div><h2>Put the AI to work on your data.</h2><p>Free, in your browser, with nothing to install.</p></div><a class="btn big" href="../studio/">Open Lattent Studio</a></div></section>
+<section class="wrap"><div class="band"><div><h2>Use the models in Lattent Studio</h2><p>Free, in your browser, with nothing to install.</p></div><a class="btn big" href="../studio/">Open Lattent Studio</a></div></section>
 </main>
 <footer data-bf></footer>
 <script src="../assets/js/config.js"></script>

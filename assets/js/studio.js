@@ -1972,7 +1972,7 @@ ${projectSummary()}`;
     const url = location.origin + location.pathname + '#share=' + await packShare(proj);
     if (url.length > SHARE_MAX) {
       U.modal(`<p class="m-kicker">Share</p><h2>This project is too large for a link</h2>
-        <p>A link can carry about ${Math.round(SHARE_MAX / 1000)} kB, and this project needs ${Math.round(url.length / 1000)} kB. Share a smaller copy (for example one table), or use cloud projects to share it with your lab.</p>
+        <p>A link can carry about ${Math.round(SHARE_MAX / 1000)} kB, and this project needs ${Math.round(url.length / 1000)} kB. Share a smaller copy (for example one table), or save the project as a file and send that.</p>
         <div class="m-actions"><button class="btn" data-cl>Cloud projects</button></div>`).querySelector('[data-cl]').onclick = () => cloudDialog();
       return;
     }

@@ -246,7 +246,7 @@
         <li>Figures at each journal's exact size (ACS, RSC, Elsevier, Nature, Wiley) as TIFF, PNG or SVG, without the watermark</li>
         <li>Batch runs: one analysis on any number of files, collected in one summary table</li>
         <li>Auto-written methods, results and figure legend, ready to paste into a paper</li>
-        <li>Cloud storage for your projects, results as CSV and reports</li>
+        <li>Results as CSV, reports and project files</li>
         <li>Facet, the AI lab partner, with your own Claude or GPT key</li>
       </ul>
       <div class="m-plans">${plan('yearly', 'Yearly', p.yearly, 'year', true)}${plan('monthly', 'Monthly', p.monthly, 'month')}${plan('lab', 'Lab, 10 people', p.lab, 'year')}</div>
@@ -651,7 +651,7 @@ ${fig ? `<figure>${fig}</figure>` : ''}${sections.map(s => `<h4>${U.esc(s.title)
         { h: 'By team', items: [['pricing/', 'Students and researchers', 'Free, in the browser'], ['pricing/', 'Research groups', 'Shared projects on the Lab plan'], ['#examples', 'Teaching labs', 'Ready-made class examples'], ['life-science/', 'Life-science labs', 'IC50, kinetics, qPCR']] }
       ] },
     { id: 'facet', label: 'Facet AI', compact: true, items: [
-      ['ai/', 'Facet AI overview', 'Sixteen models and a live lab'],
+      ['ai/', 'Facet AI overview', 'Sixteen models, with a demo you can run'],
       ['studio/?example=anova&facet=report', 'Autonomous reports', 'An agent that analyses, checks and writes up'],
       ['studio/?facet=graph', 'Graph reader', 'Turn a figure image into data'],
       ['studio/?facet=check', 'Project check', 'Find errors before reviewers do'],

@@ -162,7 +162,7 @@
   function sData(t) {
     const [s, e] = S[1], a = env(t, s, e); if (a <= 0) return;
     ctx.save(); ctx.globalAlpha = a; cam(t, s, e);
-    title(t, s, e, 'From the bench or the simulation', 'Instrument exports, Excel sheets and CIF structures. One file or a hundred, read in your browser.', 1);
+    title(t, s, e, 'Import: instruments, simulations, spreadsheets', 'Instrument exports, Excel sheets and CIF structures. One file or a hundred, read in your browser.', 1);
     const tx = 360, ty = 118, tw = 480, th = 442;
     const tabAt = f => [tx + 10 + f * 77, ty + 10];
     const flights = [];
@@ -210,7 +210,7 @@
   function sXrd(t) {
     const [s, e] = S[2], a = env(t, s, e); if (a <= 0) return;
     ctx.save(); ctx.globalAlpha = a; cam(t, s, e);
-    title(t, s, e, 'Fit, with the checks built in', 'Pseudo-Voigt peaks on a fitted baseline. Size and strain from the widths, each with its uncertainty.', 2);
+    title(t, s, e, 'Peak fitting with uncertainties', 'Pseudo-Voigt peaks on a fitted baseline. Size and strain from the widths, each with its uncertainty.', 2);
     const r = { x: 96, y: 140, w: 740, h: 296 };
     const marks = PEAKS.map((p, k) => span(t, s + 2.9 + k * 0.25, s + 3.4 + k * 0.25));
     xrd(r, { trace: ease(span(t, s + 0.4, s + 2.6)), base: out(span(t, s + 2.4, s + 3.2)), marks, fit: ease(span(t, s + 3.9, s + 5.0)) });
@@ -242,7 +242,7 @@
   function sWall(t) {
     const [s, e] = S[3], a = env(t, s, e); if (a <= 0) return;
     ctx.save(); ctx.globalAlpha = a; cam(t, s, e);
-    title(t, s, e, 'Every measurement a materials lab makes', '35 equations, 30+ analyses, statistics with the assumptions checked, and a database of 5.8 million structures.', 3);
+    title(t, s, e, 'Thirty analyses for materials and chemistry', '35 equations, 30+ analyses, statistics with the assumptions checked, and a database of 5.8 million structures.', 3);
     const hi = Math.floor((t - (s + 2.4)) / 0.17);
     TILES.forEach(([nm, g], i) => {
       const c = i % 4, r = Math.floor(i / 4), x = 30 + c * 208, y = 112 + r * 96, p = out(span(t, s + 0.3 + i * 0.1, s + 0.9 + i * 0.1)); if (p <= 0) return;
@@ -263,7 +263,7 @@
   function sML(t) {
     const [s, e] = S[4], a = env(t, s, e); if (a <= 0) return;
     ctx.save(); ctx.globalAlpha = a; cam(t, s, e);
-    title(t, s, e, 'Learn from your samples', 'PCA and clustering find the structure; AutoML predicts the property and says which variables matter.', 4);
+    title(t, s, e, 'PCA, clustering and AutoML', 'PCA and clustering find the structure; AutoML predicts the property and says which variables matter.', 4);
     const r = { x: 96, y: 150, w: 340, h: 300 };
     const m = axes(r, { x0: -3, x1: 3, y0: -2.6, y1: 2.6, xt: [-2, 0, 2], yt: [-2, 0, 2], xl: 'PC1 (62 % of variance)', yl: 'PC2 (21 %)' });
     const cp = ease(span(t, s + 1.9, s + 2.7));
@@ -295,7 +295,7 @@
   function sFacet(t) {
     const [s, e] = S[5], a = env(t, s, e); if (a <= 0) return;
     ctx.save(); ctx.globalAlpha = a; cam(t, s, e);
-    title(t, s, e, 'Ask Facet, your AI lab partner', 'It suggests the analysis, checks the project for mistakes, reads graphs and writes the report.', 4);
+    title(t, s, e, 'Facet: questions, checks and the report', 'It suggests the analysis, checks the project for mistakes, reads graphs and writes the report.', 4);
     const x = 50, y = 116, w = 500, h = 444; sideCard(x, y, w, h);
     glowDot(x + 26, y + 24, 6, P.purple); font(600, 13, 'ui'); text('Facet', x + 42, y + 24, P.ink); font(400, 11.5, 'ui'); text('Every number comes from the validated engine', x + 86, y + 24, P.muted);
     ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(x + 1, y + 44, w - 2, 1);
@@ -342,7 +342,7 @@
   function sPublish(t) {
     const [s, e] = S[6], a = env(t, s, e); if (a <= 0) return;
     ctx.save(); ctx.globalAlpha = a; cam(t, s, e);
-    title(t, s, e, 'Download for your journal', 'Figures at the exact column width as 600 dpi TIFF, PNG or SVG, with methods text written from your numbers.', 5);
+    title(t, s, e, 'Export at journal size', 'Figures at the exact column width as 600 dpi TIFF, PNG or SVG, with methods text written from your numbers.', 5);
     const px = 50, py = 112, pw = 340, ph = 448, pp = out(span(t, s + 0.2, s + 1.0));
     ctx.save(); ctx.globalAlpha = a * pp; ctx.translate(0, (1 - pp) * 30);
     ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 16; rr(px, py, pw, ph, 6); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
@@ -390,8 +390,8 @@
     ctx.save(); ctx.globalAlpha = a * 0.35;
     LAT.forEach(q => { ctx.fillStyle = 'rgba(138,150,255,.6)'; ctx.beginPath(); ctx.arc(q.x, q.y, 2, 0, 7); ctx.fill(); });
     ctx.globalAlpha = a; const p = out(span(t, s, s + 0.9)); ctx.translate(0, (1 - p) * 16);
-    font(700, 40, 'd'); text('Free. In your browser.', W / 2, H / 2 - 50, P.ink, 'center');
-    text('Your data stays with you.', W / 2, H / 2 - 2, P.copper, 'center');
+    font(700, 40, 'd'); text('Free. Runs in your browser.', W / 2, H / 2 - 50, P.ink, 'center');
+    text('Your data stays on your computer.', W / 2, H / 2 - 2, P.copper, 'center');
     const bw = 230; rr(W / 2 - bw / 2, H / 2 + 36, bw, 48, 24); ctx.fillStyle = P.brand; ctx.fill(); font(600, 15, 'ui'); text('Open Lattent Studio', W / 2, H / 2 + 60, '#fff', 'center');
     ctx.restore();
   }

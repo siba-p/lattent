@@ -63,7 +63,7 @@ def ex(name, label):
 
 FIELDS = [
     dict(slug="nanomaterials", name="Nanomaterials", short="Crystallite size, phases, band gaps",
-         h1="Nanomaterials, measured and identified.",
+         h1="Nanomaterials: size, phase and band gap",
          lede="Size your crystallites, confirm the phase and read the band gap of your nanoparticles, with every number traceable to the fit that produced it.",
          cta=ex("xrd", "Open the gold-nanoparticle example"), img=("discover-phase.webp", "Gold nanoparticle XRD identified as fcc Au, Fm-3m, with every peak indexed"),
          flows=[
@@ -74,7 +74,7 @@ FIELDS = [
          ],
          eqs=["Scherrer", "Williamson–Hall", "Tauc (direct, indirect, forbidden)", "Quantum confinement (Brus-type)", "Confinement with Coulomb term", "Drude plasmon shift", "Pseudo-Voigt peaks"]),
     dict(slug="catalysis", name="Catalysis", short="Kinetics, isotherms, batch statistics",
-         h1="Catalysis data, from kinetics to the next formulation.",
+         h1="Catalysis: kinetics, statistics and optimisation",
          lede="Extract activation energies, compare catalyst batches with the right statistics, fit adsorption isotherms, and let Bayesian optimisation choose the next composition to test.",
          cta=ex("anova", "Open the catalyst-batch example"), img=("anova.webp", "One-way ANOVA comparing the mass activity of catalyst batches, with Tukey significance brackets"),
          flows=[
@@ -85,7 +85,7 @@ FIELDS = [
          ],
          eqs=["Arrhenius", "Langmuir", "Freundlich", "Sips", "Pseudo-first-order", "Pseudo-second-order", "Tafel", "Michaelis–Menten"]),
     dict(slug="batteries-energy", name="Batteries and energy", short="Conductivity, cathodes, phase purity",
-         h1="Battery and energy materials, from conductivity to new cathodes.",
+         h1="Batteries and energy: conductivity and phase purity",
          lede="Fit ionic conductivity across temperature, confirm phase purity by XRD, and explore new compositions in a chemical system before you synthesise them.",
          cta=ex("arrhenius", "Open the solid-electrolyte example"), img=("discover-gen.webp", "Generated compositions with predicted formation energy, band gap and novelty against the Alexandria database"),
          flows=[
@@ -96,7 +96,7 @@ FIELDS = [
          ],
          eqs=["Arrhenius", "Vogel–Fulcher–Tammann", "Tafel", "Avrami (JMAK)", "Exponential decay"]),
     dict(slug="polymers", name="Polymers", short="Tensile tests, Tg, rheology, blends",
-         h1="Polymer science, from stress–strain to the next blend.",
+         h1="Polymers: mechanical, thermal and rheological analysis",
          lede="Read mechanical properties from tensile curves, relate Tg to molecular weight, model flow and relaxation, and optimise blend formulations with a Gaussian-process model.",
          cta=ex("tensile", "Open the tensile-test example"), img=("discovery.webp", "Bayesian optimisation suggesting the next polymer-blend experiments"),
          flows=[
@@ -107,7 +107,7 @@ FIELDS = [
          ],
          eqs=["Flory–Fox", "Mark–Houwink", "Williams–Landel–Ferry", "Carreau", "Cross", "Stretched exponential (KWW)", "Avrami crystallisation", "Vogel–Fulcher–Tammann"]),
     dict(slug="semiconductors", name="Semiconductors and optics", short="Band gaps, PL decay, new absorbers",
-         h1="Semiconductors and optics, from absorption edge to new absorbers.",
+         h1="Semiconductors and optics: band gaps and PL decay",
          lede="Measure optical band gaps, fit photoluminescence decays, compare with computed band gaps, and generate candidate compositions steered towards a target gap.",
          cta=ex("tauc", "Open the band-gap example"), img=("tauc.webp", "Tauc plot giving the optical band gap of ZnO nanocrystals"),
          flows=[
@@ -118,7 +118,7 @@ FIELDS = [
          ],
          eqs=["Tauc", "One- and two-phase exponential decay", "Stretched exponential (KWW)", "Gaussian and Lorentzian peaks", "Quantum confinement (Brus-type)"]),
     dict(slug="electrochemistry", name="Electrochemistry", short="Tafel, conductivity, calibration",
-         h1="Electrochemistry, fitted and tested.",
+         h1="Electrochemistry: Tafel, conductivity and calibration",
          lede="Fit Tafel slopes, ionic conductivities and sensor calibrations, resolve overlapping peaks and compare electrodes with statistics that check their own assumptions.",
          cta=ex("arrhenius", "Open the conductivity example"), img=("table.webp", "An XY table of ionic conductivity against temperature with replicate columns"),
          flows=[
@@ -129,7 +129,7 @@ FIELDS = [
          ],
          eqs=["Tafel", "Arrhenius", "Vogel–Fulcher–Tammann", "Langmuir", "Linear and polynomial", "4PL calibration"]),
     dict(slug="ceramics-alloys", name="Ceramics and alloys", short="Hall–Petch, JMAK, alloy datasets",
-         h1="Ceramics and alloys, from microstructure to property maps.",
+         h1="Ceramics and alloys: strength, kinetics and phases",
          lede="Relate strength to grain size, follow transformation kinetics, identify phases, and explore multi-property datasets with PCA and clustering.",
          cta=ex("alloys", "Open the alloy-dataset example"), img=("discover-xtal.webp", "Rutile TiO2 in Lattent's 3D structure viewer with lattice parameters and computed properties"),
          flows=[
@@ -140,7 +140,7 @@ FIELDS = [
          ],
          eqs=["Hall–Petch", "Avrami (JMAK)", "Arrhenius", "Power law", "Curie–Weiss"]),
     dict(slug="analytical-chemistry", name="Analytical chemistry", short="Calibration, LOD/LOQ, chromatography",
-         h1="Analytical chemistry, calibrated and defensible.",
+         h1="Analytical chemistry: calibration and peak resolution",
          lede="Build calibration curves with detection limits, resolve chromatographic and spectroscopic peaks, fit reaction kinetics and report statistics a reviewer will accept.",
          cta=("standard-curve/", "Open the calibration tool"), img=("report.webp", "Auto-written methods, results and figure legend under an ANOVA graph"),
          flows=[
@@ -203,7 +203,7 @@ def field_page(f):
 <section class="wrap section"><div class="sec-head"><h2>What you can do</h2><p>Each workflow opens with your data in the browser. Nothing is uploaded, and every result comes with its figure and methods text.</p></div>
   <div class="sol-flows">{flows}</div></section>
 <section class="wrap section sol-eq"><div><h2>Equations and analyses for {esc(f["name"].lower())}</h2><p>Built into the curve-fitting engine and checked against SciPy, alongside 30 more and any equation you type yourself.</p></div><ul>{eqs}</ul></section>
-<section class="wrap"><div class="band"><div><h2>Start with your own data.</h2><p>Free, in your browser, with nothing to install.</p></div><a class="btn big" href="{root}studio/">Open Lattent Studio</a></div>
+<section class="wrap"><div class="band"><div><h2>Analyse your own data</h2><p>Free, in your browser, with nothing to install.</p></div><a class="btn big" href="{root}studio/">Open Lattent Studio</a></div>
   <p class="sol-more">Other fields: {others}</p></section>
 </main>
 """
@@ -218,14 +218,14 @@ def hub():
     cards += f'<a class="card sol-card" href="{root}life-science/"><h3>Life sciences</h3><p>IC50, enzyme kinetics, qPCR, standard curves.</p><span>The same validated engine for biochemistry and biology assays.</span><i>Explore →</i></a>'
     body = f"""<main>
 <section class="sol-hero sol-hero-hub"><div class="wrap">
-  <h1>Built for the measurements your field makes.</h1>
-  <p class="sol-lede">Lattent is one workspace, but every field asks different questions of its data. Choose yours to see the workflows, equations and examples that fit.</p>
+  <h1>Solutions by field</h1>
+  <p class="sol-lede">One workspace, with the workflows, equations and worked examples arranged by field. Choose yours.</p>
 </div></section>
 <section class="wrap section"><div class="sol-grid">{cards}</div></section>
-<section class="wrap section sol-teams"><div class="sec-head"><h2>For every kind of team</h2></div>
+<section class="wrap section sol-teams"><div class="sec-head"><h2>Plans by group size</h2></div>
   <div class="sol-team-grid">
     <div class="card"><h3>Students and researchers</h3><p>Every analysis is free and runs in your browser, with no account. Pro adds publication exports and the AI chat for a few dollars a month.</p><a href="{root}pricing/">See pricing →</a></div>
-    <div class="card"><h3>Research groups</h3><p>The Lab plan gives up to ten people shared cloud projects, one invoice, and the same validated engine on every computer.</p><a href="{root}pricing/">Lab plan →</a></div>
+    <div class="card"><h3>Research groups</h3><p>The Lab plan covers up to ten people on one invoice, with Pro for every member and the same validated engine on every computer.</p><a href="{root}pricing/">Lab plan →</a></div>
     <div class="card"><h3>Teaching labs</h3><p>Ten worked examples open with realistic data and the analysis already run, ready for a practical class.</p><a href="{root}#examples">Worked examples →</a></div>
   </div></section>
 </main>
@@ -269,10 +269,11 @@ COMPARE = [
     ("Auto-written methods, results and figure legend", (0, 1, 1)),
     ("Results as CSV, reports and project files", (0, 1, 1)),
     ("Facet chat with your own Claude or GPT key", (0, 1, 1)),
-    ("Cloud and team", None),
-    ("Cloud projects", ("3 projects", "Unlimited, 250 MB", "Unlimited, shared")),
+    ("Files and groups", None),
+    ("Share a project by link", (1, 1, 1)),
+    ("Project files: save and open", (0, 1, 1)),
     ("People", ("1", "1", "Up to 10")),
-    ("Shared lab projects and one invoice", (0, 0, 1)),
+    ("One invoice for the group", (0, 0, 1)),
 ]
 def pricing():
     root = "../"
@@ -285,52 +286,52 @@ def pricing():
         rows += f"<tr><th>{esc(name)}</th>{''.join(cell(x) for x in v)}</tr>"
     body = f"""<main>
 <section class="sol-hero sol-hero-hub"><div class="wrap pr-head">
-  <h1>Free for analysis. Pro when you publish.</h1>
-  <p class="sol-lede">Every analysis, model and warning is free, without limits. Pro adds what goes into papers and reports. Early-access prices, locked in for as long as you stay subscribed.</p>
+  <h1>Plans and pricing</h1>
+  <p class="sol-lede">Every analysis, model and warning is free, without limits. Pro adds publication exports, auto-written text, batch runs and the Facet chat. Early-access prices stay fixed for as long as a subscription continues.</p>
   <div class="pr-toggles"><div class="seg-pr" role="radiogroup" aria-label="Billing"><button data-bill="yearly" aria-pressed="true">Yearly <span>save 40%</span></button><button data-bill="monthly" aria-pressed="false">Monthly</button></div>
   <div class="seg-pr" role="radiogroup" aria-label="Currency"><button data-cur="usd" aria-pressed="true">US$</button><button data-cur="inr" aria-pressed="false">₹ INR</button></div></div>
 </div></section>
 <section class="wrap section pr-plans">
   <div class="pricing">
     <div class="card price"><h3>Free</h3><div class="amt" data-amt="free">$0</div><p class="sub">for everyone, forever</p>
-      <ul><li>All analyses, tools and examples</li><li>Discover and the AI models</li><li>Live graphs and PNG figures</li><li>3 cloud projects with a free account</li></ul>
+      <ul><li>All analyses, tools and examples</li><li>Discover and the AI models</li><li>Live graphs and PNG figures</li><li>Share by link, install as an app</li></ul>
       <a class="btn" href="{root}studio/">Open Studio</a></div>
     <div class="card price best"><h3>Pro <span>Best value</span></h3><div class="amt" data-amt="pro">$29<small> / year</small></div><p class="sub" data-sub="pro">about $2.42 a month</p>
-      <ul><li>Everything in Free</li><li>Journal-size TIFF, PNG and SVG figures, no watermark</li><li>Batch runs on any number of files</li><li>Auto-written methods and results</li><li>Unlimited cloud projects, 250 MB</li><li>Facet chat with your own AI key</li></ul>
+      <ul><li>Everything in Free</li><li>Journal-size TIFF, PNG and SVG figures, no watermark</li><li>Batch runs on any number of files</li><li>Auto-written methods and results</li><li>Project files: save and open your work</li><li>Facet chat with your own AI key</li></ul>
       <button class="btn primary" data-buy-pro>Get Pro</button><button class="pr-trial" data-trial>or try Pro free for 7 days</button></div>
     <div class="card price"><h3>Lab</h3><div class="amt" data-amt="lab">$299<small> / year</small></div><p class="sub">up to 10 people, one invoice</p>
-      <ul><li>Everything in Pro for the group</li><li>Shared lab projects</li><li>Invite and remove members</li><li>Invoice or purchase order</li></ul>
+      <ul><li>Pro for every member of the group</li><li>One licence, managed by the group</li><li>Invoice or purchase order</li></ul>
       <button class="btn" data-buy="lab">Get Lab</button><a class="pr-trial" href="{root}contact/?topic=lab">Talk to us about a department licence</a></div>
   </div>
 </section>
 <section class="wrap section"><div class="sec-head"><h2>Compare plans</h2></div>
   <div class="tbl-wrap pr-tbl"><table><thead><tr><th></th><th>Free</th><th>Pro</th><th>Lab</th></tr></thead><tbody>{rows}</tbody></table></div></section>
-<section class="wrap section"><div class="sec-head"><h2>Pay your way, securely</h2><p>Checkout is run by established payment providers. Lattent never sees or stores your card details.</p></div>
+<section class="wrap section"><div class="sec-head"><h2>How to pay</h2><p>Online checkout is being set up. Until then, request a payment link or an invoice from the contact page; we send it within a working day, and an access code that activates Pro once payment is confirmed.</p></div>
   <div class="pay-grid">
-    <div class="card"><h3>Worldwide</h3><p class="pay-m">Cards · PayPal · Apple Pay · Google Pay</p><p>In US dollars, through Lemon Squeezy, our merchant of record. Sales tax and VAT are calculated and handled at checkout.</p></div>
-    <div class="card"><h3>India</h3><p class="pay-m">UPI · RuPay, Visa, Mastercard · net banking</p><p>In rupees, through Razorpay, with a GST invoice for your institution.</p></div>
+    <div class="card"><h3>Worldwide</h3><p class="pay-m">Card · PayPal</p><p>A payment link from Lemon Squeezy, our merchant of record, in US dollars; sales tax and VAT are handled on the link.</p></div>
+    <div class="card"><h3>India</h3><p class="pay-m">UPI · cards · net banking</p><p>A payment link from Razorpay in rupees, with a GST invoice for your institution.</p></div>
     <div class="card"><h3>Institutions</h3><p class="pay-m">Invoice · purchase order · bank transfer</p><p>For Lab plans and department licences, we issue a proper invoice for grant or department funds.</p><a href="{root}contact/?topic=lab">Request an invoice →</a></div>
   </div>
-  <ul class="pr-trust"><li>{CHECK}PCI-DSS-compliant payment providers</li><li>{CHECK}Plans activate from signed, verified payment events only</li><li>{CHECK}Cancel any time from your account</li><li>{CHECK}14-day refund, no questions asked</li></ul>
+  <ul class="pr-trust"><li>{CHECK}Payments are processed by Lemon Squeezy or Razorpay; Lattent never sees card details</li><li>{CHECK}Pro is activated with a code sent once payment is confirmed</li><li>{CHECK}Cancel by writing to us; Pro continues to the end of the paid period</li><li>{CHECK}14-day refund, no questions asked</li></ul>
 </section>
 <section class="wrap section"><div class="sec-head"><h2>Questions about pricing</h2></div><div class="faq">
-  <details><summary>Is the free plan really free?</summary><p>Yes. Every analysis, every AI model and Discover are free with no time limit. Pro adds publication exports, auto-written text, more cloud storage and the Facet chat.</p></details>
+  <details><summary>Is the free plan really free?</summary><p>Yes. Every analysis, every AI model and Discover are free with no time limit. Pro adds publication exports, auto-written text, batch runs and the Facet chat.</p></details>
   <details><summary>Can my lab or department pay by invoice?</summary><p>Yes. Choose Lab, or <a href="{root}contact/?topic=lab">write to us</a> with your institution’s details, and we will send an invoice or accept a purchase order.</p></details>
-  <details><summary>Do prices include tax?</summary><p>Taxes are calculated at checkout where they apply, and you receive a tax invoice.</p></details>
-  <details><summary>What happens if I cancel?</summary><p>You keep Pro until the end of the period you paid for, then return to the free plan. Your projects stay yours, and you can export them at any time.</p></details>
+  <details><summary>Do prices include tax?</summary><p>Taxes are added where they apply and shown on the payment link or invoice, and you receive a tax invoice.</p></details>
+  <details><summary>What happens if I cancel?</summary><p>You keep Pro until the end of the period you paid for, then return to the free plan. Your projects stay in your browser and in your files.</p></details>
   <details><summary>Will the early-access price go up?</summary><p>New subscribers may pay more later; your price stays the same while your subscription continues.</p></details>
 </div></section>
-<section class="wrap"><div class="band"><div><h2>Questions before you buy?</h2><p>We usually reply within a day.</p></div><a class="btn big" href="{root}contact/?topic=sales">Contact us</a></div></section>
+<section class="wrap"><div class="band"><div><h2>Questions about plans</h2><p>We usually reply within a day.</p></div><a class="btn big" href="{root}contact/?topic=sales">Contact us</a></div></section>
 </main>
 """
-    return HEAD.format(title="Pricing | Lattent", desc="Lattent is free for analysis. Pro adds publication exports, auto-written methods and cloud storage from $4 a month or ₹299; Lab covers ten people. Cards, PayPal, UPI or invoice.", root=root, fonts=FONTS).replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/pricing.js"></script>\n</body>')
+    return HEAD.format(title="Pricing | Lattent", desc="Lattent is free for analysis. Pro adds publication exports, auto-written methods and batch runs from $4 a month or ₹299; Lab covers ten people. Card, UPI or invoice.", root=root, fonts=FONTS).replace('</head>', f'<link rel="stylesheet" href="{root}assets/css/pricing.css">\n</head>') + body + FOOT.format(root=root).replace("</body>", f'<script src="{root}assets/js/pricing.js"></script>\n</body>')
 
 
 def contact():
     root = "../"
     body = f"""<main>
 <section class="sol-hero sol-hero-hub"><div class="wrap">
-  <h1>Talk to us.</h1>
+  <h1>Contact</h1>
   <p class="sol-lede">Questions about buying, a Lab plan or an invoice, help with an analysis, or an idea for Lattent: write to us and a person will reply, usually within a day.</p>
 </div></section>
 <section class="wrap section ct-grid">
@@ -363,7 +364,7 @@ GUIDES = [
         ("How do I start?", "Open Studio and choose a worked example close to your field, or create a table and paste your data straight from Excel or an instrument export. Then press Analyze, or open Facet for a suggestion."),
         ("Which table type should I use?", "XY for curves and spectra (one X column, one or more Y columns; columns with the same title are replicates). Column for comparing groups. Multiple variables for compositions, process settings and properties, one row per sample."),
         ("Can I import instrument files?", "Yes. Drop them anywhere on Studio, or choose Import files to pick several at once. Supported: Excel (.xlsx), CSV, TXT, XY, JCAMP-DX, PANalytical XRDML, Rigaku RAS, Bruker UXD, Thermo SPC, and CIF (which becomes a simulated XRD pattern). Export binary .raw or .brml scans as .xy or .xrdml first. Files are read in the browser and never uploaded."),
-        ("Do I need an account?", "No. Everything runs in your browser and projects are kept there. An account adds cloud storage, your plan on every computer and Lab sharing."),
+        ("Do I need an account?", "No. Everything runs in your browser and projects are kept there. There is no account yet: Pro is activated on each computer with an access code we send you. Accounts with cloud storage are planned."),
     ]),
     ("Curve fitting and equations", "tools/curve-fitting/", [
         ("Which equation should I fit?", "Run Auto-fit: it fits every plausible equation for the shape of your data and ranks them by AICc. Equation discovery can also find a formula that is not in the library."),
@@ -380,8 +381,8 @@ GUIDES = [
         ("My Tauc fit looks wrong.", "Choose the transition type (direct or indirect) and set the linear region by hand around the steepest part of the absorption edge."),
     ]),
     ("Facet and the AI models", "ai/", [
-        ("What can Facet do without an API key?", "Suggest analyses, check your whole project for mistakes, and read data from a picture of a graph. All of this runs offline in your browser."),
-        ("How do I use the chat?", "Open Facet, choose Ask, and add your own Anthropic or OpenAI key; it stays in your browser. You can attach a figure and ask what it shows or what is wrong with it. Analyses it proposes run only after you approve them."),
+        ("What can Facet do without an API key?", "Suggest analyses, check the whole project for mistakes, read data from a picture of a graph and write the report. All of this runs offline in your browser."),
+        ("How do I use the chat?", "Open Facet, press Add AI key and paste your own Anthropic or OpenAI key; it stays in your browser. Type a question at the foot of the panel, or attach a figure and ask what it shows or what is wrong with it. Analyses it proposes run only after you approve them."),
         ("How accurate are the models?", "Each model’s accuracy on data it never saw is listed on the AI page and the validation page."),
     ]),
     ("Discover: database, phases, new materials", "studio/?discover=search", [
@@ -393,21 +394,21 @@ GUIDES = [
         ("Can I analyse many files at once?", "Yes. Choose Import files and select them all (or drop them on Studio); each becomes a table. Run the analysis on one, set the options, then choose Run on other tables. Every table gets its own analysis, and the key numbers are collected in one summary table you can plot against the temperature or time in the file names. Free plans run batches of up to 5 files."),
         ("Can I export my results?", "Yes: results tables as CSV and one-page reports with Pro, and your data tables as CSV on any plan."),
     ]),
-    ("Projects, cloud and Lab teams", "account/", [
-        ("Where is my project saved?", "In your browser, automatically. Clearing your browser’s site data removes it, so save important work to the cloud (free account: 3 projects) or as a project file."),
-        ("How does Lab sharing work?", "The Lab plan owner invites members from the account page; projects shared with the lab open for every member."),
+    ("Projects and sharing", "account/", [
+        ("Where is my project saved?", "In your browser, automatically. Clearing the browser’s site data removes it, so keep important work as a project file (Save file) or as a share link."),
+        ("How does the Lab plan work?", "The Lab plan covers up to ten people on one invoice. Each member activates Pro with their own access code, and projects are shared by link or as files. Shared cloud workspaces are planned."),
     ]),
     ("Plans and billing", "pricing/", [
-        ("How do I pay?", "By card, PayPal or Apple Pay worldwide, by UPI, cards or net banking in India, or by invoice for institutions. See the pricing page."),
-        ("I paid, but Pro is still locked.", "Sign in with the same email you used to pay; the plan activates within a few seconds of the payment confirmation. If it does not, contact us with your receipt."),
-        ("How do I cancel or get a refund?", "Cancel any time from your account; you keep Pro until the end of the paid period. Refunds within 14 days of a payment, no questions asked."),
+        ("How do I pay?", "Request a payment link or an invoice from the contact page. We send a Lemon Squeezy link (card, worldwide) or a Razorpay link (UPI and cards, India) within a working day, and an access code once payment is confirmed. Online checkout is being set up."),
+        ("I paid, but Pro is still locked.", "Your access code arrives by email once the payment is confirmed, usually the same day. Activate it on the Account page with the email address it was issued to. If it has not arrived within a working day, write to us with your receipt."),
+        ("How do I cancel or get a refund?", "Write to us; you keep Pro until the end of the paid period. Refunds within 14 days of a payment, no questions asked."),
     ]),
 ]
 TROUBLE = [
     ("My pasted data lands in one column.", "Lattent recognises tab, comma and semicolon separators and decimal commas. If the paste still lands in one column, copy the cells directly from Excel rather than from a PDF, or use Paste or import."),
     ("A chart is blank or the page looks broken.", "Use a recent Chrome, Edge, Firefox or Safari, reload the page, and turn off extensions that block scripts for this site."),
     ("Studio is slow with a large file.", "Curve fitting and AutoML work best with up to a few thousand points; for long spectra, crop to the region of interest first."),
-    ("I lost my project.", "Projects live in the browser where you made them. If the browser’s data was cleared and the project was not saved to the cloud or as a file, it cannot be recovered."),
+    ("I lost my project.", "Projects live in the browser where you made them. If the browser’s data was cleared and the project was not kept as a file or a share link, it cannot be recovered."),
 ]
 def support():
     root = "../"
@@ -419,12 +420,12 @@ def support():
     trouble = "".join(f'<details class="sp-item"><summary>{esc(q)}</summary><p>{esc(ans)}</p></details>' for q, ans in TROUBLE)
     body = f"""<main>
 <section class="sol-hero sol-hero-hub"><div class="wrap sp-head">
-  <h1>How can we help?</h1>
-  <p class="sol-lede">Answers to common questions, guides by topic, and a person to talk to when you need one.</p>
+  <h1>Support</h1>
+  <p class="sol-lede">Answers to common questions, guides by topic, and a direct line to the founders.</p>
   <label class="sp-search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13.5 13.5l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><input type="search" id="sp-q" placeholder="Search help: crystallite size, which test, billing…" aria-label="Search help"></label>
 </div></section>
 <section class="wrap section sp-start">
-  <div class="sec-head"><h2>Start in three steps</h2></div>
+  <div class="sec-head"><h2>Getting started</h2></div>
   <ol class="how"><li><b>Open Studio</b><span>Choose a worked example or a new table. Nothing to install, no account needed.</span></li><li><b>Paste your data</b><span>Straight from Excel or your instrument. Facet recognises it and suggests the analysis.</span></li><li><b>Read, check, export</b><span>Results with uncertainties, a project check by Facet, and figures with methods text.</span></li></ol>
   <p><a class="btn primary" href="{root}studio/">Open Studio</a> <a class="btn" href="{root}#examples">Browse worked examples</a></p>
 </section>
@@ -433,7 +434,7 @@ def support():
   <p class="sp-none" id="sp-none" hidden>No answers match. <a href="{root}contact/?topic=support">Ask us directly →</a></p>
 </section>
 <section class="wrap section"><div class="sec-head"><h2>Troubleshooting</h2></div><div class="faq">{trouble}</div></section>
-<section class="wrap section"><div class="sec-head"><h2>Still need help?</h2></div>
+<section class="wrap section"><div class="sec-head"><h2>Contact</h2></div>
   <div class="pay-grid sp-contact">
     <div class="card"><h3>Contact support</h3><p>Tell us what you measured, what you expected and what you see. We aim to reply within one working day.</p><a href="{root}contact/?topic=support">Write to support →</a></div>
     <div class="card"><h3>Billing and invoices</h3><p>Payment links, receipts, invoices, purchase orders and refunds.</p><a href="{root}contact/?topic=sales">Contact billing →</a></div>
@@ -451,7 +452,7 @@ EXTRA_KB = [
     ("Who is Lattent for?", "Researchers and students in materials science, chemistry, chemical engineering and physics: anyone who measures XRD, spectra, isotherms, kinetics or mechanical properties and needs fits, statistics and figures for a paper, thesis or report. Teaching labs use it because there is nothing to install and the free plan has every analysis.", "solutions/", "Solutions by field", "who audience users student phd researcher scientist engineer teacher professor industry company academic university suitable"),
     ("Which measurements and instruments does Lattent support?", "XRD from any diffractometer; UV–Vis, FTIR and Raman spectra; adsorption isotherms and kinetics; Arrhenius and VFT data; DSC crystallisation; tensile tests; Tafel plots from electrochemistry; plate assays (dose–response, enzyme kinetics, qPCR, standard curves); and any XY, column or multi-variable table.", "tools/", "Quick tools", "measurement measurements technique data type types kind supported handle xrd spectra uv vis ftir raman isotherm kinetics dsc tensile tafel electrochemistry assay plate reader instrument"),
     ("Which analysis should I run?", "Press Suggest an analysis on any table: Lattent's shape model recognises the kind of behaviour (a spectrum, an absorption edge, a saturating isotherm, a thermally activated trend) and proposes the right analysis with one-click Run. Or press Analyze to choose from the full list, grouped into fitting, spectra and materials, statistics, and machine learning.", "studio/", "Open Studio", "which analysis choose suggest recommend right appropriate method model should pick decide"),
-    ("What is Lattent Studio?", "Studio is the main workspace. A project holds data tables, each table has its analyses, and each analysis has its results, graph and write-up. Everything updates when you edit a value. Projects are saved in your browser, and optionally to the cloud or as a file.", "studio/", "Open Studio", "studio workspace project table analysis what is"),
+    ("What is Lattent Studio?", "Studio is the main workspace. A project holds data tables, each table has its analyses, and each analysis has its results, graph and write-up. Everything updates when you edit a value. Projects are saved in your browser, and can be kept as a file or shared by link.", "studio/", "Open Studio", "studio workspace project table analysis what is"),
     ("What is Discover?", "Discover is Lattent's materials side: search 5.8 million computed crystal structures (the Alexandria database) with 3D structures, simulated XRD patterns and CIF files; identify the phases in your XRD pattern; and generate new compositions with Lattent's own diffusion model, with predicted formation energy and band gap.", "studio/?discover=search", "Open Discover", "discover database materials crystal structure search alexandria phase generate what is"),
     ("Can I open Excel files?", "Yes. Drop an .xlsx or .xlsm workbook on Studio or choose Import files. Every sheet with numbers becomes a table, a two-row header such as Temperature over K becomes Temperature (K), and hidden sheets are skipped. Old binary .xls files need saving as .xlsx or CSV first. Nothing is uploaded.", "studio/", "Open Studio", "excel xlsx xls spreadsheet workbook sheet import open"),
     ("Can I analyse many files at once?", "Yes. Choose Import files and select them all (or drop them on Studio); each becomes a table. Run the analysis on one, set the options, then choose Run on other tables. Every table gets its own analysis, and the key numbers are collected in one summary table you can plot against the temperature or time in the file names. Free plans run batches of up to 5 files.", "studio/", "Open Studio", "batch bulk many multiple files series automate summary table run on other tables once"),
@@ -460,7 +461,7 @@ EXTRA_KB = [
     ("How do I share a project with a colleague?", "Press Share in Studio to get a link that carries a copy of the whole project (tables, analyses and graphs) inside the link itself; nothing is uploaded. Whoever opens it gets their own copy. For ongoing work together, the Lab plan gives a group shared cloud projects.", "studio/", "Open Studio", "share link send colleague supervisor collaborate copy project url"),
     ("Does Lattent work offline?", "Yes. Choose Install app at the foot of any page (it shows the steps for your phone or computer) and Studio keeps analysing data without an internet connection, for example on an instrument computer. When you are online it always loads the latest version. Discover's database search and the AI chat need a connection.", "studio/", "Open Studio", "offline install app desktop internet connection pwa instrument computer without"),
     ("Do I need to install anything?", "No. Lattent runs in a recent Chrome, Edge, Firefox or Safari with nothing to install and no account. You can also install it as an app for offline use: choose Install app at the foot of any page.", "studio/", "Open Studio", "install requirement requirements browser windows mac linux chrome firefox safari edge"),
-    ("Is Lattent free?", "Yes, for analysis: every analysis, model, tool and example is free without limits, and no account is needed. Pro adds publication exports, auto-written methods, more cloud storage and the AI chat; Lab covers a group. Current prices are on the pricing page.", "pricing/", "See pricing", "free cost price plan pro lab"),
+    ("Is Lattent free?", "Yes, for analysis: every analysis, model, tool and example is free without limits, and no account is needed. Pro adds publication exports, auto-written methods, batch runs and the AI chat; Lab covers a group. Current prices are on the pricing page.", "pricing/", "See pricing", "free cost price plan pro lab"),
     ("How does Lattent compare with Origin or GraphPad Prism?", "Lattent is built around the measurements materials and chemistry labs make (XRD, spectra, band gaps, isotherms, Arrhenius data, tensile tests), with curve fitting, statistics and publication graphs underneath, plus a shape model, Bayesian optimisation and Facet. It runs in any browser with nothing to install and costs a fraction of a desktop licence. It does not yet do everything those programs do, such as 3D plots or two-way ANOVA.", "#faq", "Questions", "compare comparison versus origin prism graphpad excel igor matlab better different alternative"),
     ("What is new in Lattent?", "Recent additions: Excel import, batch runs over many files, journal-size figure export, share by link, an installable offline app, and quick tools for adsorption kinetics, Tafel slopes and Avrami kinetics. The changelog lists every release.", "changelog/", "What's new", "new recent update updates release changelog latest version added"),
     ("Which file formats can I import?", "Drag files onto Studio, or choose Import files to pick several at once. Lattent reads Excel workbooks (.xlsx, one table per sheet), CSV, TXT, DAT, XY, JCAMP-DX (.jdx, .dx, including compressed data), PANalytical .xrdml, Rigaku .ras, Bruker .uxd, Thermo/Galactic .spc and .cif. A CIF becomes a simulated XRD pattern. Binary vendor files (.raw, .brml, PerkinElmer .sp) and old .xls workbooks need saving in another format first. Nothing is uploaded.", "studio/", "Open Studio", "import file format excel xlsx xls spreadsheet batch many files csv jcamp jdx xrdml ras uxd spc cif raw drag drop upload instrument export"),
@@ -475,7 +476,7 @@ EXTRA_KB = [
     ("Can Lattent read a graph from an image?", "Yes. In Facet, choose Graph: calibrate the axes with four clicks, click the curve, and Lattent traces it into a data table. With an AI key you can also attach the figure and ask what it shows or what is wrong with it.", "studio/?facet=graph", "Read a graph", "digitise digitize image plot picture figure graph data extract"),
     ("What is Facet?", "Facet is Lattent’s AI lab partner. It suggests analyses, checks your project for mistakes, reads graphs, writes reports autonomously and, with your own Claude or GPT key, answers questions and reviews figures. All numbers come from the validated engine.", "ai/", "Facet AI", "facet ai assistant partner co-scientist"),
     ("How much does Lattent cost?", "{{pricing}}", "pricing/", "See pricing", "price cost pro plan lab free subscription payment inr rupee"),
-    ("Is my data private?", "Analyses run in your browser and projects stay there unless you save them to the cloud. Nothing you paste is uploaded. The optional AI features send data only to the provider you chose, with your own key.", "legal/privacy.html", "Privacy notice", "privacy data upload security gdpr stored"),
+    ("Is my data private?", "Analyses run in your browser and projects stay there, or in files you save. Nothing you paste is uploaded. The optional AI features send data only to the provider you chose, with your own key.", "legal/privacy.html", "Privacy notice", "privacy data upload security gdpr stored"),
     ("How do I use an access code?", "If we sent you an access code (it starts with LAT-), open Account, find Licence key or access code, paste the code, enter the email address it was issued to and press Activate. Pro is then active on that browser; do the same on another computer with the same code. A code may carry an end date, and we can renew or withdraw it. Nothing is sent anywhere: the page checks the code against a fingerprint.", "account/", "Account and plans", "access code LAT- activate licence key free pro founder invitation unlock"),
     ("How do I talk to a person?", "Use the contact form and tell us what you need. We usually reply within one working day.", "contact/", "Contact us", "contact email support human sales invoice question help"),
 ]
